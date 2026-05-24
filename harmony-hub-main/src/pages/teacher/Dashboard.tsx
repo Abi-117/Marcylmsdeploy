@@ -1,5 +1,8 @@
 import { useEffect, useState } from "react";
+
 import { motion } from "framer-motion";
+
+import { format } from "date-fns";
 
 import {
   StatCard,
@@ -15,12 +18,6 @@ import { Button } from "@/components/ui/button";
 
 import { Badge } from "@/components/ui/badge";
 
-import { Input } from "@/components/ui/input";
-
-import { Label } from "@/components/ui/label";
-
-import { Textarea } from "@/components/ui/textarea";
-
 import {
   Dialog,
   DialogContent,
@@ -28,6 +25,12 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+
+import { Input } from "@/components/ui/input";
+
+import { Label } from "@/components/ui/label";
+
+import { Textarea } from "@/components/ui/textarea";
 
 import {
   Video,
@@ -38,9 +41,14 @@ import {
   ExternalLink,
 } from "lucide-react";
 
-import { format } from "date-fns";
+const API =
+  "https://marcylmsdeploy.onrender.com/api";
 
 function TeacherOverview() {
+
+  // =====================================
+  // AUTH
+  // =====================================
 
   const user = JSON.parse(
     localStorage.getItem("ms-auth") || "{}"
@@ -50,6 +58,10 @@ function TeacherOverview() {
 
   const teacherCourse =
     user?.courseName || "";
+
+  // =====================================
+  // STATES
+  // =====================================
 
   const [classes, setClasses] =
     useState<any[]>([]);
@@ -65,8 +77,14 @@ function TeacherOverview() {
       rating: 4.9,
     });
 
+  // =====================================
+  // FETCH
+  // =====================================
+
   useEffect(() => {
+
     fetchDashboard();
+
   }, []);
 
   const fetchDashboard =
@@ -76,16 +94,11 @@ function TeacherOverview() {
 
         const response =
           await fetch(
-            `https://marcylmsdeploy.onrender.com/api/teacher/dashboard/${teacherId}`
+            `${API}/teacher/dashboard/${teacherId}`
           );
 
         const data =
           await response.json();
-
-        if (!response.ok) {
-          console.log(data.message);
-          return;
-        }
 
         setClasses(
           data.classes || []
@@ -95,7 +108,9 @@ function TeacherOverview() {
           data.students || []
         );
 
-        setStats(data.stats);
+        setStats(
+          data.stats
+        );
 
       } catch (error) {
 
@@ -105,136 +120,259 @@ function TeacherOverview() {
 
     };
 
+  // =====================================
+  // UI
+  // =====================================
+
   return (
 
     <div>
 
       <PageHeader
-        title={`Good morning, ${
+        title={`Welcome ${
           user?.name || "Teacher"
         }`}
         subtitle={`Teaching ${teacherCourse}`}
         actions={
-          <ScheduleClassButton />
+          <ScheduleClassButton
+            students={students}
+            teacherId={teacherId}
+            teacherCourse={teacherCourse}
+          />
         }
       />
 
+      {/* ===================================== */}
       {/* STATS */}
+      {/* ===================================== */}
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
 
         <StatCard
-          label="Today's classes"
+          label="Today's Classes"
           value={stats.todayClasses.toString()}
           icon={Video}
           accent
         />
 
         <StatCard
-          label="My students"
+          label="My Students"
           value={stats.students.toString()}
           icon={GraduationCap}
         />
 
         <StatCard
-          label="Pending reviews"
+          label="Pending Reviews"
           value={stats.pendingReviews.toString()}
           icon={ClipboardList}
         />
 
         <StatCard
-          label="Average rating"
+          label="Average Rating"
           value={stats.rating.toString()}
           icon={Award}
         />
 
       </div>
 
-      {/* CLASSES */}
+      {/* ===================================== */}
+      {/* MAIN CONTENT */}
+      {/* ===================================== */}
 
       <div className="mt-6 grid gap-6 lg:grid-cols-3">
+
+        {/* ===================================== */}
+        {/* UPCOMING CLASSES */}
+        {/* ===================================== */}
 
         <Card className="lg:col-span-2">
 
           <CardContent className="p-6">
 
-            <div className="mb-4 flex items-center justify-between">
+            <div className="mb-5 flex items-center justify-between">
 
-              <div className="font-display text-lg">
-                Upcoming classes
+              <div>
+
+                <div className="font-display text-xl">
+
+                  Upcoming Classes
+
+                </div>
+
+                <div className="text-sm text-muted-foreground">
+
+                  Scheduled student sessions
+
+                </div>
+
               </div>
 
-              <Button
-                variant="ghost"
-                size="sm"
-              >
-                Calendar
-              </Button>
+              <Badge className="bg-gold text-black">
+
+                {classes.length} Classes
+
+              </Badge>
 
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-4">
+
+              {classes.length === 0 && (
+
+                <div className="rounded-xl border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
+
+                  No classes scheduled
+
+                </div>
+
+              )}
 
               {classes.map((c) => (
 
                 <motion.div
                   key={c._id}
-                  whileHover={{ x: 2 }}
-                  className="flex flex-wrap items-center gap-3 rounded-xl border border-border p-3.5"
+                  whileHover={{ y: -2 }}
+                  className="rounded-2xl border border-border bg-card p-5"
                 >
 
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gold-soft text-gold-foreground">
+                  <div className="flex flex-wrap items-start justify-between gap-4">
 
-                    <Video className="h-4 w-4" />
+                    {/* LEFT */}
 
-                  </div>
+                    <div className="flex items-start gap-3">
 
-                  <div className="flex-1 min-w-0">
+                      <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gold-soft text-gold-foreground">
 
-                    <div className="font-medium text-sm">
-                      {c.title}
+                        <Video className="h-5 w-5" />
+
+                      </div>
+
+                      <div>
+
+                        <div className="font-semibold text-base">
+
+                          {c.title}
+
+                        </div>
+
+                        <div className="mt-1 text-sm text-muted-foreground">
+
+                          {c.courseName}
+
+                        </div>
+
+                        <div className="mt-2 flex flex-wrap gap-2">
+
+                          <Badge variant="outline">
+
+                            {c.platform}
+
+                          </Badge>
+
+                          <Badge variant="outline">
+
+                            {c.status}
+
+                          </Badge>
+
+                        </div>
+
+                      </div>
+
                     </div>
 
-                    <div className="text-xs text-muted-foreground truncate">
-                      {c.courseName}
+                    {/* RIGHT */}
+
+                    <div className="text-right">
+
+                      <div className="rounded-xl bg-gold-soft px-4 py-2 text-sm font-semibold text-black">
+
+                        {format(
+                          new Date(c.date),
+                          "h:mm a"
+                        )}
+
+                      </div>
+
+                      <div className="mt-2 text-xs text-muted-foreground">
+
+                        {format(
+                          new Date(c.date),
+                          "EEEE"
+                        )}
+
+                      </div>
+
+                      <div className="text-xs text-muted-foreground">
+
+                        {format(
+                          new Date(c.date),
+                          "MMM d, yyyy"
+                        )}
+
+                      </div>
+
                     </div>
 
                   </div>
 
-                  <div className="text-xs text-muted-foreground">
+                  {/* STUDENTS */}
 
-                    {format(
-                      new Date(c.date),
-                      "EEE h:mm a"
-                    )}
+                  <div className="mt-5">
+
+                    <div className="mb-2 text-xs font-medium text-muted-foreground">
+
+                      Students
+
+                    </div>
+
+                    <div className="flex flex-wrap gap-2">
+
+                      {c.students?.map((s: any) => (
+
+                        <div
+                          key={s._id}
+                          className="rounded-full border border-border bg-muted px-3 py-1 text-xs"
+                        >
+
+                          {s.name}
+
+                        </div>
+
+                      ))}
+
+                    </div>
 
                   </div>
 
-                  <Badge variant="outline">
-                    {c.platform}
-                  </Badge>
+                  {/* NOTES */}
+
+                  {c.notes && (
+
+                    <div className="mt-4 rounded-xl bg-muted p-3 text-sm text-muted-foreground">
+
+                      {c.notes}
+
+                    </div>
+
+                  )}
+
+                  {/* BUTTON */}
 
                   {c.meetingLink && (
 
-                    <Button
-                      size="sm"
-                      className="bg-foreground text-background hover:bg-foreground/90"
-                      asChild
+                    <a
+                      href={c.meetingLink}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="mt-5 inline-flex items-center rounded-xl bg-black px-4 py-2 text-sm font-medium text-white"
                     >
 
-                      <a
-                        href={c.meetingLink}
-                        target="_blank"
-                        rel="noreferrer"
-                      >
+                      Open Class
 
-                        Open
+                      <ExternalLink className="ml-2 h-4 w-4" />
 
-                        <ExternalLink className="ml-1 h-3 w-3" />
-
-                      </a>
-
-                    </Button>
+                    </a>
 
                   )}
 
@@ -248,51 +386,247 @@ function TeacherOverview() {
 
         </Card>
 
+        {/* ===================================== */}
         {/* STUDENTS */}
+        {/* ===================================== */}
 
         <Card>
 
           <CardContent className="p-6">
 
-            <div className="mb-4 font-display text-lg">
-              Paid Students
+            <div className="mb-5">
+
+              <div className="font-display text-xl">
+
+                Paid Students
+
+              </div>
+
+              <div className="text-sm text-muted-foreground">
+
+                Active enrolled students
+
+              </div>
+
             </div>
 
-            <div className="space-y-2.5">
+            <div className="space-y-3">
 
               {students.map((s) => (
 
-                <div
+                <motion.div
                   key={s._id}
-                  className="flex items-center justify-between rounded-lg border border-border p-2.5 text-sm"
+                  whileHover={{ x: 2 }}
+                  className="rounded-xl border border-border p-4"
                 >
 
-                  <div>
+                  <div className="flex items-start justify-between gap-3">
 
-                    <div className="font-medium">
-                      {s.name}
+                    <div>
+
+                      <div className="font-medium">
+
+                        {s.name}
+
+                      </div>
+
+                      <div className="mt-1 text-xs text-muted-foreground">
+
+                        {s.selectedLevel}
+
+                      </div>
+
                     </div>
 
-                    <div className="text-xs text-muted-foreground">
+                    <Badge variant="outline">
 
-                      {s.selectedLevel} · {
-  typeof s.course === "object"
-    ? s.course?.name
-    : s.course
-}
+                      {s.mode}
 
-                    </div>
+                    </Badge>
 
                   </div>
 
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                  >
-                    View
-                  </Button>
+                  <div className="mt-3 text-xs text-muted-foreground">
 
-                </div>
+                    {s.availableDays?.join(", ")}
+
+                  </div>
+
+                  <div className="mt-1 text-xs text-muted-foreground">
+
+                    {s.fromTime} - {s.toTime}
+
+                  </div>
+
+                  <Dialog>
+
+  <DialogTrigger asChild>
+
+    <Button
+      size="sm"
+      variant="outline"
+      className="mt-4 w-full"
+    >
+
+      View
+
+    </Button>
+
+  </DialogTrigger>
+
+  <DialogContent className="max-w-lg">
+
+    <DialogHeader>
+
+      <DialogTitle>
+
+        Student Details
+
+      </DialogTitle>
+
+    </DialogHeader>
+
+    <div className="space-y-4">
+
+      {/* NAME */}
+
+      <div className="rounded-xl border border-border p-4">
+
+        <div className="text-xs text-muted-foreground">
+
+          Student Name
+
+        </div>
+
+        <div className="mt-1 font-semibold">
+
+          {s.name}
+
+        </div>
+
+      </div>
+
+      {/* COURSE */}
+
+      <div className="rounded-xl border border-border p-4">
+
+        <div className="text-xs text-muted-foreground">
+
+          Course
+
+        </div>
+
+        <div className="mt-1 font-semibold">
+
+          {typeof s.course === "object"
+            ? s.course?.name
+            : s.course}
+
+        </div>
+
+      </div>
+
+      {/* LEVEL */}
+
+      <div className="rounded-xl border border-border p-4">
+
+        <div className="text-xs text-muted-foreground">
+
+          Level
+
+        </div>
+
+        <div className="mt-1 font-semibold">
+
+          {s.selectedLevel}
+
+        </div>
+
+      </div>
+
+      {/* DAYS */}
+
+      <div className="rounded-xl border border-border p-4">
+
+        <div className="text-xs text-muted-foreground">
+
+          Available Days
+
+        </div>
+
+        <div className="mt-1 font-semibold">
+
+          {s.availableDays?.join(", ")}
+
+        </div>
+
+      </div>
+
+      {/* TIME */}
+
+      <div className="rounded-xl border border-border p-4">
+
+        <div className="text-xs text-muted-foreground">
+
+          Available Time
+
+        </div>
+
+        <div className="mt-1 font-semibold">
+
+          {s.fromTime} - {s.toTime}
+
+        </div>
+
+      </div>
+
+      {/* MODE */}
+
+      <div className="rounded-xl border border-border p-4">
+
+        <div className="text-xs text-muted-foreground">
+
+          Class Mode
+
+        </div>
+
+        <div className="mt-1 font-semibold">
+
+          {s.mode}
+
+        </div>
+
+      </div>
+
+      {/* PAYMENT */}
+
+      <div className="rounded-xl border border-border p-4">
+
+        <div className="text-xs text-muted-foreground">
+
+          Payment Status
+
+        </div>
+
+        <div className="mt-1">
+
+          <Badge className="bg-green-600 text-white">
+
+            {s.paymentStatus}
+
+          </Badge>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </DialogContent>
+
+</Dialog>
+
+                </motion.div>
 
               ))}
 
@@ -310,16 +644,18 @@ function TeacherOverview() {
 
 }
 
-function ScheduleClassButton() {
+// =====================================
+// SCHEDULE CLASS BUTTON
+// =====================================
 
-  const user = JSON.parse(
-    localStorage.getItem("ms-auth") || "{}"
-  )?.state?.user;
+function ScheduleClassButton({
+  students,
+  teacherId,
+  teacherCourse,
+}: any) {
 
-  const teacherId = user?.id;
-
- const teacherCourse =
-  user?.course || "";
+  const [selectedStudents, setSelectedStudents] =
+    useState<string[]>([]);
 
   const [platform, setPlatform] =
     useState<
@@ -329,7 +665,7 @@ function ScheduleClassButton() {
   const [form, setForm] =
     useState({
 
-      title: `${teacherCourse} Master Class`,
+      title: `${teacherCourse} Class`,
 
       date: "",
 
@@ -343,14 +679,30 @@ function ScheduleClassButton() {
 
     });
 
+  // =====================================
+  // CREATE CLASS
+  // =====================================
+
   const createClass =
     async () => {
 
       try {
 
+        if (
+          selectedStudents.length === 0
+        ) {
+
+          alert(
+            "Select students"
+          );
+
+          return;
+
+        }
+
         const response =
           await fetch(
-            "https://marcylmsdeploy.onrender.com/api/classes",
+            `${API}/classes/create`,
             {
 
               method: "POST",
@@ -362,12 +714,32 @@ function ScheduleClassButton() {
 
               body: JSON.stringify({
 
-                ...form,
+                title:
+                  form.title,
 
                 teacherId,
 
                 courseName:
                   teacherCourse,
+
+                date: new Date(
+                  `${form.date}T${form.time}`
+                ),
+
+                platform:
+                  form.platform,
+
+                meetingLink:
+                  form.meetingLink,
+
+                notes:
+                  form.notes,
+
+                status:
+                  "Upcoming",
+
+                students:
+                  selectedStudents,
 
               }),
 
@@ -379,14 +751,16 @@ function ScheduleClassButton() {
 
         if (!response.ok) {
 
-          alert(data.message);
+          alert(
+            data.message
+          );
 
           return;
 
         }
 
         alert(
-          "Class scheduled successfully"
+          "Class Scheduled"
         );
 
         window.location.reload();
@@ -394,10 +768,6 @@ function ScheduleClassButton() {
       } catch (error) {
 
         console.log(error);
-
-        alert(
-          "Something went wrong"
-        );
 
       }
 
@@ -409,11 +779,11 @@ function ScheduleClassButton() {
 
       <DialogTrigger asChild>
 
-        <Button className="bg-gold text-gold-foreground hover:bg-gold/90 shadow-gold">
+        <Button className="bg-gold text-black">
 
-          <Plus className="mr-1.5 h-4 w-4" />
+          <Plus className="mr-2 h-4 w-4" />
 
-          Schedule class
+          Schedule Class
 
         </Button>
 
@@ -423,9 +793,9 @@ function ScheduleClassButton() {
 
         <DialogHeader>
 
-          <DialogTitle className="font-display text-2xl">
+          <DialogTitle>
 
-            Schedule {teacherCourse} Class
+            Schedule Class
 
           </DialogTitle>
 
@@ -433,12 +803,12 @@ function ScheduleClassButton() {
 
         <div className="space-y-4">
 
-          {/* CLASS TITLE */}
+          {/* TITLE */}
 
-          <div className="space-y-1.5">
+          <div>
 
             <Label>
-              Class title
+              Class Title
             </Label>
 
             <Input
@@ -454,13 +824,88 @@ function ScheduleClassButton() {
 
           </div>
 
-          {/* DATE + TIME */}
+          {/* STUDENTS */}
+
+          <div>
+
+            <Label>
+              Select Students
+            </Label>
+
+            <div className="mt-2 max-h-52 overflow-y-auto rounded-lg border border-border p-3 space-y-2">
+
+              {students.map(
+                (s: any) => (
+
+                  <label
+                    key={s._id}
+                    className="flex items-center justify-between rounded-md border border-border p-2 text-sm"
+                  >
+
+                    <div>
+
+                      <div className="font-medium">
+
+                        {s.name}
+
+                      </div>
+
+                      <div className="text-xs text-muted-foreground">
+
+                        {s.selectedLevel}
+
+                      </div>
+
+                    </div>
+
+                    <input
+                      type="checkbox"
+                      checked={selectedStudents.includes(
+                        s._id
+                      )}
+                      onChange={(e) => {
+
+                        if (
+                          e.target.checked
+                        ) {
+
+                          setSelectedStudents([
+                            ...selectedStudents,
+                            s._id,
+                          ]);
+
+                        } else {
+
+                          setSelectedStudents(
+                            selectedStudents.filter(
+                              (id) =>
+                                id !== s._id
+                            )
+                          );
+
+                        }
+
+                      }}
+                    />
+
+                  </label>
+
+                )
+              )}
+
+            </div>
+
+          </div>
+
+          {/* DATE */}
 
           <div className="grid grid-cols-2 gap-4">
 
-            <div className="space-y-1.5">
+            <div>
 
-              <Label>Date</Label>
+              <Label>
+                Date
+              </Label>
 
               <Input
                 type="date"
@@ -476,9 +921,11 @@ function ScheduleClassButton() {
 
             </div>
 
-            <div className="space-y-1.5">
+            <div>
 
-              <Label>Time</Label>
+              <Label>
+                Time
+              </Label>
 
               <Input
                 type="time"
@@ -498,13 +945,13 @@ function ScheduleClassButton() {
 
           {/* PLATFORM */}
 
-          <div className="space-y-1.5">
+          <div>
 
             <Label>
               Platform
             </Label>
 
-            <div className="grid grid-cols-2 gap-2">
+            <div className="mt-2 grid grid-cols-2 gap-2">
 
               {(
                 [
@@ -525,7 +972,7 @@ function ScheduleClassButton() {
                     });
 
                   }}
-                  className={`rounded-lg border p-3 text-sm font-medium transition-all ${
+                  className={`rounded-lg border p-3 text-sm ${
                     platform === p
                       ? "border-gold bg-gold-soft"
                       : "border-border"
@@ -544,18 +991,14 @@ function ScheduleClassButton() {
 
           {/* LINK */}
 
-          <div className="space-y-1.5">
+          <div>
 
             <Label>
-              Meeting link
+              Meeting Link
             </Label>
 
             <Input
-              placeholder={
-                platform === "Zoom"
-                  ? "https://zoom.us/j/..."
-                  : "https://meet.google.com/..."
-              }
+              placeholder="https://meet.google.com/..."
               value={form.meetingLink}
               onChange={(e) =>
                 setForm({
@@ -570,7 +1013,7 @@ function ScheduleClassButton() {
 
           {/* NOTES */}
 
-          <div className="space-y-1.5">
+          <div>
 
             <Label>
               Notes
@@ -578,7 +1021,6 @@ function ScheduleClassButton() {
 
             <Textarea
               rows={3}
-              placeholder="Today's topics..."
               value={form.notes}
               onChange={(e) =>
                 setForm({
@@ -595,7 +1037,7 @@ function ScheduleClassButton() {
 
           <Button
             onClick={createClass}
-            className="w-full bg-gold text-gold-foreground hover:bg-gold/90"
+            className="w-full bg-gold text-black"
           >
 
             Schedule Class

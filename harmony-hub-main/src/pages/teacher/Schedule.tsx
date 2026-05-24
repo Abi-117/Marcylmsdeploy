@@ -1,46 +1,219 @@
+import { useEffect, useState } from "react";
 
-import { PageHeader } from "@/components/dashboard/Primitives";
-import { Card, CardContent } from "@/components/ui/card";
-import { classes } from "@/mock-data";
+import axios from "axios";
+
 import { format } from "date-fns";
 
-const days = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
-const hours = ["8 AM","10 AM","12 PM","2 PM","4 PM","6 PM","8 PM"];
+import { PageHeader } from "@/components/dashboard/Primitives";
 
+import {
+  Card,
+  CardContent,
+} from "@/components/ui/card";
 
-function TeacherSchedule() {
+const API =
+  "https://marcylmsdeploy.onrender.com/api";
+
+const days = [
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+  "Sunday",
+];
+
+const hours = [
+  "06:00 AM",
+  "07:00 AM",
+  "08:00 AM",
+  "09:00 AM",
+  "10:00 AM",
+  "11:00 AM",
+  "12:00 PM",
+  "01:00 PM",
+  "02:00 PM",
+  "03:00 PM",
+  "04:00 PM",
+  "05:00 PM",
+  "06:00 PM",
+  "07:00 PM",
+  "08:00 PM",
+];
+
+export default function TeacherSchedule() {
+
+  const user = JSON.parse(
+    localStorage.getItem("ms-auth") || "{}"
+  )?.state?.user;
+
+  const teacherId = user?.id;
+
+  const [students, setStudents] =
+    useState<any[]>([]);
+
+  useEffect(() => {
+
+    fetchStudents();
+
+  }, []);
+
+  const fetchStudents =
+    async () => {
+
+      try {
+
+        const res =
+          await axios.get(
+
+            `${API}/student/teacher/${teacherId}?status=paid`
+
+          );
+
+        setStudents(res.data);
+
+      } catch (err) {
+
+        console.log(err);
+
+      }
+
+    };
+
   return (
-    <div>
-      <PageHeader title="Weekly schedule" subtitle="Your batches at a glance" />
-      <Card>
-        <CardContent className="p-0 overflow-x-auto">
-          <div className="grid min-w-[900px] grid-cols-[80px_repeat(7,1fr)]">
-            <div className="border-b border-r border-border bg-muted/30 p-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground"></div>
-            {days.map((d) => <div key={d} className="border-b border-r border-border bg-muted/30 p-3 text-center text-xs font-semibold uppercase tracking-wider text-muted-foreground">{d}</div>)}
-            {hours.map((h, hi) => (
-              <>
-                <div key={h} className="border-b border-r border-border p-3 text-xs text-muted-foreground">{h}</div>
-                {days.map((d, di) => {
-                  const cls = classes[(hi*7+di) % classes.length];
-                  const show = (hi + di) % 3 === 0;
-                  return (
-                    <div key={`${h}-${d}`} className="border-b border-r border-border p-2 min-h-[70px]">
-                      {show && (
-                        <div className="rounded-md bg-gold-soft border border-gold/30 p-2 text-[11px]">
-                          <div className="font-medium truncate">{cls.title}</div>
-                          <div className="text-muted-foreground truncate">{cls.batchName}</div>
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-    </div>
-  );
-}
 
-export default TeacherSchedule;
+    <div>
+
+      <PageHeader
+        title="Weekly Schedule"
+        subtitle="Auto generated from student availability"
+      />
+
+      <Card>
+
+        <CardContent className="overflow-x-auto p-0">
+
+          <div className="grid min-w-[1200px] grid-cols-[100px_repeat(7,1fr)]">
+
+            {/* HEADER */}
+
+            <div className="border-b border-r border-border bg-muted/30 p-3" />
+
+            {days.map((d) => (
+
+              <div
+                key={d}
+                className="border-b border-r border-border bg-muted/30 p-3 text-center text-xs font-semibold uppercase"
+              >
+
+                {d}
+
+              </div>
+
+            ))}
+
+            {/* TIME ROWS */}
+
+            {hours.map((hour) => (
+
+              <>
+
+                {/* TIME */}
+
+                <div
+                  key={hour}
+                  className="border-b border-r border-border p-3 text-xs text-muted-foreground"
+                >
+
+                  {hour}
+
+                </div>
+
+                {/* DAYS */}
+
+                {days.map((day) => {
+
+                  // MATCH STUDENT
+                  const matchedStudents =
+                    students.filter(
+
+                      (s: any) =>
+
+                        s.availableDays?.includes(
+                          day
+                        ) &&
+
+                        s.fromTime === hour
+
+                    );
+
+                  return (
+
+                    <div
+                      key={`${day}-${hour}`}
+                      className="min-h-[90px] border-b border-r border-border p-2"
+                    >
+
+                      <div className="space-y-2">
+
+                        {matchedStudents.map(
+                          (s: any) => (
+
+                            <div
+                              key={s._id}
+                              className="rounded-lg border border-gold/30 bg-gold-soft p-2 text-[11px]"
+                            >
+
+                              <div className="font-semibold">
+
+                                {s.name}
+
+                              </div>
+
+                              <div className="text-muted-foreground">
+
+                                {s.courseName}
+
+                              </div>
+
+                              <div className="text-muted-foreground">
+
+                                {s.selectedLevel}
+
+                              </div>
+
+                              <div className="mt-1 text-[10px]">
+
+                                {s.fromTime} - {s.toTime}
+
+                              </div>
+
+                            </div>
+
+                          )
+                        )}
+
+                      </div>
+
+                    </div>
+
+                  );
+
+                })}
+
+              </>
+
+            ))}
+
+          </div>
+
+        </CardContent>
+
+      </Card>
+
+    </div>
+
+  );
+
+}
