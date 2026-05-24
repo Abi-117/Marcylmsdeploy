@@ -253,7 +253,6 @@ router.put("/:id", async (req, res) => {
 // =====================================
 // GET STUDENT CLASSES
 // =====================================
-
 router.get("/student/:studentId", async (req, res) => {
   try {
     const classes = await Class.find({
@@ -262,7 +261,23 @@ router.get("/student/:studentId", async (req, res) => {
       .populate("students", "name email")
       .sort({ date: -1 });
 
-    res.json(classes);
+    // 🔥 ADD THIS MAPPING FIX
+    const result = classes.map((c) => ({
+      _id: c._id,
+      title: c.title,
+      teacher: c.teacher,
+      date: c.date,
+      platform: c.platform,
+      status: c.status,
+      meetingLink: c.meetingLink,
+      recordingUrl: c.recordingUrl,
+
+      // 🔥 IMPORTANT FIX
+      courseName: c.courseName || c.batchName || "No Course",
+      courseLevel: c.courseLevel || "Basic",
+    }));
+
+    res.json(result);
   } catch (err) {
     console.log(err);
     res.status(500).json({
@@ -270,7 +285,6 @@ router.get("/student/:studentId", async (req, res) => {
     });
   }
 });
-
 
 // =====================================
 // DELETE CLASS
