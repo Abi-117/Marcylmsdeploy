@@ -116,6 +116,7 @@ router.get("/overview/:studentId", async (req, res) => {
     const { studentId } = req.params;
 
     const student = await User.findById(studentId);
+
     if (!student) {
       return res.status(404).json({ message: "Student not found" });
     }
@@ -124,13 +125,13 @@ router.get("/overview/:studentId", async (req, res) => {
       students: studentId,
     }).sort({ date: 1 });
 
-    const nextClass = classes.find((c) => c.status !== "Completed");
+    const nextClass = classes.find((c) => c.status !== "Completed") || null;
 
     res.json({
       student: {
-        name: student.name,
-        course: student.courseName,
-        level: student.level,
+        name: student.name || "",
+        course: student.courseName || "",
+        level: student.level || "Beginner",
       },
 
       stats: {
@@ -140,14 +141,27 @@ router.get("/overview/:studentId", async (req, res) => {
         certificates: 0,
       },
 
-      nextClass,
+      nextClass: nextClass
+        ? {
+            title: nextClass.title || "",
+            teacher: nextClass.teacher || "",
+            batchName: nextClass.batchName || "",
+            date: nextClass.date || null,
+            meetingLink: nextClass.meetingLink || "",
+          }
+        : null,
 
-      progress: [],
+      progress: [
+        { level: "Beginner", status: "active", progress: 60 },
+        { level: "Intermediate", status: "locked", progress: 0 },
+        { level: "Advanced", status: "locked", progress: 0 },
+      ],
+
       reminders: [],
     });
   } catch (err) {
-    console.log(err);
-    res.status(500).json({ message: "Overview fetch failed" });
+    console.log("OVERVIEW ERROR:", err);
+    res.status(500).json({ message: "Overview failed" });
   }
 });
 

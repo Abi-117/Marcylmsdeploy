@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { format } from "date-fns";
-import { ExternalLink, Video, Lock } from "lucide-react";
+import { ExternalLink, Video } from "lucide-react";
 
 import { useAuth } from "@/store/auth";
 import { PageHeader } from "@/components/dashboard/Primitives";
@@ -28,14 +28,18 @@ function StudentClasses() {
 
   const user = useAuth((s) => s.user);
 
-  const fetchClasses = async () => {
+  // ✅ SAFE API CALL
+  const fetchClasses = async (studentId: string) => {
     try {
       setLoading(true);
 
-      // ✅ IMPORTANT: backend handles unlocking logic
+      console.log("Fetching classes for:", studentId);
+
       const res = await axios.get(
-        `https://marcylmsdeploy.onrender.com/api/classes/student/${user?._id}`
+        `https://marcylmsdeploy.onrender.com/api/classes/student/${studentId}`
       );
+
+      console.log("Classes response:", res.data);
 
       setClasses(res.data);
     } catch (err) {
@@ -45,14 +49,25 @@ function StudentClasses() {
     }
   };
 
+  // ✅ HANDLE USER DELAY SAFELY
   useEffect(() => {
-    if (user?._id) {
-      fetchClasses();
-    }
-  }, [user?._id]);
+    const studentId = user?._id || user?.id || user?.user?._id;
 
+    if (!studentId) {
+      console.log("Waiting for user...");
+      return;
+    }
+
+    fetchClasses(studentId);
+  }, [user]);
+
+  // ✅ LOADING UI
   if (loading) {
-    return <div className="p-6 text-muted-foreground">Loading classes...</div>;
+    return (
+      <div className="p-6 text-muted-foreground">
+        Loading classes...
+      </div>
+    );
   }
 
   return (
@@ -68,6 +83,7 @@ function StudentClasses() {
           classes.map((c) => (
             <Card key={c._id}>
               <CardContent className="p-5">
+                {/* STATUS + PLATFORM */}
                 <div className="flex justify-between">
                   <Badge>{c.status}</Badge>
                   <Badge variant="outline">
@@ -76,22 +92,34 @@ function StudentClasses() {
                   </Badge>
                 </div>
 
-                <h2 className="mt-3 font-bold text-lg">{c.title}</h2>
+                {/* TITLE */}
+                <h2 className="mt-3 font-bold text-lg">
+                  {c.title}
+                </h2>
 
-                <p className="text-xs text-muted-foreground">{c.teacher}</p>
+                {/* TEACHER */}
+                <p className="text-xs text-muted-foreground">
+                  {c.teacher}
+                </p>
 
+                {/* DATE */}
                 <p className="text-xs text-muted-foreground mt-1">
                   {format(new Date(c.date), "EEE, dd MMM · h:mm a")}
                 </p>
 
+                {/* LEVEL */}
                 <div className="mt-2">
                   <Badge>{c.courseLevel}</Badge>
                 </div>
 
-                {/* JOIN */}
+                {/* JOIN CLASS */}
                 {c.meetingLink && c.status !== "Completed" && (
                   <Button className="mt-4 w-full" asChild>
-                    <a href={c.meetingLink} target="_blank" rel="noreferrer">
+                    <a
+                      href={c.meetingLink}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
                       Join Class
                       <ExternalLink className="ml-2 h-4 w-4" />
                     </a>
@@ -101,7 +129,11 @@ function StudentClasses() {
                 {/* RECORDING */}
                 {c.status === "Completed" && c.recordingUrl && (
                   <Button className="mt-4 w-full" asChild>
-                    <a href={c.recordingUrl} target="_blank">
+                    <a
+                      href={c.recordingUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
                       Watch Recording
                     </a>
                   </Button>
