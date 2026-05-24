@@ -6,10 +6,10 @@ import {
 
 const router = express.Router();
 
-// Teacher marks attendance for student
-router.put("/classes/attendance/:classId", markAttendance);
+// 👩‍🏫 TEACHER
+router.put("/mark", markAttendance);
 
-// Student view attendance
+// 👨‍🎓 STUDENT
 router.get("/student/:studentId", getStudentAttendance);
 
 export default router;
