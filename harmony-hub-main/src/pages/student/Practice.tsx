@@ -4,7 +4,8 @@ import axios from "axios";
 import { PageHeader, StatCard } from "@/components/dashboard/Primitives";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import Metronome from "./Metronome";
+
+import Metronome from "@/pages/student/Metronome";
 
 import {
   Play,
@@ -28,34 +29,50 @@ import {
 
 const API = "https://marcylmsdeploy.onrender.com/api";
 
-export default function Practice() {
-  const storedUser = localStorage.getItem("user");
-  const studentId = storedUser ? JSON.parse(storedUser)?._id : null;
+/* ================= MAIN PAGE ================= */
 
-  const [history, setHistory] = useState<any[]>([]);
+export default function Practice() {
+  const getUserId = () => {
+    try {
+      return JSON.parse(localStorage.getItem("user"))?._id || null;
+    } catch {
+      return null;
+    }
+  };
+
+  const studentId = getUserId();
+
+  const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (studentId) fetchHistory();
+    else setLoading(false);
   }, [studentId]);
 
   const fetchHistory = async () => {
     try {
       setLoading(true);
+
       const res = await axios.get(`${API}/practice/${studentId}`);
+
       setHistory(res.data || []);
     } catch (err) {
-      console.log(err);
+      console.log("Fetch error:", err);
       setHistory([]);
     } finally {
       setLoading(false);
     }
   };
 
+  /* ================= CALCULATIONS ================= */
+
   const todayMinutes =
     history
-      .filter((h) =>
-        new Date(h.createdAt).toDateString() === new Date().toDateString()
+      .filter(
+        (h) =>
+          new Date(h.createdAt).toDateString() ===
+          new Date().toDateString()
       )
       .reduce((a, b) => a + (b.duration || 0), 0) / 60;
 
@@ -67,17 +84,49 @@ export default function Practice() {
     minutes: (h.duration || 0) / 60,
   }));
 
-  if (loading) return <div className="p-6">Loading...</div>;
+  if (loading) {
+    return (
+      <div className="p-6 text-muted-foreground">
+        Loading practice data...
+      </div>
+    );
+  }
+
+  if (!studentId) {
+    return (
+      <div className="p-6 text-red-500">
+        No user found. Please login again.
+      </div>
+    );
+  }
 
   return (
     <div>
-      <PageHeader title="Practice Studio" subtitle="Real tracking system" />
+      <PageHeader
+        title="Practice Studio"
+        subtitle="Real-time tracking system"
+      />
 
       {/* STATS */}
       <div className="grid gap-4 sm:grid-cols-3">
-        <StatCard label="Today" value={`${todayMinutes.toFixed(0)} min`} icon={Music2} />
-        <StatCard label="Streak" value="Active 🔥" icon={Flame} />
-        <StatCard label="Total" value={`${totalMinutes.toFixed(0)} min`} icon={Target} />
+        <StatCard
+          label="Today"
+          value={`${todayMinutes.toFixed(0)} min`}
+          icon={Music2}
+          accent
+        />
+
+        <StatCard
+          label="Streak"
+          value={history.length > 0 ? "Active 🔥" : "0"}
+          icon={Flame}
+        />
+
+        <StatCard
+          label="Total Practice"
+          value={`${totalMinutes.toFixed(0)} min`}
+          icon={Target}
+        />
       </div>
 
       {/* TOOLS */}
@@ -107,7 +156,7 @@ export default function Practice() {
 
 /* ================= TIMER ================= */
 
-function PracticeTimer({ studentId, onSave }: any) {
+function PracticeTimer({ studentId, onSave }) {
   const [sec, setSec] = useState(0);
   const [running, setRunning] = useState(false);
 
@@ -118,22 +167,26 @@ function PracticeTimer({ studentId, onSave }: any) {
   }, [running]);
 
   const saveSession = async () => {
-    await axios.post(`${API}/practice/upload`, {
-      studentId,
-      duration: sec,
-      notes: "Practice",
-      bpm: 0,
-    });
+    try {
+      await axios.post(`${API}/practice/upload`, {
+        studentId,
+        duration: sec,
+        notes: "Practice session",
+        bpm: 0,
+      });
 
-    setSec(0);
-    setRunning(false);
-    onSave();
+      setSec(0);
+      setRunning(false);
+      onSave();
+    } catch (err) {
+      console.log(err);
+    }
   };
 
   return (
     <Card>
       <CardContent className="p-6 text-center">
-        <div className="text-4xl">
+        <div className="text-4xl font-bold">
           {Math.floor(sec / 60)}:{(sec % 60).toString().padStart(2, "0")}
         </div>
 
@@ -153,28 +206,34 @@ function PracticeTimer({ studentId, onSave }: any) {
   );
 }
 
+
 /* ================= VIDEO UPLOAD ================= */
 
-function VideoUpload({ studentId, onUpload }: any) {
-  const [file, setFile] = useState<File | null>(null);
+function VideoUpload({ studentId, onUpload }) {
+  const [file, setFile] = useState(null);
 
   const upload = async () => {
-    if (!file) return;
+    if (!file || !studentId) return;
 
     const formData = new FormData();
     formData.append("video", file);
     formData.append("studentId", studentId);
 
-    await axios.post(`${API}/practice/video`, formData);
-
-    setFile(null);
-    onUpload();
+    try {
+      await axios.post(`${API}/practice/video`, formData);
+      setFile(null);
+      onUpload();
+    } catch (err) {
+      console.log(err);
+    }
   };
 
   return (
     <Card>
       <CardContent className="p-4">
-        <input type="file" accept="video/*"
+        <input
+          type="file"
+          accept="video/*"
           onChange={(e) => setFile(e.target.files?.[0] || null)}
         />
 
