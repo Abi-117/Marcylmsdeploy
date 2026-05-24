@@ -152,7 +152,7 @@ router.get("/invoice/:paymentId", async (req, res) => {
       return res.status(404).json({ message: "Payment not found" });
     }
 
-    const doc = new PDFDocument();
+    const doc = new PDFDocument({ margin: 50 });
 
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader(
@@ -162,20 +162,89 @@ router.get("/invoice/:paymentId", async (req, res) => {
 
     doc.pipe(res);
 
-    doc.fontSize(20).text("Marcy LMS Invoice", { align: "center" });
-    doc.moveDown();
+    // =========================
+    // LOGO
+    // =========================
+    const logoPath = path.join(process.cwd(), "assets", "logo.png");
 
-    doc.text(`Student: ${paymentUser?.name || "N/A"}`);
-    doc.text(`Email: ${paymentUser?.email || "N/A"}`);
-    doc.text(`Level: ${payment.level || "N/A"}`);
-    doc.text(`Amount: ₹${payment.amount || 0}`);
-    doc.text(`Payment ID: ${payment.paymentId}`);
-    doc.text(`Order ID: ${payment.orderId}`);
-    doc.text(`Status: ${payment.status}`);
+    if (fs.existsSync(logoPath)) {
+      doc.image(logoPath, 50, 30, { width: 80 });
+    }
 
-    doc.text(
-      `Date: ${new Date(payment.createdAt || Date.now()).toLocaleString()}`
-    );
+    // =========================
+    // COMPANY NAME HEADER
+    // =========================
+    doc
+      .fontSize(20)
+      .font("Helvetica-Bold")
+      .text("Marcys Academy of Music & Speech", 150, 40);
+
+    doc
+      .fontSize(10)
+      .font("Helvetica")
+      .text("Official Payment Invoice", 150, 70);
+
+    // LINE
+    doc.moveTo(50, 110).lineTo(550, 110).stroke();
+
+    doc.moveDown(2);
+
+    // =========================
+    // INVOICE DETAILS BOX
+    // =========================
+    doc.fontSize(12).font("Helvetica-Bold").text("Invoice Details", 50, 130);
+
+    doc.font("Helvetica");
+
+    doc.text(`Invoice ID: ${payment.paymentId}`, 50, 155);
+    doc.text(`Order ID: ${payment.orderId}`, 50, 175);
+    doc.text(`Date: ${new Date(payment.createdAt).toLocaleString()}`, 50, 195);
+
+    // =========================
+    // CUSTOMER DETAILS
+    // =========================
+    doc.font("Helvetica-Bold").text("Customer Details", 300, 130);
+
+    doc.font("Helvetica");
+    doc.text(`Name: ${paymentUser?.name || "N/A"}`, 300, 155);
+    doc.text(`Email: ${paymentUser?.email || "N/A"}`, 300, 175);
+
+    // =========================
+    // PAYMENT TABLE HEADER
+    // =========================
+    doc.moveDown(4);
+
+    doc
+      .fontSize(12)
+      .font("Helvetica-Bold")
+      .text("Description", 50, 250)
+      .text("Level", 200, 250)
+      .text("Amount", 300, 250)
+      .text("Status", 400, 250);
+
+    doc.moveTo(50, 270).lineTo(550, 270).stroke();
+
+    // =========================
+    // PAYMENT ROW
+    // =========================
+    doc
+      .font("Helvetica")
+      .text("Course Payment", 50, 290)
+      .text(payment.level, 200, 290)
+      .text(`₹${payment.amount}`, 300, 290)
+      .text(payment.status, 400, 290);
+
+    // =========================
+    // FOOTER
+    // =========================
+    doc
+      .fontSize(10)
+      .text(
+        "Thank you for learning with Marcys Academy of Music & Speech",
+        50,
+        700,
+        { align: "center" }
+      );
 
     doc.end();
   } catch (err) {

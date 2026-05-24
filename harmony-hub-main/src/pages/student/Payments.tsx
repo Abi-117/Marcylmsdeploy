@@ -208,7 +208,7 @@ function PaymentHistory() {
                   variant="outline"
                   onClick={() =>
                     window.open(
-                      `https://marcylmsdeploy.onrender.com/api/payments/invoice/${p._id}`,
+                      `https://marcylmsdeploy.onrender.com/api/payments/invoice/${p.paymentId}`,
                       "_blank"
                     )
                   }
