@@ -124,4 +124,33 @@ router.get(
   }
 );
 
+router.post("/complete-course", async (req, res) => {
+  const { userId, course, level } = req.body;
+
+  const user = await User.findById(userId);
+
+  if (!user) {
+    return res.status(404).json({ message: "User not found" });
+  }
+
+  const certificate = {
+    certificateId: "CERT-" + Date.now(),
+    title: "Certificate of Completion",
+    course,
+    level,
+    completedAt: new Date(),
+  };
+
+  user.certificates.push(certificate);
+
+  user.completedLevels.push(level);
+
+  await user.save();
+
+  res.json({
+    success: true,
+    certificates: user.certificates,
+  });
+});
+
 export default router;

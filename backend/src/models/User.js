@@ -174,6 +174,10 @@ progress: {
   type: Number,
   default: 0,
 },
+certificates: {
+  type: Array,
+  default: [],
+},
   },
   {
     timestamps: true,

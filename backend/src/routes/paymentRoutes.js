@@ -231,7 +231,7 @@ router.get("/invoice/:paymentId", async (req, res) => {
       .font("Helvetica")
       .text("Course Payment", 50, 290)
       .text(payment.level, 200, 290)
-      .text(`₹${payment.amount}`, 300, 290)
+      .text(`₹${Number(String(payment.amount).replace(/[^\d]/g, ""))}`, 300, 290)
       .text(payment.status, 400, 290);
 
     // =========================
