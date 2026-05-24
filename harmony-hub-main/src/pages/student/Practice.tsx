@@ -1,11 +1,11 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import axios from "axios";
 import { motion } from "framer-motion";
 
 import { PageHeader, StatCard } from "@/components/dashboard/Primitives";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Slider } from "@/components/ui/slider";
+
 import Metronome from "./Metronome";
 
 import {
@@ -31,14 +31,21 @@ import {
 const API = "https://marcylmsdeploy.onrender.com/api";
 
 export default function Practice() {
-  const studentId =
-    JSON.parse(localStorage.getItem("user") || "{}")?._id;
+  const storedUser = localStorage.getItem("user");
+  const studentId = storedUser ? JSON.parse(storedUser)?._id : null;
 
   const [history, setHistory] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // ✅ SAFE LOAD
   useEffect(() => {
-    if (studentId) fetchHistory();
+    if (!studentId) {
+      setHistory([]);
+      setLoading(false);
+      return;
+    }
+
+    fetchHistory();
   }, [studentId]);
 
   const fetchHistory = async () => {
@@ -71,7 +78,7 @@ export default function Practice() {
   const totalMinutes =
     history.reduce((a, b) => a + (b.duration || 0), 0) / 60;
 
-  // CHART DATA (REAL ONLY)
+  // CHART
   const chartData = history.map((h) => ({
     date: new Date(h.createdAt).toLocaleDateString(),
     minutes: (h.duration || 0) / 60,
@@ -103,7 +110,7 @@ export default function Practice() {
 
         <StatCard
           label="Streak"
-          value={`${history.length > 0 ? "Active" : "0"} `}
+          value={history.length > 0 ? "Active 🔥" : "0"}
           icon={Flame}
         />
 
@@ -114,7 +121,7 @@ export default function Practice() {
         />
       </div>
 
-      {/* MAIN TOOLS */}
+      {/* TOOLS */}
       <div className="mt-6 grid gap-6 lg:grid-cols-3">
         <PracticeTimer studentId={studentId} onSave={fetchHistory} />
         <Metronome />
@@ -124,7 +131,7 @@ export default function Practice() {
       {/* ANALYTICS */}
       <Card className="mt-6">
         <CardContent className="p-6">
-          <div className="font-display text-lg mb-4">
+          <div className="font-semibold mb-4">
             Practice Analytics
           </div>
 
@@ -147,6 +154,9 @@ export default function Practice() {
     </div>
   );
 }
+
+/* ================= TIMER ================= */
+
 function PracticeTimer({ studentId, onSave }: any) {
   const [sec, setSec] = useState(0);
   const [running, setRunning] = useState(false);
@@ -158,16 +168,15 @@ function PracticeTimer({ studentId, onSave }: any) {
   }, [running]);
 
   const saveSession = async () => {
+    if (!studentId) return;
+
     try {
-      await axios.post(
-        `https://marcylmsdeploy.onrender.com/api/practice/upload`,
-        {
-          studentId,
-          duration: sec,
-          notes: "Practice session",
-          bpm: 0,
-        }
-      );
+      await axios.post(`${API}/practice/upload`, {
+        studentId,
+        duration: sec,
+        notes: "Practice session",
+        bpm: 0,
+      });
 
       setSec(0);
       setRunning(false);
@@ -190,9 +199,7 @@ function PracticeTimer({ studentId, onSave }: any) {
             {running ? <Pause /> : <Play />}
           </Button>
 
-          <Button onClick={saveSession}>
-            Save
-          </Button>
+          <Button onClick={saveSession}>Save</Button>
 
           <Button onClick={() => setSec(0)}>
             <RotateCcw />
@@ -203,19 +210,22 @@ function PracticeTimer({ studentId, onSave }: any) {
   );
 }
 
+/* ================= VIDEO UPLOAD (CLOUD READY) ================= */
+
 function VideoUpload({ studentId, onUpload }: any) {
   const [file, setFile] = useState<File | null>(null);
 
   const upload = async () => {
-    if (!file) return;
+    if (!file || !studentId) return;
 
     const formData = new FormData();
     formData.append("video", file);
     formData.append("studentId", studentId);
+    formData.append("notes", "Practice video");
 
     try {
       await axios.post(
-        `https://marcylmsdeploy.onrender.com/api/practice/upload`,
+        `${API}/practice/video`,
         formData
       );
 

@@ -12,7 +12,7 @@ import classRoutes from "./src/routes/classRoutes.js";
 import paymentRoutes from "./src/routes/paymentRoutes.js";
 import reportRoutes from "./src/routes/reportRoutes.js";
 import studentRoutes from "./src/routes/studentRoutes.js";
-import practiceRoutes from "./src/routes/practiceRoutes.js";
+import practiceRoutes from "./src/routes/practice.js";
 import teacherRoutes from "./src/routes/teacherRoutes.js";
 import courseRoutes from "./src/routes/courseRoutes.js";
 import assignmentRoutes from "./src/routes/assignmentRoutes.js";

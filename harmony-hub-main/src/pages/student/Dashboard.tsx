@@ -182,8 +182,8 @@ function StudentOverview() {
         </Card>
       </div>
 
-      {/* LEARNING PATH */}
-      <div className="space-y-3">
+    
+      {/* <div className="space-y-3">
   {overview.progress?.length ? (
     overview.progress.map((s: any, i: number) => (
       <motion.div
@@ -216,7 +216,7 @@ function StudentOverview() {
       No learning path available
     </div>
   )}
-</div>
+</div> */}
 
       {/* REMINDERS */}
       <div className="mt-6">
