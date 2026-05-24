@@ -1,0 +1,58 @@
+import express from "express";
+import cors from "cors";
+import dotenv from "dotenv";
+
+dotenv.config();
+
+import connectDB from "./src/config/db.js";
+import authRoutes from "./src/routes/authRoutes.js";
+import adminRoutes from "./src/routes/adminRoutes.js";
+import batchRoutes from "./src/routes/batchRoutes.js";
+import classRoutes from "./src/routes/classRoutes.js";
+import paymentRoutes from "./src/routes/paymentRoutes.js";
+import reportRoutes from "./src/routes/reportRoutes.js";
+import studentRoutes from "./src/routes/studentRoutes.js";
+import practiceRoutes from "./src/routes/practiceRoutes.js";
+import teacherRoutes from "./src/routes/teacherRoutes.js";
+import courseRoutes from "./src/routes/courseRoutes.js";
+import assignmentRoutes from "./src/routes/assignmentRoutes.js";
+import userRoutes from "./src/routes/userRoutes.js";
+import path from "path";
+
+
+
+
+const app = express();
+
+app.use(cors());
+app.use(express.json());
+connectDB();
+
+app.get("/", (req, res) => {
+  res.send("Marcy Academy Backend Running");
+});
+
+app.use("/api/auth", authRoutes);
+app.use("/api/admin", adminRoutes);
+app.use(
+  "/api/batches",
+  batchRoutes
+);
+app.use("/api/classes", classRoutes);
+app.use("/api/payments", paymentRoutes);
+app.use("/api/reports", reportRoutes);
+app.use("/api/student", studentRoutes);
+app.use("/api/practice", practiceRoutes);
+app.use("/api/teacher", teacherRoutes);
+app.use("/api/assignments", assignmentRoutes);
+app.use("/api/courses", courseRoutes);
+app.use("/api/users", userRoutes);
+
+// serve uploaded videos
+app.use("/uploads", express.static("uploads"));
+
+const PORT = process.env.PORT || 5000;
+
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
