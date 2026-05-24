@@ -128,12 +128,13 @@ router.post("/", async (req, res) => {
     const {
 
       title,
+      teacherId,
+      courseName,
       date,
-      time,
       platform,
       meetingLink,
       notes,
-      teacherId,
+      students,
 
     } = req.body;
 
@@ -155,23 +156,6 @@ router.post("/", async (req, res) => {
     }
 
     // =========================
-    // FIND STUDENTS
-    // SAME COURSE ONLY
-    // =========================
-
-    const students =
-      await User.find({
-
-        role: "student",
-
-        paymentStatus: "Paid",
-
-        courseName:
-          teacher.courseName,
-
-      });
-
-    // =========================
     // CREATE CLASS
     // =========================
 
@@ -186,11 +170,9 @@ router.post("/", async (req, res) => {
           teacher.name,
 
         batchName:
-          teacher.courseName,
+          courseName,
 
-        date: new Date(
-          `${date}T${time}`
-        ),
+        date,
 
         platform,
 
@@ -202,12 +184,9 @@ router.post("/", async (req, res) => {
 
         status: "Upcoming",
 
-        courseName:
-          teacher.courseName,
+        courseName,
 
-        students: students.map(
-          (s) => s._id
-        ),
+        students,
 
       });
 

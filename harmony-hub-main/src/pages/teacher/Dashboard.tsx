@@ -700,7 +700,7 @@ function ScheduleClassButton({
 
         const response =
           await fetch(
-            `${API}/classes/create`,
+            `${API}/classes`,
             {
 
               method: "POST",
