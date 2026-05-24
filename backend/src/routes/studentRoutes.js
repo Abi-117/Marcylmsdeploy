@@ -1,6 +1,7 @@
 import express from "express";
 import User from "../models/User.js";
 import Course from "../models/Course.js";
+import Class from "../models/Class.js";
 
 const router = express.Router();
 
@@ -113,7 +114,7 @@ router.put(
 
 router.get("/overview/:studentId", async (req, res) => {
   try {
-    const { studentId } = req.params;
+    const studentId = req.params.studentId;
 
     const student = await User.findById(studentId);
 
@@ -125,7 +126,10 @@ router.get("/overview/:studentId", async (req, res) => {
       students: studentId,
     }).sort({ date: 1 });
 
-    const nextClass = classes.find((c) => c.status !== "Completed") || null;
+    const safeClasses = classes || [];
+
+    const nextClass =
+      safeClasses.find((c) => c.status !== "Completed") || null;
 
     res.json({
       student: {
@@ -135,8 +139,8 @@ router.get("/overview/:studentId", async (req, res) => {
       },
 
       stats: {
-        attended: classes.filter((c) => c.status === "Completed").length,
-        totalClasses: classes.length,
+        attended: safeClasses.filter((c) => c.status === "Completed").length,
+        totalClasses: safeClasses.length,
         streak: 0,
         certificates: 0,
       },
@@ -159,9 +163,13 @@ router.get("/overview/:studentId", async (req, res) => {
 
       reminders: [],
     });
+
   } catch (err) {
     console.log("OVERVIEW ERROR:", err);
-    res.status(500).json({ message: "Overview failed" });
+    res.status(500).json({
+      message: "Overview failed",
+      error: err.message,
+    });
   }
 });
 
