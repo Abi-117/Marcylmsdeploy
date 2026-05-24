@@ -138,7 +138,7 @@ router.get("/invoice/:paymentId", async (req, res) => {
 
     for (const user of users) {
       const found = user.payments.find(
-        (p) => p._id.toString() === req.params.paymentId
+        (p) => p.paymentId === req.params.paymentId
       );
 
       if (found) {
@@ -157,7 +157,7 @@ router.get("/invoice/:paymentId", async (req, res) => {
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader(
       "Content-Disposition",
-      `attachment; filename=invoice-${payment._id}.pdf`
+      `attachment; filename=invoice-${payment.paymentId}.pdf`
     );
 
     doc.pipe(res);
@@ -165,18 +165,21 @@ router.get("/invoice/:paymentId", async (req, res) => {
     doc.fontSize(20).text("Marcy LMS Invoice", { align: "center" });
     doc.moveDown();
 
-    doc.text(`Student: ${paymentUser.name}`);
-    doc.text(`Email: ${paymentUser.email}`);
-    doc.text(`Level: ${payment.level}`);
-    doc.text(`Amount: ₹${payment.amount}`);
+    doc.text(`Student: ${paymentUser?.name || "N/A"}`);
+    doc.text(`Email: ${paymentUser?.email || "N/A"}`);
+    doc.text(`Level: ${payment.level || "N/A"}`);
+    doc.text(`Amount: ₹${payment.amount || 0}`);
     doc.text(`Payment ID: ${payment.paymentId}`);
     doc.text(`Order ID: ${payment.orderId}`);
     doc.text(`Status: ${payment.status}`);
-    doc.text(`Date: ${new Date(payment.createdAt).toLocaleString()}`);
+
+    doc.text(
+      `Date: ${new Date(payment.createdAt || Date.now()).toLocaleString()}`
+    );
 
     doc.end();
   } catch (err) {
-    console.log(err);
+    console.log("INVOICE ERROR:", err);
     res.status(500).json({ message: "Invoice failed" });
   }
 });
