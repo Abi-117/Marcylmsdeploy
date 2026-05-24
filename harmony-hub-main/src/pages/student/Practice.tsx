@@ -6,6 +6,7 @@ import { PageHeader, StatCard } from "@/components/dashboard/Primitives";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
+import Metronome from "./Metronome";
 
 import {
   Play,
@@ -30,48 +31,65 @@ import {
 const API = "https://marcylmsdeploy.onrender.com/api";
 
 export default function Practice() {
-  const studentId = "student123"; // replace with login user later
+  const studentId =
+    JSON.parse(localStorage.getItem("user") || "{}")?._id;
 
   const [history, setHistory] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // LOAD REAL DATA FROM BACKEND
   useEffect(() => {
-    fetchHistory();
-  }, []);
+    if (studentId) fetchHistory();
+  }, [studentId]);
 
   const fetchHistory = async () => {
     try {
-      const res = await axios.get(`${API}/practice/${studentId}`);
-      setHistory(res.data);
+      setLoading(true);
+
+      const res = await axios.get(
+        `${API}/practice/${studentId}`
+      );
+
+      setHistory(res.data || []);
     } catch (err) {
       console.log("Fetch error:", err);
+      setHistory([]);
+    } finally {
+      setLoading(false);
     }
   };
 
   // TODAY MINUTES
-  const todayMinutes = history
-    .filter((h) => {
-      const d = new Date(h.createdAt);
-      const t = new Date();
-      return d.toDateString() === t.toDateString();
-    })
-    .reduce((a, b) => a + (b.duration || 0), 0) / 60;
+  const todayMinutes =
+    history
+      .filter((h) => {
+        const d = new Date(h.createdAt);
+        return d.toDateString() === new Date().toDateString();
+      })
+      .reduce((a, b) => a + (b.duration || 0), 0) / 60;
 
   // TOTAL MINUTES
   const totalMinutes =
     history.reduce((a, b) => a + (b.duration || 0), 0) / 60;
 
-  // CHART DATA
+  // CHART DATA (REAL ONLY)
   const chartData = history.map((h) => ({
     date: new Date(h.createdAt).toLocaleDateString(),
     minutes: (h.duration || 0) / 60,
   }));
 
+  if (loading) {
+    return (
+      <div className="p-6 text-muted-foreground">
+        Loading practice data...
+      </div>
+    );
+  }
+
   return (
     <div>
       <PageHeader
         title="Practice Studio"
-        subtitle="Timer + Metronome + Video Upload + Analytics"
+        subtitle="Real-time practice tracking"
       />
 
       {/* STATS */}
@@ -82,7 +100,13 @@ export default function Practice() {
           icon={Music2}
           accent
         />
-        <StatCard label="Streak" value="Live" icon={Flame} />
+
+        <StatCard
+          label="Streak"
+          value={`${history.length > 0 ? "Active" : "0"} `}
+          icon={Flame}
+        />
+
         <StatCard
           label="Total Practice"
           value={`${totalMinutes.toFixed(0)} min`}
@@ -110,7 +134,12 @@ export default function Practice() {
               <XAxis dataKey="date" />
               <YAxis />
               <Tooltip />
-              <Line type="monotone" dataKey="minutes" strokeWidth={2} />
+              <Line
+                type="monotone"
+                dataKey="minutes"
+                stroke="#f59e0b"
+                strokeWidth={2}
+              />
             </LineChart>
           </ResponsiveContainer>
         </CardContent>
@@ -118,10 +147,6 @@ export default function Practice() {
     </div>
   );
 }
-
-//
-// ================= TIMER =================
-//
 function PracticeTimer({ studentId, onSave }: any) {
   const [sec, setSec] = useState(0);
   const [running, setRunning] = useState(false);
@@ -134,28 +159,28 @@ function PracticeTimer({ studentId, onSave }: any) {
 
   const saveSession = async () => {
     try {
-      await axios.post(`${API}/practice/upload`, {
-        studentId,
-        duration: sec,
-        notes: "Timer session",
-        bpm: 0,
-        videoUrl: "manual",
-      });
+      await axios.post(
+        `https://marcylmsdeploy.onrender.com/api/practice/upload`,
+        {
+          studentId,
+          duration: sec,
+          notes: "Practice session",
+          bpm: 0,
+        }
+      );
 
       setSec(0);
       setRunning(false);
       onSave();
-      alert("Saved successfully");
     } catch (err) {
       console.log(err);
-      alert("Save failed");
     }
   };
 
   return (
     <Card>
       <CardContent className="p-6 text-center">
-        <div className="font-display text-5xl">
+        <div className="text-4xl font-bold">
           {Math.floor(sec / 60)}:
           {(sec % 60).toString().padStart(2, "0")}
         </div>
@@ -165,11 +190,11 @@ function PracticeTimer({ studentId, onSave }: any) {
             {running ? <Pause /> : <Play />}
           </Button>
 
-          <Button onClick={saveSession} variant="outline">
+          <Button onClick={saveSession}>
             Save
           </Button>
 
-          <Button onClick={() => setSec(0)} variant="outline">
+          <Button onClick={() => setSec(0)}>
             <RotateCcw />
           </Button>
         </div>
@@ -178,116 +203,43 @@ function PracticeTimer({ studentId, onSave }: any) {
   );
 }
 
-//
-// ================= METRONOME =================
-//
-function Metronome() {
-  const [bpm, setBpm] = useState(90);
-  const [playing, setPlaying] = useState(false);
-  const [beat, setBeat] = useState(0);
-
-  const ref = useRef<any>(null);
-
-  useEffect(() => {
-    if (!playing) {
-      setBeat(0);
-      return;
-    }
-
-    const interval = 60000 / bpm;
-
-    ref.current = setInterval(() => {
-      setBeat((b) => (b + 1) % 4);
-    }, interval);
-
-    return () => clearInterval(ref.current);
-  }, [playing, bpm]);
-
-  return (
-    <Card>
-      <CardContent className="p-6 text-center">
-        <div className="font-display text-5xl">{bpm}</div>
-        <div className="text-sm text-muted-foreground">BPM</div>
-
-        <div className="flex justify-center gap-2 mt-4">
-          {[0, 1, 2, 3].map((i) => (
-            <div
-              key={i}
-              className={`h-3 w-3 rounded-full ${
-                playing && beat === i ? "bg-yellow-500" : "bg-gray-300"
-              }`}
-            />
-          ))}
-        </div>
-
-        <Slider
-          value={[bpm]}
-          min={40}
-          max={220}
-          step={1}
-          onValueChange={(v) => setBpm(v[0])}
-          className="mt-6"
-        />
-
-        <Button
-          className="mt-4"
-          variant="outline"
-          onClick={() => setPlaying(!playing)}
-        >
-          {playing ? <Pause /> : <Play />}
-        </Button>
-      </CardContent>
-    </Card>
-  );
-}
-
-//
-// ================= VIDEO UPLOAD =================
-//
 function VideoUpload({ studentId, onUpload }: any) {
   const [file, setFile] = useState<File | null>(null);
-  const [notes, setNotes] = useState("");
 
   const upload = async () => {
-    if (!file) return alert("Select video");
+    if (!file) return;
 
     const formData = new FormData();
     formData.append("video", file);
     formData.append("studentId", studentId);
-    formData.append("notes", notes);
 
     try {
-      await axios.post(`${API}/practice/upload`, formData);
-      alert("Uploaded");
+      await axios.post(
+        `https://marcylmsdeploy.onrender.com/api/practice/upload`,
+        formData
+      );
+
       setFile(null);
-      setNotes("");
       onUpload();
     } catch (err) {
       console.log(err);
-      alert("Upload failed");
     }
   };
 
   return (
     <Card>
       <CardContent className="p-4">
-        <div className="font-semibold mb-2">Upload Practice Video</div>
-
         <input
           type="file"
           accept="video/*"
-          onChange={(e) => setFile(e.target.files?.[0] || null)}
-        />
-
-        <textarea
-          className="w-full border mt-2 p-2"
-          placeholder="Notes"
-          value={notes}
-          onChange={(e) => setNotes(e.target.value)}
+          onChange={(e) =>
+            setFile(e.target.files?.[0] || null)
+          }
         />
 
         <Button onClick={upload} className="mt-3 w-full">
-          <Upload className="mr-2" /> Upload
+          <Upload className="mr-2" />
+          Upload
         </Button>
       </CardContent>
     </Card>

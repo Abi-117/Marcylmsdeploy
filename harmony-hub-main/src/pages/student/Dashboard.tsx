@@ -1,7 +1,5 @@
-import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
-
+import { motion } from "framer-motion";
 import {
   StatCard,
   PageHeader,
@@ -28,10 +26,8 @@ import {
   Music2,
   Video,
   Trophy,
-  Lock,
   ExternalLink,
   Bell,
-  CheckCircle2,
 } from "lucide-react";
 
 import { format } from "date-fns";
@@ -42,15 +38,20 @@ function StudentOverview() {
 
   const [overview, setOverview] = useState<any>(null);
   const [practiceLogs, setPracticeLogs] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (user?.id) {
-      fetchOverview(user.id);
+    const studentId = user?.id || user?._id || user?.user?._id;
+
+    if (studentId) {
+      fetchOverview(studentId);
     }
   }, [user]);
 
   const fetchOverview = async (studentId: string) => {
     try {
+      setLoading(true);
+
       const response = await fetch(
         `https://marcylmsdeploy.onrender.com/api/student/overview/${studentId}`
       );
@@ -60,26 +61,30 @@ function StudentOverview() {
       }
 
       const data = await response.json();
+
       setOverview(data);
 
-      setPracticeLogs([
-        { date: "Mon", minutes: 30 },
-        { date: "Tue", minutes: 40 },
-        { date: "Wed", minutes: 55 },
-        { date: "Thu", minutes: 35 },
-        { date: "Fri", minutes: 50 },
-        { date: "Sat", minutes: 70 },
-        { date: "Sun", minutes: 45 },
-      ]);
+      // ✅ REAL PRACTICE LOGS FROM BACKEND ONLY
+      setPracticeLogs(data.practiceLogs || []);
     } catch (error) {
       console.log("Overview error:", error);
+    } finally {
+      setLoading(false);
     }
   };
+
+  if (loading) {
+    return (
+      <div className="flex min-h-[300px] items-center justify-center">
+        Loading...
+      </div>
+    );
+  }
 
   if (!overview) {
     return (
       <div className="flex min-h-[300px] items-center justify-center">
-        Loading...
+        No data found
       </div>
     );
   }
@@ -89,8 +94,10 @@ function StudentOverview() {
   return (
     <div>
       <PageHeader
-        title={`Welcome back, ${overview.student?.name}`}
-        subtitle={`${overview.student?.course || "Course"} · ${overview.student?.level} · ${overview.batch?.name || "No Batch"}`}
+        title={`Welcome back, ${overview.student?.name || ""}`}
+        subtitle={`${overview.student?.course || "Course"} · ${
+  overview.student?.level || "Beginner"
+}`}
       />
 
       {/* STATS */}
@@ -124,60 +131,50 @@ function StudentOverview() {
 
       {/* NEXT CLASS */}
       <div className="mt-6 grid gap-6 lg:grid-cols-3">
-        <Card className="lg:col-span-2 overflow-hidden border-gold/30 bg-gradient-to-br from-card to-gold-soft/30">
+        <Card className="lg:col-span-2">
           <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <Badge className="bg-gold text-gold-foreground border-gold animate-pulse">
-                Next class
-              </Badge>
+            <Badge className="bg-gold text-black">Next class</Badge>
 
-              {next?.date && <CountdownTimer target={next.date} />}
-            </div>
-
-            <div className="mt-4 font-display text-3xl">
+            <div className="mt-4 text-2xl font-bold">
               {next?.title || "No upcoming class"}
             </div>
 
-            <div className="mt-1 text-sm text-muted-foreground">
+            <div className="text-sm text-muted-foreground">
               {next?.teacher} · {next?.batchName}
             </div>
 
             {next?.date && (
-              <div className="mt-2 text-xs text-muted-foreground">
-                {format(new Date(next.date), "EEEE, dd MMM · h:mm a")}
+              <div className="text-xs text-muted-foreground mt-2">
+                {format(new Date(next.date), "EEE, dd MMM · h:mm a")}
               </div>
             )}
 
-            <div className="mt-5 flex flex-wrap gap-2">
-              {next?.meetingLink && (
-                <Button asChild className="bg-gold text-gold-foreground">
-                  <a href={next.meetingLink} target="_blank" rel="noreferrer">
-                    Join class <ExternalLink className="ml-1 h-3 w-3" />
-                  </a>
-                </Button>
-              )}
-
-              <Button variant="outline">View schedule</Button>
-            </div>
+            {next?.meetingLink && (
+              <Button className="mt-4" asChild>
+                <a href={next.meetingLink} target="_blank">
+                  Join Class <ExternalLink className="ml-2 h-4 w-4" />
+                </a>
+              </Button>
+            )}
           </CardContent>
         </Card>
 
-        {/* PRACTICE GRAPH */}
+        {/* PRACTICE GRAPH (REAL DATA ONLY) */}
         <Card>
           <CardContent className="p-6">
-            <div className="font-display text-lg">Practice this week</div>
+            <div className="font-semibold mb-2">Practice this week</div>
 
             <ResponsiveContainer width="100%" height={160}>
               <LineChart data={practiceLogs}>
-                <CartesianGrid vertical={false} />
-                <XAxis dataKey="date" hide />
-                <YAxis hide />
+                <CartesianGrid />
+                <XAxis dataKey="date" />
+                <YAxis />
                 <Tooltip />
                 <Line
                   type="monotone"
                   dataKey="minutes"
                   stroke="#f59e0b"
-                  strokeWidth={2.5}
+                  strokeWidth={2}
                 />
               </LineChart>
             </ResponsiveContainer>
@@ -186,92 +183,69 @@ function StudentOverview() {
       </div>
 
       {/* LEARNING PATH */}
-      <div className="mt-6">
-        <Card>
-          <CardContent className="p-6">
-            <div className="font-display text-lg mb-4">
-              Your learning path
+      <div className="space-y-3">
+  {overview.progress?.length ? (
+    overview.progress.map((s: any, i: number) => (
+      <motion.div
+        key={s.level}
+        initial={{ opacity: 0, x: 10 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ delay: i * 0.1 }}
+        className="border p-4 rounded-xl"
+      >
+        <div className="flex justify-between">
+          <div>
+            <div className="font-semibold">{s.level}</div>
+            <div className="text-xs text-muted-foreground">
+              {s.status === "active"
+                ? `${s.progress}% complete`
+                : "Locked"}
             </div>
+          </div>
 
-            <div className="space-y-3">
-              {overview.progress?.map((s: any, i: number) => (
-                <motion.div
-                  key={s.level}
-                  initial={{ opacity: 0, x: 8 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: i * 0.1 }}
-                  className="border p-4 rounded-xl"
-                >
-                  <div className="flex justify-between">
-                    <div>
-                      <div className="font-semibold">{s.level}</div>
-                      <div className="text-xs text-muted-foreground">
-                        {s.status === "active"
-                          ? `${s.progress}% complete`
-                          : "Locked"}
-                      </div>
-                    </div>
+          <LevelBadge level={s.level} locked={s.status === "locked"} />
+        </div>
 
-                    <LevelBadge level={s.level} locked={s.status === "locked"} />
-                  </div>
-
-                  {s.status === "active" && (
-                    <Progress value={s.progress} className="mt-2" />
-                  )}
-                </motion.div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+        {s.status === "active" && (
+          <Progress value={s.progress} className="mt-2" />
+        )}
+      </motion.div>
+    ))
+  ) : (
+    <div className="text-sm text-muted-foreground">
+      No learning path available
+    </div>
+  )}
+</div>
 
       {/* REMINDERS */}
       <div className="mt-6">
         <Card>
           <CardContent className="p-6">
-            <div className="font-display text-lg flex items-center gap-2">
-              <Bell className="h-4 w-4 text-gold" />
+            <div className="flex items-center gap-2 font-semibold">
+              <Bell className="h-4 w-4" />
               Reminders
             </div>
 
             <div className="mt-3 space-y-2">
-              {overview.reminders?.map((r: any, i: number) => (
-                <div key={i} className="border p-3 rounded-lg">
-                  <div className="font-medium text-sm">{r.title}</div>
-                  <div className="text-xs text-muted-foreground">
-                    {r.subtitle}
+              {overview.reminders?.length ? (
+                overview.reminders.map((r: any, i: number) => (
+                  <div key={i} className="border p-3 rounded-lg">
+                    <div className="font-medium text-sm">{r.title}</div>
+                    <div className="text-xs text-muted-foreground">
+                      {r.subtitle}
+                    </div>
                   </div>
+                ))
+              ) : (
+                <div className="text-sm text-muted-foreground">
+                  No reminders
                 </div>
-              ))}
+              )}
             </div>
           </CardContent>
         </Card>
       </div>
-    </div>
-  );
-}
-
-function CountdownTimer({ target }: { target: string }) {
-  const [now, setNow] = useState(Date.now());
-
-  useEffect(() => {
-    const i = setInterval(() => setNow(Date.now()), 1000);
-    return () => clearInterval(i);
-  }, []);
-
-  const diff = Math.max(0, new Date(target).getTime() - now);
-
-  const h = Math.floor(diff / 3600000);
-  const m = Math.floor((diff % 3600000) / 60000);
-  const s = Math.floor((diff % 60000) / 1000);
-
-  return (
-    <div className="flex gap-1 text-xs">
-      {[{ v: h, l: "H" }, { v: m, l: "M" }, { v: s, l: "S" }].map((p) => (
-        <div key={p.l} className="bg-black text-white px-2 py-1 rounded">
-          {String(p.v).padStart(2, "0")} {p.l}
-        </div>
-      ))}
     </div>
   );
 }

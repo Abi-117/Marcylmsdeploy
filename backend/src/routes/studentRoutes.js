@@ -116,31 +116,82 @@ router.get("/overview/:studentId", async (req, res) => {
   try {
     const studentId = req.params.studentId;
 
-    const student = await User.findById(studentId);
+    // ======================
+    // GET STUDENT
+    // ======================
+    const student = await User.findById(studentId).populate("course");
 
     if (!student) {
       return res.status(404).json({ message: "Student not found" });
     }
 
+    // ======================
+    // GET CLASSES
+    // ======================
     const classes = await Class.find({
       students: studentId,
     }).sort({ date: 1 });
 
     const safeClasses = classes || [];
 
+    const attended = safeClasses.filter(
+      (c) => c.status === "Completed"
+    ).length;
+
+    const total = safeClasses.length;
+
+    // ======================
+    // NEXT CLASS
+    // ======================
     const nextClass =
       safeClasses.find((c) => c.status !== "Completed") || null;
 
+    // ======================
+    // REAL COURSE DATA
+    // ======================
+    const course = student.course;
+
+    // ======================
+    // REAL LEARNING PATH
+    // ======================
+    let progress = [];
+
+    if (course) {
+      const percent =
+        total === 0 ? 0 : Math.round((attended / total) * 100);
+
+      progress = [
+        {
+          level: course.mainLevel || "Beginner",
+          status: "active",
+          progress: percent,
+        },
+        {
+          level: "Intermediate",
+          status: percent >= 60 ? "active" : "locked",
+          progress: percent >= 60 ? percent - 60 : 0,
+        },
+        {
+          level: "Advanced",
+          status: percent >= 90 ? "active" : "locked",
+          progress: percent >= 90 ? percent - 90 : 0,
+        },
+      ];
+    }
+
+    // ======================
+    // RESPONSE
+    // ======================
     res.json({
       student: {
         name: student.name || "",
-        course: student.courseName || "",
-        level: student.level || "Beginner",
+        course: course?.name || student.courseName || "",
+        level: course?.mainLevel || student.level || "Beginner",
       },
 
       stats: {
-        attended: safeClasses.filter((c) => c.status === "Completed").length,
-        totalClasses: safeClasses.length,
+        attended,
+        totalClasses: total,
         streak: 0,
         certificates: 0,
       },
@@ -155,15 +206,11 @@ router.get("/overview/:studentId", async (req, res) => {
           }
         : null,
 
-      progress: [
-        { level: "Beginner", status: "active", progress: 60 },
-        { level: "Intermediate", status: "locked", progress: 0 },
-        { level: "Advanced", status: "locked", progress: 0 },
-      ],
+      // 🔥 REAL LEARNING PATH (NO DUMMY)
+      progress,
 
       reminders: [],
     });
-
   } catch (err) {
     console.log("OVERVIEW ERROR:", err);
     res.status(500).json({
