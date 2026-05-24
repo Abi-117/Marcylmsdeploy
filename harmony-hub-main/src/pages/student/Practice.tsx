@@ -1,11 +1,9 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { motion } from "framer-motion";
 
 import { PageHeader, StatCard } from "@/components/dashboard/Primitives";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-
 import Metronome from "./Metronome";
 
 import {
@@ -37,116 +35,68 @@ export default function Practice() {
   const [history, setHistory] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // ✅ SAFE LOAD
   useEffect(() => {
-    if (!studentId) {
-      setHistory([]);
-      setLoading(false);
-      return;
-    }
-
-    fetchHistory();
+    if (studentId) fetchHistory();
   }, [studentId]);
 
   const fetchHistory = async () => {
     try {
       setLoading(true);
-
-      const res = await axios.get(
-        `${API}/practice/${studentId}`
-      );
-
+      const res = await axios.get(`${API}/practice/${studentId}`);
       setHistory(res.data || []);
     } catch (err) {
-      console.log("Fetch error:", err);
+      console.log(err);
       setHistory([]);
     } finally {
       setLoading(false);
     }
   };
 
-  // TODAY MINUTES
   const todayMinutes =
     history
-      .filter((h) => {
-        const d = new Date(h.createdAt);
-        return d.toDateString() === new Date().toDateString();
-      })
+      .filter((h) =>
+        new Date(h.createdAt).toDateString() === new Date().toDateString()
+      )
       .reduce((a, b) => a + (b.duration || 0), 0) / 60;
 
-  // TOTAL MINUTES
   const totalMinutes =
     history.reduce((a, b) => a + (b.duration || 0), 0) / 60;
 
-  // CHART
   const chartData = history.map((h) => ({
     date: new Date(h.createdAt).toLocaleDateString(),
     minutes: (h.duration || 0) / 60,
   }));
 
-  if (loading) {
-    return (
-      <div className="p-6 text-muted-foreground">
-        Loading practice data...
-      </div>
-    );
-  }
+  if (loading) return <div className="p-6">Loading...</div>;
 
   return (
     <div>
-      <PageHeader
-        title="Practice Studio"
-        subtitle="Real-time practice tracking"
-      />
+      <PageHeader title="Practice Studio" subtitle="Real tracking system" />
 
       {/* STATS */}
       <div className="grid gap-4 sm:grid-cols-3">
-        <StatCard
-          label="Today"
-          value={`${todayMinutes.toFixed(0)} min`}
-          icon={Music2}
-          accent
-        />
-
-        <StatCard
-          label="Streak"
-          value={history.length > 0 ? "Active 🔥" : "0"}
-          icon={Flame}
-        />
-
-        <StatCard
-          label="Total Practice"
-          value={`${totalMinutes.toFixed(0)} min`}
-          icon={Target}
-        />
+        <StatCard label="Today" value={`${todayMinutes.toFixed(0)} min`} icon={Music2} />
+        <StatCard label="Streak" value="Active 🔥" icon={Flame} />
+        <StatCard label="Total" value={`${totalMinutes.toFixed(0)} min`} icon={Target} />
       </div>
 
       {/* TOOLS */}
-      <div className="mt-6 grid gap-6 lg:grid-cols-3">
+      <div className="mt-6 grid lg:grid-cols-3 gap-6">
         <PracticeTimer studentId={studentId} onSave={fetchHistory} />
         <Metronome />
         <VideoUpload studentId={studentId} onUpload={fetchHistory} />
       </div>
 
-      {/* ANALYTICS */}
+      {/* CHART */}
       <Card className="mt-6">
         <CardContent className="p-6">
-          <div className="font-semibold mb-4">
-            Practice Analytics
-          </div>
-
           <ResponsiveContainer width="100%" height={250}>
             <LineChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" />
+              <CartesianGrid />
               <XAxis dataKey="date" />
               <YAxis />
               <Tooltip />
-              <Line
-                type="monotone"
-                dataKey="minutes"
-                stroke="#f59e0b"
-                strokeWidth={2}
-              />
+              <Line dataKey="minutes" stroke="#f59e0b" />
             </LineChart>
           </ResponsiveContainer>
         </CardContent>
@@ -168,30 +118,23 @@ function PracticeTimer({ studentId, onSave }: any) {
   }, [running]);
 
   const saveSession = async () => {
-    if (!studentId) return;
+    await axios.post(`${API}/practice/upload`, {
+      studentId,
+      duration: sec,
+      notes: "Practice",
+      bpm: 0,
+    });
 
-    try {
-      await axios.post(`${API}/practice/upload`, {
-        studentId,
-        duration: sec,
-        notes: "Practice session",
-        bpm: 0,
-      });
-
-      setSec(0);
-      setRunning(false);
-      onSave();
-    } catch (err) {
-      console.log(err);
-    }
+    setSec(0);
+    setRunning(false);
+    onSave();
   };
 
   return (
     <Card>
       <CardContent className="p-6 text-center">
-        <div className="text-4xl font-bold">
-          {Math.floor(sec / 60)}:
-          {(sec % 60).toString().padStart(2, "0")}
+        <div className="text-4xl">
+          {Math.floor(sec / 60)}:{(sec % 60).toString().padStart(2, "0")}
         </div>
 
         <div className="flex gap-3 justify-center mt-4">
@@ -210,44 +153,32 @@ function PracticeTimer({ studentId, onSave }: any) {
   );
 }
 
-/* ================= VIDEO UPLOAD (CLOUD READY) ================= */
+/* ================= VIDEO UPLOAD ================= */
 
 function VideoUpload({ studentId, onUpload }: any) {
   const [file, setFile] = useState<File | null>(null);
 
   const upload = async () => {
-    if (!file || !studentId) return;
+    if (!file) return;
 
     const formData = new FormData();
     formData.append("video", file);
     formData.append("studentId", studentId);
-    formData.append("notes", "Practice video");
 
-    try {
-      await axios.post(
-        `${API}/practice/video`,
-        formData
-      );
+    await axios.post(`${API}/practice/video`, formData);
 
-      setFile(null);
-      onUpload();
-    } catch (err) {
-      console.log(err);
-    }
+    setFile(null);
+    onUpload();
   };
 
   return (
     <Card>
       <CardContent className="p-4">
-        <input
-          type="file"
-          accept="video/*"
-          onChange={(e) =>
-            setFile(e.target.files?.[0] || null)
-          }
+        <input type="file" accept="video/*"
+          onChange={(e) => setFile(e.target.files?.[0] || null)}
         />
 
-        <Button onClick={upload} className="mt-3 w-full">
+        <Button className="mt-3 w-full" onClick={upload}>
           <Upload className="mr-2" />
           Upload
         </Button>

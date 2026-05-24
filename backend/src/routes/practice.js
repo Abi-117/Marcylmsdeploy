@@ -1,13 +1,42 @@
 import express from "express";
 import Practice from "../models/Practice.js";
-import upload from "../config/multer.js";
+import multer from "multer";
 import cloudinary from "../config/cloudinary.js";
+import { CloudinaryStorage } from "multer-storage-cloudinary";
 
 const router = express.Router();
 
-//
-// ================= GET PRACTICE HISTORY
-//
+/* ================= CLOUD STORAGE ================= */
+const storage = new CloudinaryStorage({
+  cloudinary,
+  params: {
+    folder: "practice_videos",
+    resource_type: "video",
+  },
+});
+
+const upload = multer({ storage });
+
+/* ================= SAVE TIMER ================= */
+router.post("/upload", async (req, res) => {
+  try {
+    const { studentId, duration, notes, bpm } = req.body;
+
+    const data = await Practice.create({
+      studentId,
+      duration,
+      notes,
+      bpm,
+    });
+
+    res.json(data);
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ message: "Save failed" });
+  }
+});
+
+/* ================= GET HISTORY ================= */
 router.get("/:studentId", async (req, res) => {
   try {
     const data = await Practice.find({
@@ -16,85 +45,25 @@ router.get("/:studentId", async (req, res) => {
 
     res.json(data);
   } catch (err) {
-    console.log(err);
     res.status(500).json({ message: "Fetch failed" });
   }
 });
 
-//
-// ================= TIMER SAVE SESSION
-//
-router.post("/upload", async (req, res) => {
-  try {
-    const { studentId, duration, notes, bpm } = req.body;
-
-    const practice = new Practice({
-      studentId,
-      duration,
-      notes,
-      bpm,
-    });
-
-    await practice.save();
-
-    res.json({ message: "Saved", practice });
-  } catch (err) {
-    console.log(err);
-    res.status(500).json({ message: "Save failed" });
-  }
-});
-
-//
-// ================= VIDEO UPLOAD (CLOUDINARY)
-//
+/* ================= VIDEO UPLOAD ================= */
 router.post("/video", upload.single("video"), async (req, res) => {
   try {
-    const { studentId, notes, duration, bpm } = req.body;
+    const { studentId, notes } = req.body;
 
-    const practice = new Practice({
+    const data = await Practice.create({
       studentId,
       notes,
-      duration,
-      bpm,
       videoUrl: req.file.path,
-      publicId: req.file.filename,
     });
 
-    await practice.save();
-
-    res.status(201).json({
-      message: "Video uploaded",
-      practice,
-    });
+    res.json(data);
   } catch (err) {
     console.log(err);
-    res.status(500).json({ message: "Upload failed" });
-  }
-});
-
-//
-// ================= DELETE VIDEO (optional)
-//
-router.delete("/:id", async (req, res) => {
-  try {
-    const practice = await Practice.findById(req.params.id);
-
-    if (!practice) {
-      return res.status(404).json({ message: "Not found" });
-    }
-
-    if (practice.publicId) {
-      await cloudinary.uploader.destroy(practice.publicId, {
-        resource_type: "video",
-      });
-    }
-
-    await Practice.findByIdAndDelete(req.params.id);
-
-    res.json({ message: "Deleted" });
-  } catch (err) {
-    console.log(err);
-    res.status(500).json({ message: "Delete failed" });
+    res.status(500).json({ message: "Video upload failed" });
   }
 });
 
