@@ -29,6 +29,7 @@ import AdminReports from "./pages/admin/Reports";
 import TeacherDashboard from "./pages/teacher/Dashboard";
 import TeacherClasses from "./pages/teacher/Classes";
 import TeacherStudents from "./pages/teacher/Students";
+import TeacherAttendance from "./pages/teacher/StudentAttendance";
 import TeacherAssignments from "./pages/teacher/Assignments";
 import TeacherSchedule from "./pages/teacher/Schedule";
 
@@ -96,6 +97,7 @@ export default function App() {
         <Route index element={<TeacherDashboard />} />
         <Route path="classes" element={<TeacherClasses />} />
         <Route path="students" element={<TeacherStudents />} />
+        <Route path="attendance" element={<TeacherAttendance />} />
         <Route path="assignments" element={<TeacherAssignments />} />
         <Route path="schedule" element={<TeacherSchedule />} />
       </Route>
