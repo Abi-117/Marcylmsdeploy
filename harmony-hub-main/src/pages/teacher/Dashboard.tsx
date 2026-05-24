@@ -518,9 +518,7 @@ function TeacherOverview() {
 
         <div className="mt-1 font-semibold">
 
-          {typeof s.course === "object"
-            ? s.course?.name
-            : s.course}
+         {s.course?.name}
 
         </div>
 

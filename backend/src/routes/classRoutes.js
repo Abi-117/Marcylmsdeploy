@@ -89,10 +89,15 @@ router.get(
 
       })
 
-        .populate(
-          "students",
-          "name email phone paymentStatus"
-        )
+        .populate({
+  path: "students",
+  select:
+    "name email phone paymentStatus selectedLevel availableDays fromTime toTime mode course",
+  populate: {
+    path: "course",
+    model: "Course",
+  },
+})
 
         .sort({ date: -1 });
 

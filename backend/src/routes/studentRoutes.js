@@ -48,7 +48,11 @@ router.get(
         query.paymentStatus = "Pending";
       }
 
-      const students = await User.find(query).select("-password");
+      const students = await User.find(query)
+
+  .populate("course")
+
+  .select("-password");
 
       res.json(students);
 
