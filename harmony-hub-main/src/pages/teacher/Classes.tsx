@@ -1,17 +1,29 @@
 import { useEffect, useState } from "react";
+
 import axios from "axios";
+
 import { format } from "date-fns";
+
 import { motion } from "framer-motion";
 
 import { PageHeader } from "@/components/dashboard/Primitives";
-import { Card, CardContent } from "@/components/ui/card";
+
+import {
+  Card,
+  CardContent,
+} from "@/components/ui/card";
+
 import { Button } from "@/components/ui/button";
+
 import { Badge } from "@/components/ui/badge";
 
 import {
   ExternalLink,
   FileText,
   Video,
+  Users,
+  Clock3,
+  CheckCircle2,
 } from "lucide-react";
 
 const API =
@@ -45,9 +57,11 @@ export default function TeacherClasses() {
 
   useEffect(() => {
 
+    if (!teacherId) return;
+
     fetchClasses();
 
-  }, []);
+  }, [teacherId]);
 
   // ====================================
   // FETCH CLASSES
@@ -57,12 +71,12 @@ export default function TeacherClasses() {
 
     try {
 
-      if (!teacherId) return;
-
       setLoading(true);
 
       const res = await axios.get(
+
         `${API}/classes/teacher/${teacherId}`
+
       );
 
       setClasses(res.data);
@@ -93,7 +107,13 @@ export default function TeacherClasses() {
     try {
 
       await axios.put(
+
         `${API}/classes/attendance/${id}`
+
+      );
+
+      alert(
+        "Attendance marked successfully"
       );
 
       fetchClasses();
@@ -101,6 +121,10 @@ export default function TeacherClasses() {
     } catch (err) {
 
       console.log(err);
+
+      alert(
+        "Failed to mark attendance"
+      );
 
     }
 
@@ -112,16 +136,39 @@ export default function TeacherClasses() {
 
   const updateStatus = async (
     id: string,
-    status: string
+    currentStatus: string
   ) => {
 
     try {
 
+      let nextStatus = "Completed";
+
+      if (
+        currentStatus === "Upcoming"
+      ) {
+
+        nextStatus = "Live";
+
+      } else if (
+        currentStatus === "Live"
+      ) {
+
+        nextStatus = "Completed";
+
+      }
+
       await axios.put(
+
         `${API}/classes/status/${id}`,
+
         {
-          status,
+          status: nextStatus,
         }
+
+      );
+
+      alert(
+        `Class marked as ${nextStatus}`
       );
 
       fetchClasses();
@@ -129,6 +176,33 @@ export default function TeacherClasses() {
     } catch (err) {
 
       console.log(err);
+
+      alert(
+        "Failed to update status"
+      );
+
+    }
+
+  };
+
+  // ====================================
+  // STATUS COLOR
+  // ====================================
+
+  const getStatusClass = (
+    status: string
+  ) => {
+
+    switch (status) {
+
+      case "Live":
+        return "bg-green-500 text-white";
+
+      case "Completed":
+        return "bg-gray-200 text-black";
+
+      default:
+        return "bg-gold text-black";
 
     }
 
@@ -162,62 +236,79 @@ export default function TeacherClasses() {
 
       <PageHeader
         title="My Classes"
-        subtitle="Schedule, manage and review sessions"
+        subtitle="Manage all your scheduled sessions"
       />
 
-      <div className="grid gap-4 md:grid-cols-2">
+      {/* NO CLASSES */}
 
-        {classes.length === 0 && (
+      {classes.length === 0 && (
 
-          <div className="text-muted-foreground p-6">
+        <Card>
 
-            No classes found
+          <CardContent className="p-10 text-center">
 
-          </div>
+            <Video className="mx-auto mb-3 h-10 w-10 text-muted-foreground" />
 
-        )}
+            <div className="text-lg font-semibold">
+
+              No Classes Found
+
+            </div>
+
+            <div className="mt-1 text-sm text-muted-foreground">
+
+              Scheduled classes will appear here
+
+            </div>
+
+          </CardContent>
+
+        </Card>
+
+      )}
+
+      {/* CLASSES */}
+
+      <div className="grid gap-5 md:grid-cols-2">
 
         {classes.map((c) => (
 
           <motion.div
             key={c._id}
-            whileHover={{ y: -2 }}
+            whileHover={{
+              y: -3,
+            }}
           >
 
-            <Card className="border-border/60">
+            <Card className="border-border/60 transition-all hover:shadow-lg">
 
               <CardContent className="p-5">
 
-                {/* TOP */}
+                {/* HEADER */}
 
-                <div className="flex justify-between">
+                <div className="flex items-start justify-between">
 
                   <div>
 
                     <Badge
-                      className={
-                        c.status === "Live"
-                          ? "bg-gold text-black"
-                          : c.status ===
-                            "Completed"
-                          ? "bg-gray-200"
-                          : ""
-                      }
+                      className={getStatusClass(
+                        c.status
+                      )}
                     >
 
                       {c.status}
 
                     </Badge>
 
-                    <div className="mt-3 font-display text-lg">
+                    <div className="mt-3 font-display text-xl font-semibold">
 
                       {c.title}
 
                     </div>
 
-                    <div className="text-xs text-muted-foreground">
+                    <div className="mt-1 text-sm text-muted-foreground">
 
-                      {c.batchName}
+                      {c.courseName}
 
                     </div>
 
@@ -236,7 +327,7 @@ export default function TeacherClasses() {
 
                     </div>
 
-                    <div className="text-2xl font-display">
+                    <div className="font-display text-3xl">
 
                       {format(
                         new Date(c.date),
@@ -245,7 +336,7 @@ export default function TeacherClasses() {
 
                     </div>
 
-                    <div className="text-xs">
+                    <div className="text-xs text-muted-foreground">
 
                       {format(
                         new Date(c.date),
@@ -258,9 +349,9 @@ export default function TeacherClasses() {
 
                 </div>
 
-                {/* PLATFORM */}
+                {/* INFO */}
 
-                <div className="mt-4 flex gap-2 text-xs">
+                <div className="mt-5 flex flex-wrap gap-2">
 
                   <Badge variant="outline">
 
@@ -272,7 +363,17 @@ export default function TeacherClasses() {
 
                   <Badge variant="outline">
 
+                    <Clock3 className="mr-1 h-3 w-3" />
+
                     {c.duration || 60} min
+
+                  </Badge>
+
+                  <Badge variant="outline">
+
+                    <Users className="mr-1 h-3 w-3" />
+
+                    Students
 
                   </Badge>
 
@@ -282,27 +383,57 @@ export default function TeacherClasses() {
 
                 {c.notes && (
 
-                  <div className="mt-3 flex gap-2 rounded bg-muted p-2 text-xs text-muted-foreground">
+                  <div className="mt-4 rounded-xl bg-muted p-3">
 
-                    <FileText className="mt-0.5 h-3 w-3" />
+                    <div className="flex gap-2 text-sm text-muted-foreground">
 
-                    {c.notes}
+                      <FileText className="mt-0.5 h-4 w-4" />
+
+                      <span>
+
+                        {c.notes}
+
+                      </span>
+
+                    </div>
 
                   </div>
 
                 )}
 
+                {/* ATTENDANCE STATUS */}
+
+                <div className="mt-4 flex items-center gap-2 text-sm">
+
+                  <CheckCircle2
+                    className={`h-4 w-4 ${
+                      c.attendanceMarked
+                        ? "text-green-500"
+                        : "text-muted-foreground"
+                    }`}
+                  />
+
+                  <span>
+
+                    {c.attendanceMarked
+                      ? "Attendance Completed"
+                      : "Attendance Pending"}
+
+                  </span>
+
+                </div>
+
                 {/* ACTIONS */}
 
-                <div className="mt-4 flex flex-wrap gap-2">
+                <div className="mt-5 flex flex-wrap gap-2">
 
-                  {/* OPEN */}
+                  {/* OPEN MEETING */}
 
                   {c.meetingLink && (
 
                     <Button
                       size="sm"
-                      className="bg-gold text-black"
+                      className="bg-gold text-black hover:bg-gold/90"
                       asChild
                     >
 
@@ -312,7 +443,7 @@ export default function TeacherClasses() {
                         rel="noreferrer"
                       >
 
-                        Open
+                        Open Class
 
                         <ExternalLink className="ml-1 h-3 w-3" />
 
@@ -327,11 +458,13 @@ export default function TeacherClasses() {
                   <Button
                     size="sm"
                     variant="outline"
-                    onClick={() =>
-                      markAttendance(c._id)
-                    }
                     disabled={
                       c.attendanceMarked
+                    }
+                    onClick={() =>
+                      markAttendance(
+                        c._id
+                      )
                     }
                   >
 
@@ -343,23 +476,28 @@ export default function TeacherClasses() {
 
                   {/* STATUS */}
 
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() =>
-                      updateStatus(
-                        c._id,
-                        c.status ===
-                          "Upcoming"
-                          ? "Live"
-                          : "Completed"
-                      )
-                    }
-                  >
+                  {c.status !==
+                    "Completed" && (
 
-                    Update Status
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() =>
+                        updateStatus(
+                          c._id,
+                          c.status
+                        )
+                      }
+                    >
 
-                  </Button>
+                      {c.status ===
+                      "Upcoming"
+                        ? "Start Class"
+                        : "Complete Class"}
+
+                    </Button>
+
+                  )}
 
                 </div>
 
