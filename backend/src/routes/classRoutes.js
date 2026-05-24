@@ -130,6 +130,7 @@ router.post("/", async (req, res) => {
       title,
       teacherId,
       courseName,
+      courseLevel,
       date,
       platform,
       meetingLink,
@@ -183,6 +184,7 @@ router.post("/", async (req, res) => {
       notes,
       duration: 60,
       status: "Upcoming",
+      courseLevel,
       students,
     });
 
@@ -246,6 +248,27 @@ router.put("/:id", async (req, res) => {
 
   }
 
+});
+
+// =====================================
+// GET STUDENT CLASSES
+// =====================================
+
+router.get("/student/:studentId", async (req, res) => {
+  try {
+    const classes = await Class.find({
+      students: req.params.studentId,
+    })
+      .populate("students", "name email")
+      .sort({ date: -1 });
+
+    res.json(classes);
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({
+      message: "Fetch failed",
+    });
+  }
 });
 
 

@@ -4,9 +4,9 @@ const classSchema = new mongoose.Schema(
   {
     title: String,
 
-    teacher: String,
-
     batchName: String,
+
+    teacher: String,
 
     date: Date,
 
@@ -18,6 +18,8 @@ const classSchema = new mongoose.Schema(
     duration: Number,
 
     meetingLink: String,
+
+    recordingUrl: String,
 
     notes: String,
 
@@ -38,6 +40,10 @@ const classSchema = new mongoose.Schema(
       type: String,
     },
 
+    courseLevel: {
+      type: String,
+    },
+
     students: [
       {
         type: mongoose.Schema.Types.ObjectId,
@@ -48,7 +54,4 @@ const classSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-export default mongoose.model(
-  "Class",
-  classSchema
-);
+export default mongoose.model("Class", classSchema);

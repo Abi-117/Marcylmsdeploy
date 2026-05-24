@@ -111,4 +111,45 @@ router.put(
   }
 );
 
+router.get("/overview/:studentId", async (req, res) => {
+  try {
+    const { studentId } = req.params;
+
+    const student = await User.findById(studentId);
+    if (!student) {
+      return res.status(404).json({ message: "Student not found" });
+    }
+
+    const classes = await Class.find({
+      students: studentId,
+    }).sort({ date: 1 });
+
+    const nextClass = classes.find((c) => c.status !== "Completed");
+
+    res.json({
+      student: {
+        name: student.name,
+        course: student.courseName,
+        level: student.level,
+      },
+
+      stats: {
+        attended: classes.filter((c) => c.status === "Completed").length,
+        totalClasses: classes.length,
+        streak: 0,
+        certificates: 0,
+      },
+
+      nextClass,
+
+      progress: [],
+      reminders: [],
+    });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ message: "Overview fetch failed" });
+  }
+});
+
+
 export default router;
