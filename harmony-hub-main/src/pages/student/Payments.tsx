@@ -121,9 +121,8 @@ function PaymentHistory() {
 
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
 
-          {payments.map((p) => (
-
-            <Card key={p._id}>
+         {payments.map((p) => (
+  <Card key={p._id}>
 
               <CardContent className="p-5">
 
