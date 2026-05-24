@@ -3,6 +3,9 @@ import mongoose from "mongoose";
 const classSchema = new mongoose.Schema(
   {
     title: String,
+
+    teacher: String,
+
     batchName: String,
 
     date: Date,
@@ -12,7 +15,7 @@ const classSchema = new mongoose.Schema(
       enum: ["Google Meet", "Zoom"],
     },
 
-    duration: Number, // minutes
+    duration: Number,
 
     meetingLink: String,
 
@@ -30,17 +33,22 @@ const classSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+
     courseName: {
-  type: String,
-},
-students: [
-  {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "User",
-  },
-],
+      type: String,
+    },
+
+    students: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
   },
   { timestamps: true }
 );
 
-export default mongoose.model("Class", classSchema);
+export default mongoose.model(
+  "Class",
+  classSchema
+);

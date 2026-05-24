@@ -120,13 +120,13 @@ router.get(
 // =====================================
 // CREATE CLASS
 // =====================================
-
 router.post("/", async (req, res) => {
 
   try {
 
-    const {
+    console.log(req.body);
 
+    const {
       title,
       teacherId,
       courseName,
@@ -135,83 +135,75 @@ router.post("/", async (req, res) => {
       meetingLink,
       notes,
       students,
-
     } = req.body;
+
+    // =========================
+    // VALIDATION
+    // =========================
+
+    if (!teacherId) {
+      return res.status(400).json({
+        message: "Teacher ID missing",
+      });
+    }
+
+    if (!students || students.length === 0) {
+      return res.status(400).json({
+        message: "Students missing",
+      });
+    }
 
     // =========================
     // FIND TEACHER
     // =========================
 
-    const teacher =
-      await User.findById(
-        teacherId
-      );
+    const teacher = await User.findById(
+      teacherId
+    );
 
     if (!teacher) {
-
       return res.status(404).json({
         message: "Teacher not found",
       });
-
     }
 
     // =========================
     // CREATE CLASS
     // =========================
 
-    const newClass =
-      await Class.create({
+    const newClass = new Class({
+      title,
+      teacher: teacher.name,
+      teacherId,
+      batchName: courseName,
+      courseName,
+      date,
+      platform,
+      meetingLink,
+      notes,
+      duration: 60,
+      status: "Upcoming",
+      students,
+    });
 
-        title,
-
-        teacherId,
-
-        teacher:
-          teacher.name,
-
-        batchName:
-          courseName,
-
-        date,
-
-        platform,
-
-        meetingLink,
-
-        notes,
-
-        duration: 60,
-
-        status: "Upcoming",
-
-        courseName,
-
-        students,
-
-      });
+    await newClass.save();
 
     res.status(201).json({
-
-      message:
-        "Class created successfully",
-
+      message: "Class created successfully",
       class: newClass,
-
     });
 
   } catch (err) {
 
-    console.log(err);
+    console.log("CLASS CREATE ERROR:", err);
 
     res.status(500).json({
-      message:
-        "Create class failed",
+      message: err.message,
     });
 
   }
 
 });
-
 
 // =====================================
 // UPDATE CLASS
