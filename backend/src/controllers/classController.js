@@ -11,27 +11,26 @@ export const getTeacherClasses = async (req, res) => {
 
     const today = new Date().toISOString().split("T")[0];
 
-    // attach attendance status
-    const updated = await Promise.all(
+    const result = await Promise.all(
       classes.map(async (cls) => {
         const attendance = await Attendance.find({
           classId: cls._id,
           date: today,
         });
 
-        const attendanceMap = {};
+        const map = {};
         attendance.forEach((a) => {
-          attendanceMap[a.studentId.toString()] = a.status;
+          map[a.studentId.toString()] = a.status;
         });
 
         return {
           ...cls.toObject(),
-          attendanceMap,
+          attendanceMap: map,
         };
       })
     );
 
-    res.json(updated);
+    res.json(result);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

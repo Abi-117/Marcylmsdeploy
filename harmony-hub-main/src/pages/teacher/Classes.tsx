@@ -180,45 +180,65 @@ export default function TeacherClasses() {
                 </div>
 
                 {/* STUDENTS */}
-                {selectedClassId === c._id && (
-                  <div className="mt-5 border-t pt-4">
+               {/* STUDENTS */}
+{selectedClassId === c._id && (
+  <div className="mt-5 border-t pt-4">
 
-                    {students.length === 0 ? (
-                      <p>No students enrolled</p>
-                    ) : (
-                      students.map((s: any) => (
-                        <div
-                          key={s._id}
-                          className="flex justify-between items-center mt-2"
-                        >
-                          <span>{s.name}</span>
+    {students.length === 0 ? (
+      <p>No students enrolled</p>
+    ) : (
+      students.map((s: any) => {
+        const status =
+          selectedClass?.attendanceMap?.[s._id];
 
-                          <div className="flex gap-2">
-                            <Button
-                              size="sm"
-                              onClick={() =>
-                                markAttendance(c._id, s._id, "Present")
-                              }
-                            >
-                              Present
-                            </Button>
+        return (
+          <div
+            key={s._id}
+            className="flex justify-between items-center mt-2"
+          >
+            <span>{s.name}</span>
 
-                            <Button
-                              size="sm"
-                              variant="destructive"
-                              onClick={() =>
-                                markAttendance(c._id, s._id, "Absent")
-                              }
-                            >
-                              Absent
-                            </Button>
-                          </div>
-                        </div>
-                      ))
-                    )}
+            {/* STATUS DISPLAY */}
+            <span
+              className={`text-sm font-bold ${
+                status === "Present"
+                  ? "text-green-600"
+                  : status === "Absent"
+                  ? "text-red-600"
+                  : "text-gray-400"
+              }`}
+            >
+              {status || "Not Marked"}
+            </span>
 
-                  </div>
-                )}
+            {/* BUTTONS */}
+            <div className="flex gap-2">
+              <Button
+                size="sm"
+                onClick={() =>
+                  markAttendance(c._id, s._id, "Present")
+                }
+              >
+                Present
+              </Button>
+
+              <Button
+                size="sm"
+                variant="destructive"
+                onClick={() =>
+                  markAttendance(c._id, s._id, "Absent")
+                }
+              >
+                Absent
+              </Button>
+            </div>
+          </div>
+        );
+      })
+    )}
+
+  </div>
+)}
 
               </CardContent>
             </Card>
