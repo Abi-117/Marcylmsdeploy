@@ -76,7 +76,7 @@ function AdminOverview() {
 
   return (
     <div>
-      <PageHeader
+      {/* <PageHeader
         title="Academy overview"
         subtitle="Welcome back — here's what's happening today."
         actions={
@@ -84,7 +84,7 @@ function AdminOverview() {
             + New batch
           </Button>
         }
-      />
+      /> */}
 
       {/* TOP CARDS */}
 
@@ -279,7 +279,7 @@ function AdminOverview() {
 
           <CardContent className="space-y-2">
 
-            {dashboard.classes.map((c: any) => (
+            {dashboard.classes?.map((c: any) => (
 
               <div
                 key={c._id}

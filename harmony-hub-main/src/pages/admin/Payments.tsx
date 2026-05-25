@@ -37,6 +37,7 @@ type Payment = {
 
   date: string;
   invoiceUrl?: string;
+  paymentId: string;
 };
 
 function AdminPayments() {
@@ -252,12 +253,10 @@ function AdminPayments() {
   variant="ghost"
   size="sm"
   onClick={() => {
-    if (!p.invoiceUrl) {
-      alert("Invoice not available");
-      return;
-    }
-
-    window.open(p.invoiceUrl, "_blank");
+   window.open(
+  `https://marcylmsdeploy.onrender.com/api/payments/invoice/${p.paymentId}`,
+  "_blank"
+);
   }}
 >
   <Download className="h-3.5 w-3.5" />
