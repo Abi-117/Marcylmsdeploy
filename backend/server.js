@@ -18,6 +18,8 @@ import courseRoutes from "./src/routes/courseRoutes.js";
 import assignmentRoutes from "./src/routes/assignmentRoutes.js";
 import userRoutes from "./src/routes/userRoutes.js";
 import attendanceRoutes from "./src/routes/attendanceRoutes.js";
+import teacherAttendanceRoutes
+from "./src/routes/teacherAttendance.js";
 import path from "path";
 
 
@@ -49,6 +51,10 @@ app.use("/api/assignments", assignmentRoutes);
 app.use("/api/courses", courseRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/attendance", attendanceRoutes);
+app.use(
+  "/api/teacher-attendance",
+  teacherAttendanceRoutes
+);
 // serve uploaded videos
 app.use("/uploads", express.static("uploads"));
 

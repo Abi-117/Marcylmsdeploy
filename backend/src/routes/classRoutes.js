@@ -4,6 +4,7 @@ import mongoose from "mongoose";
 import Class from "../models/Class.js";
 import User from "../models/User.js";
 import { getTeacherClasses } from "../controllers/classController.js";
+import TeacherAttendance from "../models/TeacherAttendance.js";
 
 const router = express.Router();
 
@@ -372,43 +373,43 @@ router.put(
 // UPDATE STATUS
 // =====================================
 
-router.put(
-  "/status/:id",
-  async (req, res) => {
+// router.put(
+//   "/status/:id",
+//   async (req, res) => {
 
-    try {
+//     try {
 
-      const updated =
-        await Class.findByIdAndUpdate(
+//       const updated =
+//         await Class.findByIdAndUpdate(
 
-          req.params.id,
+//           req.params.id,
 
-          {
-            status:
-              req.body.status,
-          },
+//           {
+//             status:
+//               req.body.status,
+//           },
 
-          {
-            new: true,
-          }
+//           {
+//             new: true,
+//           }
 
-        );
+//         );
 
-      res.json(updated);
+//       res.json(updated);
 
-    } catch (err) {
+//     } catch (err) {
 
-      console.log(err);
+//       console.log(err);
 
-      res.status(500).json({
-        message:
-          "Status update failed",
-      });
+//       res.status(500).json({
+//         message:
+//           "Status update failed",
+//       });
 
-    }
+//     }
 
-  }
-);
+//   }
+// );
 
 // GET CLASSES
 router.get("/teacher/:teacherId", getTeacherClasses);
@@ -431,35 +432,54 @@ router.put(
 
       }
 
-      const nextStatus =
-        req.body.status;
-
-      // =========================
-      // LIVE
-      // =========================
-
-      if (nextStatus === "Live") {
-
-        cls.status = "Live";
-
-      }
-
-      // =========================
-      // COMPLETED
-      // =========================
-
-      if (nextStatus === "Completed") {
-
-        cls.status = "Completed";
-
-        cls.attendanceLocked = true;
-
-        cls.completedAt =
-          new Date();
-
-      }
+      // UPDATE STATUS
+      cls.status = req.body.status;
 
       await cls.save();
+
+      // ===================================
+      // AUTO TEACHER ATTENDANCE
+      // ===================================
+
+      if (
+        req.body.status ===
+        "Completed"
+      ) {
+
+        const exists =
+          await TeacherAttendance.findOne({
+            teacherId:
+              cls.teacherId,
+            classId: cls._id,
+          });
+
+        if (!exists) {
+
+          await TeacherAttendance.create({
+
+            teacherId:
+              cls.teacherId,
+
+            classId:
+              cls._id,
+
+            status:
+              "Present",
+
+            classTitle:
+              cls.title,
+
+            courseName:
+              cls.courseName,
+
+            date:
+              cls.date,
+
+          });
+
+        }
+
+      }
 
       res.json(cls);
 
