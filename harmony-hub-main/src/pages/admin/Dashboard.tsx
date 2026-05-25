@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
-
 import {
   Wallet,
   Users,
   GraduationCap,
   Video,
   TrendingUp,
+  Trophy,
 } from "lucide-react";
 
 import {
@@ -42,17 +42,7 @@ function AdminOverview() {
     fetch("https://marcylmsdeploy.onrender.com/api/admin/dashboard")
       .then((res) => res.json())
       .then((data) => {
-        setDashboard({
-          classes: data?.classes || [],
-          topStudents: data?.topStudents || [],
-          revenueData: data?.revenueData || [],
-          attendanceData: data?.attendanceData || [],
-          totalRevenue: data?.totalRevenue || 0,
-          totalStudents: data?.totalStudents || 0,
-          totalTeachers: data?.totalTeachers || 0,
-          liveClasses: data?.liveClasses || 0,
-        });
-
+        setDashboard(data);
         setLoading(false);
       })
       .catch((err) => {
@@ -61,45 +51,35 @@ function AdminOverview() {
       });
   }, []);
 
-  const formatINR = (val: number) =>
-    new Intl.NumberFormat("en-IN").format(val || 0);
-
-  if (loading) {
-    return (
-      <div className="p-10 text-center text-gray-500">
-        Loading Dashboard...
-      </div>
-    );
-  }
+  if (loading) return <div className="p-10">Loading...</div>;
 
   return (
-    <div>
+    <div className="p-4">
 
       {/* TOP CARDS */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
 
         <StatCard
-          label="Total revenue"
-          value={`₹${formatINR(dashboard.totalRevenue)}`}
+          label="Total Revenue"
+          value={`₹${dashboard.totalRevenue || 0}`}
           icon={Wallet}
-          accent
         />
 
         <StatCard
           label="Students"
-          value={dashboard.totalStudents}
+          value={dashboard.totalStudents || 0}
           icon={GraduationCap}
         />
 
         <StatCard
           label="Teachers"
-          value={dashboard.totalTeachers}
+          value={dashboard.totalTeachers || 0}
           icon={Users}
         />
 
         <StatCard
-          label="Live classes"
-          value={dashboard.liveClasses}
+          label="Live Classes"
+          value={dashboard.liveClasses || 0}
           icon={Video}
         />
 
@@ -115,21 +95,21 @@ function AdminOverview() {
           </CardHeader>
 
           <CardContent>
-            {dashboard.revenueData?.length > 0 && (
-              <ResponsiveContainer width="100%" height={280}>
-                <AreaChart data={dashboard.revenueData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="month" />
-                  <YAxis />
-                  <Tooltip />
-                  <Area
-                    dataKey="revenue"
-                    stroke="#f59e0b"
-                    fill="#fde68a"
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
-            )}
+            <ResponsiveContainer width="100%" height={280}>
+              <AreaChart data={dashboard.revenueData || []}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="month" />
+                <YAxis />
+                <Tooltip />
+
+                <Area
+                  type="monotone"
+                  dataKey="revenue"
+                  stroke="#f59e0b"
+                  fill="#fde68a"
+                />
+              </AreaChart>
+            </ResponsiveContainer>
           </CardContent>
         </Card>
 
@@ -140,56 +120,43 @@ function AdminOverview() {
           </CardHeader>
 
           <CardContent>
-            {dashboard.attendanceData?.length > 0 && (
-              <ResponsiveContainer width="100%" height={280}>
-                <BarChart data={dashboard.attendanceData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="week" />
-                  <YAxis />
-                  <Tooltip />
-                  <Bar dataKey="present" fill="#22c55e" />
-                  <Bar dataKey="absent" fill="#ef4444" />
-                </BarChart>
-              </ResponsiveContainer>
-            )}
+            <ResponsiveContainer width="100%" height={280}>
+              <BarChart data={dashboard.attendanceData || []}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="week" />
+                <YAxis />
+                <Tooltip />
+
+                <Bar dataKey="present" fill="#22c55e" />
+                <Bar dataKey="absent" fill="#ef4444" />
+              </BarChart>
+            </ResponsiveContainer>
           </CardContent>
         </Card>
 
       </div>
 
-      {/* CLASSES + TOP STUDENTS */}
+      {/* CLASSES + STUDENTS */}
       <div className="mt-6 grid gap-6 lg:grid-cols-3">
 
         {/* CLASSES */}
         <Card className="lg:col-span-2">
           <CardHeader>
-            <CardTitle>Active Classes</CardTitle>
+            <CardTitle>Classes</CardTitle>
           </CardHeader>
 
-          <CardContent className="space-y-2">
-
+          <CardContent>
             {dashboard.classes?.length === 0 ? (
-              <p className="text-sm text-gray-500">
-                No active classes
-              </p>
+              <p>No classes</p>
             ) : (
-              dashboard.classes?.map((c: any) => (
-                <div
-                  key={c._id}
-                  className="p-3 border rounded-lg"
-                >
-                  <div className="font-medium">
-                    {c.title}
-                  </div>
-                  <div className="text-xs text-gray-500">
-                    {c.teacher}
-                  </div>
-
+              dashboard.classes.map((c: any) => (
+                <div key={c._id} className="p-3 border rounded mb-2">
+                  <div>{c.title}</div>
+                  <div className="text-xs text-gray-500">{c.teacher}</div>
                   <Badge>{c.status}</Badge>
                 </div>
               ))
             )}
-
           </CardContent>
         </Card>
 
@@ -199,34 +166,20 @@ function AdminOverview() {
             <CardTitle>Top Students</CardTitle>
           </CardHeader>
 
-          <CardContent className="space-y-3">
-
+          <CardContent>
             {dashboard.topStudents?.map((s: any, i: number) => (
-              <div
-                key={s._id}
-                className="flex items-center gap-3"
-              >
-                <div className="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center text-xs">
-                  {i + 1}
+              <div key={s._id} className="flex justify-between p-2">
+                <div>
+                  {i + 1}. {s.name}
                 </div>
-
-                <div className="flex-1">
-                  <div className="text-sm font-medium">
-                    {s.name}
-                  </div>
-                  <div className="text-xs text-gray-500">
-                    {s.course}
-                  </div>
-                </div>
-
                 <TrendingUp className="w-4 h-4 text-green-500" />
               </div>
             ))}
-
           </CardContent>
         </Card>
 
       </div>
+
     </div>
   );
 }
