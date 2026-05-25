@@ -412,5 +412,69 @@ router.put(
 
 // GET CLASSES
 router.get("/teacher/:teacherId", getTeacherClasses);
+router.put(
+  "/status/:id",
+  async (req, res) => {
+
+    try {
+
+      const cls =
+        await Class.findById(
+          req.params.id
+        );
+
+      if (!cls) {
+
+        return res.status(404).json({
+          message: "Class not found",
+        });
+
+      }
+
+      const nextStatus =
+        req.body.status;
+
+      // =========================
+      // LIVE
+      // =========================
+
+      if (nextStatus === "Live") {
+
+        cls.status = "Live";
+
+      }
+
+      // =========================
+      // COMPLETED
+      // =========================
+
+      if (nextStatus === "Completed") {
+
+        cls.status = "Completed";
+
+        cls.attendanceLocked = true;
+
+        cls.completedAt =
+          new Date();
+
+      }
+
+      await cls.save();
+
+      res.json(cls);
+
+    } catch (err) {
+
+      console.log(err);
+
+      res.status(500).json({
+        message:
+          "Status update failed",
+      });
+
+    }
+
+  }
+);
 
 export default router;

@@ -19,82 +19,90 @@ export const markAttendance = async (
       status,
     } = req.body;
 
-    // ====================================
-    // TODAY START + END
-    // ====================================
+    // =========================
+    // FIND CLASS
+    // =========================
 
-    const start = new Date();
+    const cls =
+      await Class.findById(
+        classId
+      );
 
-    start.setHours(
-      0,
-      0,
-      0,
-      0
-    );
+    if (!cls) {
 
-    const end = new Date();
-
-    end.setHours(
-      23,
-      59,
-      59,
-      999
-    );
-
-    // ====================================
-    // CHECK EXISTING
-    // ====================================
-
-    let attendance =
-      await Attendance.findOne({
-
-        classId,
-
-        studentId,
-
-        date: {
-          $gte: start,
-          $lte: end,
-        },
-
+      return res.status(404).json({
+        message: "Class not found",
       });
 
-    // ====================================
-    // UPDATE
-    // ====================================
+    }
 
-    if (attendance) {
+    // =========================
+    // ONLY LIVE CLASS
+    // =========================
 
-      attendance.status =
-        status;
+    if (cls.status !== "Live") {
 
-      await attendance.save();
-
-    } else {
-
-      attendance =
-        await Attendance.create({
-
-          classId,
-
-          studentId,
-
-          status,
-
-          date: new Date(),
-
-        });
+      return res.status(400).json({
+        message:
+          "Attendance allowed only during live class",
+      });
 
     }
+
+    // =========================
+    // LOCK CHECK
+    // =========================
+
+    if (cls.attendanceLocked) {
+
+      return res.status(400).json({
+        message:
+          "Attendance locked",
+      });
+
+    }
+
+    // =========================
+    // DATE
+    // =========================
+
+    const today =
+      new Date()
+        .toISOString()
+        .split("T")[0];
+
+    // =========================
+    // UPSERT
+    // =========================
+
+    const attendance =
+      await Attendance.findOneAndUpdate(
+
+        {
+          classId,
+          studentId,
+          date: today,
+        },
+
+        {
+          classId,
+          studentId,
+          status,
+          date: today,
+        },
+
+        {
+          upsert: true,
+          new: true,
+        }
+
+      );
 
     res.json(attendance);
 
   } catch (err) {
 
-    console.log(
-      "MARK ATTENDANCE ERROR:",
-      err
-    );
+    console.log(err);
 
     res.status(500).json({
       message: err.message,

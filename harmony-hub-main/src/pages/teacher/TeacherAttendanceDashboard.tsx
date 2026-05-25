@@ -1,19 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
-import { motion } from "framer-motion";
 import axios from "axios";
-
-import {
-  Search,
-  Filter,
-  CalendarDays,
-  Users,
-  CheckCircle2,
-  XCircle,
-  BookOpen,
-  BarChart3,
-} from "lucide-react";
-
-import { Input } from "@/components/ui/input";
+import { motion } from "framer-motion";
 
 import {
   Card,
@@ -21,6 +8,8 @@ import {
 } from "@/components/ui/card";
 
 import { Badge } from "@/components/ui/badge";
+
+import { Input } from "@/components/ui/input";
 
 import {
   Select,
@@ -30,14 +19,36 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
+import {
+  Users,
+  Search,
+  CalendarDays,
+  BookOpen,
+  CheckCircle2,
+  XCircle,
+  UserCheck,
+  BarChart3,
+  Clock3,
+} from "lucide-react";
+
 const API =
   "https://marcylmsdeploy.onrender.com/api";
 
-export default function TeacherAttendance() {
+export default function TeacherAttendanceDashboard() {
 
-  // =====================================
+  // =========================================
+  // AUTH
+  // =========================================
+
+  const user = JSON.parse(
+    localStorage.getItem("ms-auth") || "{}"
+  )?.state?.user;
+
+  const teacherId = user?.id;
+
+  // =========================================
   // STATES
-  // =====================================
+  // =========================================
 
   const [data, setData] =
     useState<any[]>([]);
@@ -54,22 +65,24 @@ export default function TeacherAttendance() {
   const [courseFilter, setCourseFilter] =
     useState("all");
 
-  // =====================================
+  // =========================================
   // FETCH
-  // =====================================
+  // =========================================
 
   useEffect(() => {
 
+    if (!teacherId) return;
+
     fetchAttendance();
 
-  }, []);
+  }, [teacherId]);
 
   const fetchAttendance = async () => {
 
     try {
 
       const res = await axios.get(
-        `${API}/attendance/all`
+        `${API}/attendance/teacher/${teacherId}`
       );
 
       setData(res.data || []);
@@ -86,9 +99,9 @@ export default function TeacherAttendance() {
 
   };
 
-  // =====================================
+  // =========================================
   // COURSES
-  // =====================================
+  // =========================================
 
   const courses = useMemo(() => {
 
@@ -102,9 +115,9 @@ export default function TeacherAttendance() {
 
   }, [data]);
 
-  // =====================================
-  // FILTERED DATA
-  // =====================================
+  // =========================================
+  // FILTER
+  // =========================================
 
   const filteredData = useMemo(() => {
 
@@ -153,9 +166,9 @@ export default function TeacherAttendance() {
     courseFilter,
   ]);
 
-  // =====================================
+  // =========================================
   // STATS
-  // =====================================
+  // =========================================
 
   const totalAttendance =
     filteredData.length;
@@ -179,9 +192,9 @@ export default function TeacherAttendance() {
         )
       : 0;
 
-  // =====================================
+  // =========================================
   // LOADING
-  // =====================================
+  // =========================================
 
   if (loading) {
 
@@ -193,31 +206,31 @@ export default function TeacherAttendance() {
 
   }
 
-  // =====================================
+  // =========================================
   // UI
-  // =====================================
+  // =========================================
 
   return (
 
     <div className="p-6 space-y-6">
 
-      {/* ===================================== */}
+      {/* ========================================= */}
       {/* HEADER */}
-      {/* ===================================== */}
+      {/* ========================================= */}
 
-      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+      <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
 
         <div>
 
           <h1 className="text-3xl font-bold">
 
-            Attendance Dashboard
+            Teacher Attendance Dashboard
 
           </h1>
 
           <p className="text-muted-foreground mt-1">
 
-            Monitor all student attendance records
+            Monitor all attendance records and class activity
 
           </p>
 
@@ -225,9 +238,9 @@ export default function TeacherAttendance() {
 
       </div>
 
-      {/* ===================================== */}
+      {/* ========================================= */}
       {/* STATS */}
-      {/* ===================================== */}
+      {/* ========================================= */}
 
       <div className="grid gap-4 md:grid-cols-4">
 
@@ -242,15 +255,11 @@ export default function TeacherAttendance() {
               <div>
 
                 <p className="text-sm text-muted-foreground">
-
                   Total Records
-
                 </p>
 
                 <h2 className="text-3xl font-bold mt-1">
-
                   {totalAttendance}
-
                 </h2>
 
               </div>
@@ -274,15 +283,11 @@ export default function TeacherAttendance() {
               <div>
 
                 <p className="text-sm text-muted-foreground">
-
                   Present
-
                 </p>
 
                 <h2 className="text-3xl font-bold text-green-600 mt-1">
-
                   {totalPresent}
-
                 </h2>
 
               </div>
@@ -306,15 +311,11 @@ export default function TeacherAttendance() {
               <div>
 
                 <p className="text-sm text-muted-foreground">
-
                   Absent
-
                 </p>
 
                 <h2 className="text-3xl font-bold text-red-600 mt-1">
-
                   {totalAbsent}
-
                 </h2>
 
               </div>
@@ -327,7 +328,7 @@ export default function TeacherAttendance() {
 
         </Card>
 
-        {/* PERCENTAGE */}
+        {/* PERCENT */}
 
         <Card className="border-0 shadow-md">
 
@@ -338,20 +339,16 @@ export default function TeacherAttendance() {
               <div>
 
                 <p className="text-sm text-muted-foreground">
-
                   Attendance %
-
                 </p>
 
                 <h2 className="text-3xl font-bold text-purple-600 mt-1">
-
                   {attendancePercentage}%
-
                 </h2>
 
               </div>
 
-              <Users className="h-10 w-10 text-purple-500" />
+              <UserCheck className="h-10 w-10 text-purple-500" />
 
             </div>
 
@@ -361,11 +358,11 @@ export default function TeacherAttendance() {
 
       </div>
 
-      {/* ===================================== */}
+      {/* ========================================= */}
       {/* FILTERS */}
-      {/* ===================================== */}
+      {/* ========================================= */}
 
-      <Card className="shadow-md border-0">
+      <Card className="border-0 shadow-md">
 
         <CardContent className="p-5">
 
@@ -401,8 +398,6 @@ export default function TeacherAttendance() {
 
               <SelectTrigger>
 
-                <Filter className="mr-2 h-4 w-4" />
-
                 <SelectValue placeholder="Status" />
 
               </SelectTrigger>
@@ -436,8 +431,6 @@ export default function TeacherAttendance() {
 
               <SelectTrigger>
 
-                <BookOpen className="mr-2 h-4 w-4" />
-
                 <SelectValue placeholder="Course" />
 
               </SelectTrigger>
@@ -448,28 +441,21 @@ export default function TeacherAttendance() {
                   All Courses
                 </SelectItem>
 
-                {courses
-                  .filter(
-                    (c) =>
-                      c &&
-                      c !== "" &&
-                      c !== "undefined"
+                {courses.map(
+                  (
+                    course: any,
+                    index: number
+                  ) => (
+
+                    <SelectItem
+                      key={index}
+                      value={String(course)}
+                    >
+                      {course}
+                    </SelectItem>
+
                   )
-                  .map(
-                    (
-                      c: any,
-                      index: number
-                    ) => (
-
-                      <SelectItem
-                        key={index}
-                        value={String(c)}
-                      >
-                        {c}
-                      </SelectItem>
-
-                    )
-                  )}
+                )}
 
               </SelectContent>
 
@@ -481,9 +467,9 @@ export default function TeacherAttendance() {
 
       </Card>
 
-      {/* ===================================== */}
+      {/* ========================================= */}
       {/* EMPTY */}
-      {/* ===================================== */}
+      {/* ========================================= */}
 
       {filteredData.length === 0 && (
 
@@ -493,13 +479,13 @@ export default function TeacherAttendance() {
 
             <h2 className="text-xl font-bold">
 
-              No Attendance Found
+              No Attendance Records
 
             </h2>
 
             <p className="text-muted-foreground mt-2">
 
-              Try changing filters
+              No matching attendance data found
 
             </p>
 
@@ -509,13 +495,13 @@ export default function TeacherAttendance() {
 
       )}
 
-      {/* ===================================== */}
-      {/* LIST */}
-      {/* ===================================== */}
+      {/* ========================================= */}
+      {/* ATTENDANCE LIST */}
+      {/* ========================================= */}
 
       <div className="grid gap-4">
 
-        {filteredData.map((a) => (
+        {filteredData.map((a: any) => (
 
           <motion.div
             key={a._id}
@@ -560,7 +546,7 @@ export default function TeacherAttendance() {
 
                       <div className="flex items-center gap-1">
 
-                        <Users className="h-4 w-4" />
+                        <BookOpen className="h-4 w-4" />
 
                         {a.classTitle}
 
@@ -573,6 +559,16 @@ export default function TeacherAttendance() {
                         {new Date(
                           a.date
                         ).toLocaleDateString()}
+
+                      </div>
+
+                      <div className="flex items-center gap-1">
+
+                        <Clock3 className="h-4 w-4" />
+
+                        {new Date(
+                          a.createdAt
+                        ).toLocaleTimeString()}
 
                       </div>
 

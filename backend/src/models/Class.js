@@ -43,6 +43,14 @@ const classSchema = new mongoose.Schema(
     courseLevel: {
       type: String,
     },
+    attendanceLocked: {
+  type: Boolean,
+  default: false,
+},
+
+completedAt: {
+  type: Date,
+},
 
     students: [
       {

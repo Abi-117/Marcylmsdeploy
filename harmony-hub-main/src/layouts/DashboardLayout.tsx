@@ -36,6 +36,7 @@ const navByRole: Record<Role, { to: string; label: string; icon: React.Component
     { to: "/teacher/classes", label: "My Classes", icon: Video },
     { to: "/teacher/students", label: "Students", icon: GraduationCap },
     { to: "/teacher/attendance", label: "Attendance", icon: LayoutDashboard },
+    { to: "/teacher/grades", label: "Grades", icon: Award },
     { to: "/teacher/assignments", label: "Assignments", icon: ClipboardList },
     { to: "/teacher/schedule", label: "Schedule", icon: CalendarDays },
   ],
