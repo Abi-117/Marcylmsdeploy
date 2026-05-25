@@ -29,7 +29,7 @@ import AdminReports from "./pages/admin/Reports";
 import TeacherDashboard from "./pages/teacher/Dashboard";
 import TeacherClasses from "./pages/teacher/Classes";
 import TeacherStudents from "./pages/teacher/Students";
-import TeacherAttendance from "./pages/teacher/StudentAttendance";
+import TeacherAttendance from "./pages/teacher/TeacherAttendance";
 import TeacherAssignments from "./pages/teacher/Assignments";
 import TeacherSchedule from "./pages/teacher/Schedule";
 
@@ -37,6 +37,7 @@ import StudentDashboard from "./pages/student/Dashboard";
 import StudentClasses from "./pages/student/Classes";
 import StudentPractice from "./pages/student/Practice";
 import StudentProgress from "./pages/student/Progress";
+import StudentAttendance from "./pages/student/StudentAttendance";
 import StudentPayments from "./pages/student/Payments";
 import StudentCertificates from "./pages/student/Certificates";
 
@@ -108,6 +109,7 @@ export default function App() {
         <Route path="classes" element={<StudentClasses />} />
         <Route path="practice" element={<StudentPractice />} />
         <Route path="progress" element={<StudentProgress />} />
+        <Route path="attendance" element={<StudentAttendance />} />
         <Route path="payments" element={<StudentPayments />} />
         <Route path="certificates" element={<StudentCertificates />} />
       </Route>

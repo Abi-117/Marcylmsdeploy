@@ -180,3 +180,59 @@ export const getStudentAttendance =
     }
 
   };
+
+  // ======================================
+// TEACHER VIEW ALL ATTENDANCE
+// ======================================
+
+export const getAllAttendance = async (req, res) => {
+  try {
+
+    const data = await Attendance.find()
+
+      .populate(
+        "studentId",
+        "name email"
+      )
+
+      .populate(
+        "classId",
+        "title courseName"
+      )
+
+      .sort({ createdAt: -1 });
+
+    const result = data.map((a) => ({
+      _id: a._id,
+
+      studentName:
+        a.studentId?.name,
+
+      studentEmail:
+        a.studentId?.email,
+
+      classTitle:
+        a.classId?.title,
+
+      courseName:
+        a.classId?.courseName,
+
+      status:
+        a.status,
+
+      date:
+        a.date,
+    }));
+
+    res.json(result);
+
+  } catch (err) {
+
+    console.log(err);
+
+    res.status(500).json({
+      message: err.message,
+    });
+
+  }
+};
