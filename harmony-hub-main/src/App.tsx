@@ -19,6 +19,7 @@ import { DashboardLayout } from "./layouts/DashboardLayout";
 import AdminDashboard from "./pages/admin/Dashboard";
 import AdminStudents from "./pages/admin/Students";
 import AdminTeachers from "./pages/admin/Teachers";
+import AdminAttendance from "./pages/admin/AdminAttendance";
 import AdminBatches from "./pages/admin/Batches";
 import AdminClasses from "./pages/admin/Classes";
 import AdminPayments from "./pages/admin/Payments";
@@ -86,6 +87,7 @@ export default function App() {
         <Route index element={<AdminDashboard />} />
         <Route path="students" element={<AdminStudents />} />
         <Route path="teachers" element={<AdminTeachers />} />
+        <Route path="attendance" element={<AdminAttendance />} />
         <Route path="batches" element={<AdminBatches />} />
         <Route path="classes" element={<AdminClasses />} />
         <Route path="payments" element={<AdminPayments />} />

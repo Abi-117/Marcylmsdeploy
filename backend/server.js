@@ -20,6 +20,7 @@ import userRoutes from "./src/routes/userRoutes.js";
 import attendanceRoutes from "./src/routes/attendanceRoutes.js";
 import teacherAttendanceRoutes
 from "./src/routes/teacherAttendance.js";
+import adminAttendanceRoutes from "./src/routes/adminAttendanceRoutes.js";
 import path from "path";
 
 
@@ -54,6 +55,10 @@ app.use("/api/attendance", attendanceRoutes);
 app.use(
   "/api/teacher-attendance",
   teacherAttendanceRoutes
+);
+app.use(
+  "/api/admin-attendance",
+  adminAttendanceRoutes
 );
 // serve uploaded videos
 app.use("/uploads", express.static("uploads"));
