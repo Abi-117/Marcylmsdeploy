@@ -12,7 +12,6 @@ export const getTeacherClasses = async (req, res) => {
         path: "students",
         select: "name email phone",
       })
-      .populate("courseId", "name")
       .sort({ date: -1 });
 
     const today = new Date()
@@ -47,7 +46,7 @@ export const getTeacherClasses = async (req, res) => {
 
   } catch (err) {
 
-    console.log(err);
+    console.log("CLASS ERROR:", err);
 
     res.status(500).json({
       message: err.message,

@@ -151,7 +151,7 @@ export default function TeacherClasses() {
                 <h2 className="font-bold mt-2">{c.title}</h2>
 
                 <p className="text-sm text-muted-foreground">
-                  {c.courseId?.name || c.courseName}
+                  {c.courseName}
                 </p>
 
                 {/* ACTIONS */}
