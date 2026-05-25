@@ -1,10 +1,16 @@
-import Attendance from "../models/Attendance.js";
-import Class from "../models/Class.js";
+import mongoose from "mongoose";
 
-// ================================
-// TEACHER: MARK ATTENDANCE
-// ================================
-export const markAttendance = async (req, res) => {
+import Attendance from "../models/Attendance.js";
+
+// ====================================
+// MARK ATTENDANCE
+// ====================================
+
+export const markAttendance = async (
+  req,
+  res
+) => {
+
   try {
 
     const {
@@ -13,68 +19,112 @@ export const markAttendance = async (req, res) => {
       status,
     } = req.body;
 
-    // ✅ START OF TODAY
-    const today = new Date();
+    // ====================================
+    // TODAY START + END
+    // ====================================
 
-    today.setHours(0, 0, 0, 0);
+    const start = new Date();
 
-    // ✅ END OF TODAY
-    const tomorrow = new Date(today);
-
-    tomorrow.setDate(
-      tomorrow.getDate() + 1
+    start.setHours(
+      0,
+      0,
+      0,
+      0
     );
 
-    const attendance =
-      await Attendance.findOneAndUpdate(
-        {
+    const end = new Date();
+
+    end.setHours(
+      23,
+      59,
+      59,
+      999
+    );
+
+    // ====================================
+    // CHECK EXISTING
+    // ====================================
+
+    let attendance =
+      await Attendance.findOne({
+
+        classId,
+
+        studentId,
+
+        date: {
+          $gte: start,
+          $lte: end,
+        },
+
+      });
+
+    // ====================================
+    // UPDATE
+    // ====================================
+
+    if (attendance) {
+
+      attendance.status =
+        status;
+
+      await attendance.save();
+
+    } else {
+
+      attendance =
+        await Attendance.create({
+
           classId,
+
           studentId,
 
-          date: {
-            $gte: today,
-            $lt: tomorrow,
-          },
-        },
-        {
-          classId,
-          studentId,
           status,
+
           date: new Date(),
-        },
-        {
-          upsert: true,
-          new: true,
-        }
-      );
+
+        });
+
+    }
 
     res.json(attendance);
 
   } catch (err) {
 
-    console.log(err);
+    console.log(
+      "MARK ATTENDANCE ERROR:",
+      err
+    );
 
     res.status(500).json({
       message: err.message,
     });
 
   }
+
 };
 
-// ================================
-// STUDENT: GET MY ATTENDANCE
-// ================================
+// ====================================
+// GET STUDENT ATTENDANCE
+// ====================================
+
 export const getStudentAttendance =
   async (req, res) => {
 
     try {
 
-      const { studentId } =
-        req.params;
+      const {
+        studentId,
+      } = req.params;
 
       const data =
         await Attendance.find({
-          studentId,
+
+          studentId:
+            new mongoose.Types.ObjectId(
+              studentId
+            ),
+
         })
 
           .populate(
@@ -86,29 +136,42 @@ export const getStudentAttendance =
             createdAt: -1,
           });
 
-      const result = data.map(
-        (a) => ({
+      // ====================================
+      // FORMAT
+      // ====================================
+
+      const result =
+        data.map((a) => ({
+
           _id: a._id,
 
           classTitle:
-            a.classId?.title,
+            a.classId?.title ||
+            "Untitled Class",
 
           courseName:
-            a.classId?.courseName,
+            a.classId?.courseName ||
+            "No Course",
 
-          date: new Date(
-            a.date
-          ).toLocaleDateString(),
+          date: a.date,
 
           status: a.status,
-        })
+
+        }));
+
+      console.log(
+        "ATTENDANCE RESULT:",
+        result
       );
 
       res.json(result);
 
     } catch (err) {
 
-      console.log(err);
+      console.log(
+        "GET ATTENDANCE ERROR:",
+        err
+      );
 
       res.status(500).json({
         message: err.message,
@@ -117,4 +180,3 @@ export const getStudentAttendance =
     }
 
   };
-
