@@ -8,30 +8,22 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
-import {
-  ExternalLink,
-  Users,
-} from "lucide-react";
+import { ExternalLink, Users } from "lucide-react";
 
 const API = "https://marcylmsdeploy.onrender.com/api";
 
 export default function TeacherClasses() {
-  // =========================
-  // AUTH
-  // =========================
   const user = JSON.parse(
     localStorage.getItem("ms-auth") || "{}"
   )?.state?.user;
 
   const teacherId = user?.id;
 
-  // =========================
-  // STATES
-  // =========================
   const [classes, setClasses] = useState<any[]>([]);
   const [students, setStudents] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedClassId, setSelectedClassId] = useState<string | null>(null);
+  const [selectedClass, setSelectedClass] = useState<any>(null); // ✅ FIX
 
   // =========================
   // LOAD CLASSES
@@ -51,18 +43,19 @@ export default function TeacherClasses() {
 
       setClasses(res.data);
     } catch (err) {
-      console.log("Fetch error:", err);
+      console.log(err);
     } finally {
       setLoading(false);
     }
   };
 
   // =========================
-  // FIXED: GET STUDENTS (NO NEW API)
+  // OPEN STUDENTS
   // =========================
   const fetchStudents = (cls: any) => {
     setSelectedClassId(cls._id);
-    setStudents(cls.students || []); // from populated backend
+    setSelectedClass(cls); // ✅ FIX
+    setStudents(cls.students || []);
   };
 
   // =========================
@@ -80,7 +73,16 @@ export default function TeacherClasses() {
         status,
       });
 
-      alert("Attendance marked");
+      await fetchClasses(); // refresh
+
+      // also refresh selected class students
+      const updated = classes.find((c) => c._id === classId);
+      if (updated) {
+        setSelectedClass(updated);
+        setStudents(updated.students || []);
+      }
+
+      alert("Attendance updated");
     } catch (err) {
       console.log(err);
     }
@@ -103,7 +105,6 @@ export default function TeacherClasses() {
         status: nextStatus,
       });
 
-      alert(`Class marked as ${nextStatus}`);
       fetchClasses();
     } catch (err) {
       console.log(err);
@@ -124,57 +125,33 @@ export default function TeacherClasses() {
     }
   };
 
-  // =========================
-  // LOADING
-  // =========================
   if (loading) {
-    return (
-      <div className="p-6 text-muted-foreground">
-        Loading classes...
-      </div>
-    );
+    return <div className="p-6">Loading...</div>;
   }
 
-  // =========================
-  // UI
-  // =========================
   return (
     <div>
-      <PageHeader
-        title="My Classes"
-        subtitle="Manage all your sessions"
-      />
+      <PageHeader title="My Classes" subtitle="Manage sessions" />
 
-      <div className="grid gap-5 md:grid-cols-2">
+      <div className="grid md:grid-cols-2 gap-4">
         {classes.map((c) => (
           <motion.div key={c._id} whileHover={{ y: -3 }}>
             <Card>
               <CardContent className="p-5">
 
-                {/* HEADER */}
-                <div className="flex justify-between">
-                  <div>
-                    <Badge className={getStatusClass(c.status)}>
-                      {c.status}
-                    </Badge>
+                {/* CLASS INFO */}
+                <Badge className={getStatusClass(c.status)}>
+                  {c.status}
+                </Badge>
 
-                    <h2 className="mt-2 font-bold">
-                      {c.title}
-                    </h2>
+                <h2 className="font-bold mt-2">{c.title}</h2>
 
-                    {/* FIX: courseName fallback */}
-                    <p className="text-sm text-muted-foreground">
-                      {c.courseId?.name || c.courseName}
-                    </p>
-                  </div>
-
-                  <div className="text-right text-xs">
-                    {format(new Date(c.date), "MMM dd")}
-                  </div>
-                </div>
+                <p className="text-sm text-muted-foreground">
+                  {c.courseId?.name || c.courseName}
+                </p>
 
                 {/* ACTIONS */}
-                <div className="mt-4 flex gap-2 flex-wrap">
+                <div className="mt-4 flex gap-2">
 
                   <Button
                     size="sm"
@@ -187,7 +164,7 @@ export default function TeacherClasses() {
 
                   {c.meetingLink && (
                     <Button size="sm" asChild>
-                      <a href={c.meetingLink} target="_blank">
+                      <a href={c.meetingLink}>
                         Open Class <ExternalLink className="ml-1 w-3 h-3" />
                       </a>
                     </Button>
@@ -198,25 +175,21 @@ export default function TeacherClasses() {
                     variant="ghost"
                     onClick={() => updateStatus(c._id, c.status)}
                   >
-                    {c.status === "Upcoming"
-                      ? "Start"
-                      : "Complete"}
+                    {c.status === "Upcoming" ? "Start" : "Complete"}
                   </Button>
                 </div>
 
-                {/* STUDENTS LIST */}
+                {/* STUDENTS */}
                 {selectedClassId === c._id && (
                   <div className="mt-5 border-t pt-4">
 
                     {students.length === 0 ? (
-                      <p className="text-sm text-muted-foreground">
-                        No students enrolled
-                      </p>
+                      <p>No students enrolled</p>
                     ) : (
                       students.map((s: any) => (
                         <div
                           key={s._id}
-                          className="flex justify-between items-center mb-2"
+                          className="flex justify-between items-center mt-2"
                         >
                           <span>{s.name}</span>
 
@@ -224,11 +197,7 @@ export default function TeacherClasses() {
                             <Button
                               size="sm"
                               onClick={() =>
-                                markAttendance(
-                                  c._id,
-                                  s._id,
-                                  "Present"
-                                )
+                                markAttendance(c._id, s._id, "Present")
                               }
                             >
                               Present
@@ -238,11 +207,7 @@ export default function TeacherClasses() {
                               size="sm"
                               variant="destructive"
                               onClick={() =>
-                                markAttendance(
-                                  c._id,
-                                  s._id,
-                                  "Absent"
-                                )
+                                markAttendance(c._id, s._id, "Absent")
                               }
                             >
                               Absent
@@ -251,6 +216,7 @@ export default function TeacherClasses() {
                         </div>
                       ))
                     )}
+
                   </div>
                 )}
 
