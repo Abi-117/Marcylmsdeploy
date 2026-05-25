@@ -12,23 +12,28 @@ import User from "../models/User.js";
 
 const router = express.Router();
 
-// =========================
-// RAZORPAY INIT
-// =========================
+// ========================================
+// RAZORPAY
+// ========================================
+
 const razorpay = new Razorpay({
   key_id: process.env.RAZORPAY_KEY,
   key_secret: process.env.RAZORPAY_SECRET,
 });
 
-// =========================
+// ========================================
 // CREATE ORDER
-// =========================
+// ========================================
+
 router.post("/create-order", async (req, res) => {
   try {
+
     const { amount } = req.body;
 
     if (!amount || amount <= 0) {
-      return res.status(400).json({ message: "Invalid amount" });
+      return res.status(400).json({
+        message: "Invalid amount",
+      });
     }
 
     const order = await razorpay.orders.create({
@@ -37,18 +42,30 @@ router.post("/create-order", async (req, res) => {
       receipt: "receipt_" + Date.now(),
     });
 
-    res.json({ success: true, order });
+    res.json({
+      success: true,
+      order,
+    });
+
   } catch (err) {
+
     console.log(err);
-    res.status(500).json({ message: "Order creation failed" });
+
+    res.status(500).json({
+      message: "Order creation failed",
+    });
+
   }
 });
 
-// =========================
-// VERIFY PAYMENT (ONLY ONE)
-// =========================
+// ========================================
+// VERIFY PAYMENT
+// ========================================
+
 router.post("/verify", async (req, res) => {
+
   try {
+
     const {
       razorpay_order_id,
       razorpay_payment_id,
@@ -58,199 +75,499 @@ router.post("/verify", async (req, res) => {
       amount,
     } = req.body;
 
-    const body = `${razorpay_order_id}|${razorpay_payment_id}`;
+    const body =
+      `${razorpay_order_id}|${razorpay_payment_id}`;
 
     const expectedSignature = crypto
-      .createHmac("sha256", process.env.RAZORPAY_SECRET)
+      .createHmac(
+        "sha256",
+        process.env.RAZORPAY_SECRET
+      )
       .update(body)
       .digest("hex");
 
-    if (expectedSignature !== razorpay_signature) {
+    if (
+      expectedSignature !==
+      razorpay_signature
+    ) {
+
       return res.status(400).json({
         success: false,
         message: "Invalid signature",
       });
+
     }
 
     const user = await User.findById(userId);
 
     if (!user) {
-      return res.status(404).json({ message: "User not found" });
+
+      return res.status(404).json({
+        message: "User not found",
+      });
+
     }
 
-    // unlock level
-    if (!user.unlockedLevels.includes(level)) {
+    // ====================================
+    // UNLOCK LEVEL
+    // ====================================
+
+    if (
+      !user.unlockedLevels.includes(level)
+    ) {
+
       user.unlockedLevels.push(level);
+
     }
 
     user.paymentStatus = "Paid";
+
     user.selectedLevel = level;
-    user.teacherId = "teacher1";
+
+    // ====================================
+    // SAVE PAYMENT
+    // ====================================
 
     user.payments.push({
+
+      invoice:
+        "INV-" +
+        Date.now(),
+
       level,
+
       amount,
-      paymentId: razorpay_payment_id,
-      orderId: razorpay_order_id,
+
+      paymentId:
+        razorpay_payment_id,
+
+      orderId:
+        razorpay_order_id,
+
       status: "Paid",
+
       createdAt: new Date(),
+
     });
 
     await user.save();
 
     res.json({
       success: true,
-      unlockedLevels: user.unlockedLevels,
+      unlockedLevels:
+        user.unlockedLevels,
     });
+
   } catch (err) {
+
     console.log(err);
-    res.status(500).json({ message: "Verification failed" });
+
+    res.status(500).json({
+      message: "Verification failed",
+    });
+
   }
+
 });
 
-// =========================
-// PAYMENT HISTORY (MATCH FRONTEND)
-// =========================
-router.get("/history/:userId", async (req, res) => {
+// ========================================
+// ADMIN ALL PAYMENTS
+// ========================================
+
+router.get("/", async (req, res) => {
+
   try {
-    const user = await User.findById(req.params.userId);
 
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
-
-    res.json(user.payments || []);
-  } catch (err) {
-    console.log(err);
-    res.status(500).json({ message: "Server error" });
-  }
-});
-
-// =========================
-// INVOICE (MATCH FRONTEND BUTTON)
-// =========================
-router.get("/invoice/:paymentId", async (req, res) => {
-  try {
     const users = await User.find();
 
-    let payment = null;
-    let paymentUser = null;
+    let allPayments = [];
 
-    for (const user of users) {
-      const found = user.payments.find(
-        (p) => p.paymentId === req.params.paymentId
-      );
+    users.forEach((user) => {
 
-      if (found) {
-        payment = found;
-        paymentUser = user;
-        break;
+      if (
+        user.payments &&
+        user.payments.length > 0
+      ) {
+
+        user.payments.forEach((payment) => {
+
+          allPayments.push({
+
+            _id:
+              payment._id,
+
+            invoice:
+              payment.invoice ||
+              "INV-" +
+                payment.paymentId
+                  ?.slice(-5),
+
+            studentName:
+              user.name,
+
+            studentEmail:
+              user.email,
+
+            level:
+              payment.level,
+
+            amount:
+              Number(payment.amount),
+
+            paymentId:
+              payment.paymentId,
+
+            orderId:
+              payment.orderId,
+
+            status:
+              payment.status,
+
+            date:
+              new Date(
+                payment.createdAt
+              ).toLocaleDateString(),
+
+          });
+
+        });
+
       }
-    }
 
-    if (!payment) {
-      return res.status(404).json({ message: "Payment not found" });
-    }
+    });
 
-    const doc = new PDFDocument({ margin: 50 });
-
-    res.setHeader("Content-Type", "application/pdf");
-    res.setHeader(
-      "Content-Disposition",
-      `attachment; filename=invoice-${payment.paymentId}.pdf`
+    // LATEST FIRST
+    allPayments.sort(
+      (a, b) =>
+        new Date(b.date) -
+        new Date(a.date)
     );
 
-    doc.pipe(res);
+    res.json(allPayments);
 
-    // =========================
-    // LOGO
-    // =========================
-    const logoPath = path.join(process.cwd(), "assets", "logo.png");
+  } catch (err) {
 
-    if (fs.existsSync(logoPath)) {
-      doc.image(logoPath, 50, 30, { width: 80 });
-    }
+    console.log(err);
 
-    // =========================
-    // COMPANY NAME HEADER
-    // =========================
-    doc
-      .fontSize(20)
-      .font("Helvetica-Bold")
-      .text("Marcys Academy of Music & Speech", 150, 40);
+    res.status(500).json({
+      message:
+        "Failed to fetch payments",
+    });
 
-    doc
-      .fontSize(10)
-      .font("Helvetica")
-      .text("Official Payment Invoice", 150, 70);
+  }
 
-    // LINE
-    doc.moveTo(50, 110).lineTo(550, 110).stroke();
+});
 
-    doc.moveDown(2);
+// ========================================
+// USER PAYMENT HISTORY
+// ========================================
 
-    // =========================
-    // INVOICE DETAILS BOX
-    // =========================
-    doc.fontSize(12).font("Helvetica-Bold").text("Invoice Details", 50, 130);
+router.get(
+  "/history/:userId",
+  async (req, res) => {
 
-    doc.font("Helvetica");
+    try {
 
-    doc.text(`Invoice ID: ${payment.paymentId}`, 50, 155);
-    doc.text(`Order ID: ${payment.orderId}`, 50, 175);
-    doc.text(`Date: ${new Date(payment.createdAt).toLocaleString()}`, 50, 195);
+      const user =
+        await User.findById(
+          req.params.userId
+        );
 
-    // =========================
-    // CUSTOMER DETAILS
-    // =========================
-    doc.font("Helvetica-Bold").text("Customer Details", 300, 130);
+      if (!user) {
 
-    doc.font("Helvetica");
-    doc.text(`Name: ${paymentUser?.name || "N/A"}`, 300, 155);
-    doc.text(`Email: ${paymentUser?.email || "N/A"}`, 300, 175);
+        return res.status(404).json({
+          message:
+            "User not found",
+        });
 
-    // =========================
-    // PAYMENT TABLE HEADER
-    // =========================
-    doc.moveDown(4);
+      }
 
-    doc
-      .fontSize(12)
-      .font("Helvetica-Bold")
-      .text("Description", 50, 250)
-      .text("Level", 200, 250)
-      .text("Amount", 300, 250)
-      .text("Status", 400, 250);
-
-    doc.moveTo(50, 270).lineTo(550, 270).stroke();
-
-    // =========================
-    // PAYMENT ROW
-    // =========================
-    doc
-      .font("Helvetica")
-      .text("Course Payment", 50, 290)
-      .text(payment.level, 200, 290)
-      .text(`₹${Number(String(payment.amount).replace(/[^\d]/g, ""))}`, 300, 290)
-      .text(payment.status, 400, 290);
-
-    // =========================
-    // FOOTER
-    // =========================
-    doc
-      .fontSize(10)
-      .text(
-        "Thank you for learning with Marcys Academy of Music & Speech",
-        50,
-        700,
-        { align: "center" }
+      res.json(
+        user.payments || []
       );
 
-    doc.end();
-  } catch (err) {
-    console.log("INVOICE ERROR:", err);
-    res.status(500).json({ message: "Invoice failed" });
+    } catch (err) {
+
+      console.log(err);
+
+      res.status(500).json({
+        message:
+          "Server error",
+      });
+
+    }
+
   }
-});
+);
+
+// ========================================
+// INVOICE PDF
+// ========================================
+
+router.get(
+  "/invoice/:paymentId",
+  async (req, res) => {
+
+    try {
+
+      const users =
+        await User.find();
+
+      let payment = null;
+      let paymentUser = null;
+
+      for (const user of users) {
+
+        const found =
+          user.payments.find(
+            (p) =>
+              p.paymentId ===
+              req.params.paymentId
+          );
+
+        if (found) {
+
+          payment = found;
+          paymentUser = user;
+
+          break;
+
+        }
+
+      }
+
+      if (!payment) {
+
+        return res.status(404).json({
+          message:
+            "Payment not found",
+        });
+
+      }
+
+      const doc =
+        new PDFDocument({
+          margin: 50,
+        });
+
+      res.setHeader(
+        "Content-Type",
+        "application/pdf"
+      );
+
+      res.setHeader(
+        "Content-Disposition",
+        `attachment; filename=invoice-${payment.paymentId}.pdf`
+      );
+
+      doc.pipe(res);
+
+      // ====================================
+      // LOGO
+      // ====================================
+
+      const logoPath = path.join(
+        process.cwd(),
+        "assets",
+        "logo.png"
+      );
+
+      if (
+        fs.existsSync(logoPath)
+      ) {
+
+        doc.image(
+          logoPath,
+          50,
+          30,
+          {
+            width: 80,
+          }
+        );
+
+      }
+
+      // ====================================
+      // HEADER
+      // ====================================
+
+      doc
+        .fontSize(20)
+        .font(
+          "Helvetica-Bold"
+        )
+        .text(
+          "Marcys Academy of Music & Speech",
+          150,
+          40
+        );
+
+      doc
+        .fontSize(10)
+        .font("Helvetica")
+        .text(
+          "Official Payment Invoice",
+          150,
+          70
+        );
+
+      doc
+        .moveTo(50, 110)
+        .lineTo(550, 110)
+        .stroke();
+
+      // ====================================
+      // DETAILS
+      // ====================================
+
+      doc
+        .fontSize(12)
+        .font(
+          "Helvetica-Bold"
+        )
+        .text(
+          "Invoice Details",
+          50,
+          130
+        );
+
+      doc
+        .font("Helvetica")
+        .text(
+          `Invoice ID: ${payment.invoice}`,
+          50,
+          155
+        )
+        .text(
+          `Payment ID: ${payment.paymentId}`,
+          50,
+          175
+        )
+        .text(
+          `Date: ${new Date(
+            payment.createdAt
+          ).toLocaleString()}`,
+          50,
+          195
+        );
+
+      // ====================================
+      // CUSTOMER
+      // ====================================
+
+      doc
+        .font(
+          "Helvetica-Bold"
+        )
+        .text(
+          "Customer Details",
+          300,
+          130
+        );
+
+      doc
+        .font("Helvetica")
+        .text(
+          `Name: ${paymentUser?.name}`,
+          300,
+          155
+        )
+        .text(
+          `Email: ${paymentUser?.email}`,
+          300,
+          175
+        );
+
+      // ====================================
+      // TABLE
+      // ====================================
+
+      doc
+        .fontSize(12)
+        .font(
+          "Helvetica-Bold"
+        )
+        .text(
+          "Description",
+          50,
+          260
+        )
+        .text(
+          "Level",
+          220,
+          260
+        )
+        .text(
+          "Amount",
+          320,
+          260
+        )
+        .text(
+          "Status",
+          430,
+          260
+        );
+
+      doc
+        .moveTo(50, 280)
+        .lineTo(550, 280)
+        .stroke();
+
+      doc
+        .font("Helvetica")
+        .text(
+          "Course Payment",
+          50,
+          300
+        )
+        .text(
+          payment.level,
+          220,
+          300
+        )
+        .text(
+          `₹${payment.amount}`,
+          320,
+          300
+        )
+        .text(
+          payment.status,
+          430,
+          300
+        );
+
+      // ====================================
+      // FOOTER
+      // ====================================
+
+      doc
+        .fontSize(10)
+        .text(
+          "Thank you for learning with Marcys Academy",
+          50,
+          720,
+          {
+            align: "center",
+          }
+        );
+
+      doc.end();
+
+    } catch (err) {
+
+      console.log(
+        "INVOICE ERROR:",
+        err
+      );
+
+      res.status(500).json({
+        message:
+          "Invoice failed",
+      });
+
+    }
+
+  }
+);
 
 export default router;
