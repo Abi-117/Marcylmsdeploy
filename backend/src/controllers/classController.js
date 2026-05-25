@@ -5,10 +5,6 @@ export const getTeacherClasses = async (req, res) => {
   try {
     const { teacherId } = req.params;
 
-    // ====================================
-    // GET TEACHER CLASSES
-    // ====================================
-
     const classes = await Class.find({
       teacherId,
     })
@@ -18,69 +14,46 @@ export const getTeacherClasses = async (req, res) => {
       })
       .sort({ date: -1 });
 
-    // ====================================
-    // TODAY START + END
-    // IMPORTANT FIX
-    // ====================================
-
+    // ✅ START OF TODAY
     const start = new Date();
     start.setHours(0, 0, 0, 0);
 
+    // ✅ END OF TODAY
     const end = new Date();
     end.setHours(23, 59, 59, 999);
-
-    // ====================================
-    // ADD ATTENDANCE MAP
-    // ====================================
 
     const updatedClasses = await Promise.all(
       classes.map(async (cls) => {
 
-        // 🔥 FIXED DATE QUERY
+        // ✅ FIXED QUERY
         const attendance = await Attendance.find({
           classId: cls._id,
-
           date: {
             $gte: start,
             $lte: end,
           },
         });
 
-        // ====================================
-        // CREATE MAP
-        // ====================================
-
         const attendanceMap = {};
 
         attendance.forEach((a) => {
-
           attendanceMap[
             a.studentId.toString()
           ] = a.status;
-
         });
 
         return {
           ...cls.toObject(),
-
-          // 🔥 IMPORTANT
           attendanceMap,
         };
       })
     );
 
-    // ====================================
-    // SEND RESPONSE
-    // ====================================
-
     res.json(updatedClasses);
 
   } catch (err) {
 
-    console.log(
-      "GET TEACHER CLASSES ERROR:",
-      err
-    );
+    console.log("CLASS ERROR:", err);
 
     res.status(500).json({
       message: err.message,
