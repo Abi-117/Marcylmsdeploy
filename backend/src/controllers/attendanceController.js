@@ -7,39 +7,46 @@ import Class from "../models/Class.js";
 export const markAttendance = async (req, res) => {
   try {
 
-    console.log("BODY:", req.body);
-
     const {
       classId,
       studentId,
       status,
     } = req.body;
 
-    const today =
-      new Date()
-        .toISOString()
-        .split("T")[0];
+    // ✅ START OF TODAY
+    const today = new Date();
+
+    today.setHours(0, 0, 0, 0);
+
+    // ✅ END OF TODAY
+    const tomorrow = new Date(today);
+
+    tomorrow.setDate(
+      tomorrow.getDate() + 1
+    );
 
     const attendance =
       await Attendance.findOneAndUpdate(
         {
           classId,
           studentId,
-          date: today,
+
+          date: {
+            $gte: today,
+            $lt: tomorrow,
+          },
         },
         {
           classId,
           studentId,
           status,
-          date: today,
+          date: new Date(),
         },
         {
           upsert: true,
           new: true,
         }
       );
-
-    console.log("SAVED:", attendance);
 
     res.json(attendance);
 
@@ -57,24 +64,57 @@ export const markAttendance = async (req, res) => {
 // ================================
 // STUDENT: GET MY ATTENDANCE
 // ================================
-export const getStudentAttendance = async (req, res) => {
-  try {
-    const { studentId } = req.params;
+export const getStudentAttendance =
+  async (req, res) => {
 
-    const data = await Attendance.find({ studentId })
-      .populate("classId", "title courseName date")
-      .sort({ createdAt: -1 });
+    try {
 
-    const result = data.map((a) => ({
-      _id: a._id,
-      classTitle: a.classId?.title,
-      courseName: a.classId?.courseName,
-      date: a.date,
-      status: a.status,
-    }));
+      const { studentId } =
+        req.params;
 
-    res.json(result);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-};
+      const data =
+        await Attendance.find({
+          studentId,
+        })
+
+          .populate(
+            "classId",
+            "title courseName date"
+          )
+
+          .sort({
+            createdAt: -1,
+          });
+
+      const result = data.map(
+        (a) => ({
+          _id: a._id,
+
+          classTitle:
+            a.classId?.title,
+
+          courseName:
+            a.classId?.courseName,
+
+          date: new Date(
+            a.date
+          ).toLocaleDateString(),
+
+          status: a.status,
+        })
+      );
+
+      res.json(result);
+
+    } catch (err) {
+
+      console.log(err);
+
+      res.status(500).json({
+        message: err.message,
+      });
+
+    }
+
+  };
+
