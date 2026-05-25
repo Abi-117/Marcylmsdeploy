@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 
 import Class from "../models/Class.js";
 import User from "../models/User.js";
+import { getTeacherClasses } from "../controllers/classController.js";
 
 const router = express.Router();
 
@@ -408,5 +409,8 @@ router.put(
 
   }
 );
+
+// GET CLASSES
+router.get("/teacher/:teacherId", getTeacherClasses);
 
 export default router;

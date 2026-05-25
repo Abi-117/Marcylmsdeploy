@@ -10,11 +10,7 @@ import { Badge } from "@/components/ui/badge";
 
 import {
   ExternalLink,
-  FileText,
-  Video,
   Users,
-  Clock3,
-  CheckCircle2,
 } from "lucide-react";
 
 const API = "https://marcylmsdeploy.onrender.com/api";
@@ -62,24 +58,15 @@ export default function TeacherClasses() {
   };
 
   // =========================
-  // LOAD STUDENTS (IMPORTANT)
+  // FIXED: GET STUDENTS (NO NEW API)
   // =========================
-  const fetchStudents = async (classId: string) => {
-    try {
-      setSelectedClassId(classId);
-
-      const res = await axios.get(
-        `${API}/classes/${classId}/students`
-      );
-
-      setStudents(res.data);
-    } catch (err) {
-      console.log(err);
-    }
+  const fetchStudents = (cls: any) => {
+    setSelectedClassId(cls._id);
+    setStudents(cls.students || []); // from populated backend
   };
 
   // =========================
-  // MARK ATTENDANCE (FINAL FIXED)
+  // MARK ATTENDANCE
   // =========================
   const markAttendance = async (
     classId: string,
@@ -94,14 +81,13 @@ export default function TeacherClasses() {
       });
 
       alert("Attendance marked");
-      fetchStudents(classId);
     } catch (err) {
       console.log(err);
     }
   };
 
   // =========================
-  // UPDATE STATUS
+  // STATUS UPDATE
   // =========================
   const updateStatus = async (id: string, currentStatus: string) => {
     try {
@@ -156,14 +142,13 @@ export default function TeacherClasses() {
     <div>
       <PageHeader
         title="My Classes"
-        subtitle="Manage all your scheduled sessions"
+        subtitle="Manage all your sessions"
       />
 
-      {/* CLASSES */}
       <div className="grid gap-5 md:grid-cols-2">
         {classes.map((c) => (
           <motion.div key={c._id} whileHover={{ y: -3 }}>
-            <Card className="hover:shadow-lg">
+            <Card>
               <CardContent className="p-5">
 
                 {/* HEADER */}
@@ -173,22 +158,18 @@ export default function TeacherClasses() {
                       {c.status}
                     </Badge>
 
-                    <h2 className="mt-2 font-bold text-xl">
+                    <h2 className="mt-2 font-bold">
                       {c.title}
                     </h2>
 
+                    {/* FIX: courseName fallback */}
                     <p className="text-sm text-muted-foreground">
-                      {c.courseName}
+                      {c.courseId?.name || c.courseName}
                     </p>
                   </div>
 
-                  <div className="text-right">
-                    <div className="text-xs">
-                      {format(new Date(c.date), "MMM dd")}
-                    </div>
-                    <div className="text-xs">
-                      {format(new Date(c.date), "h:mm a")}
-                    </div>
+                  <div className="text-right text-xs">
+                    {format(new Date(c.date), "MMM dd")}
                   </div>
                 </div>
 
@@ -198,7 +179,7 @@ export default function TeacherClasses() {
                   <Button
                     size="sm"
                     variant="outline"
-                    onClick={() => fetchStudents(c._id)}
+                    onClick={() => fetchStudents(c)}
                   >
                     <Users className="w-4 h-4 mr-1" />
                     View Students
@@ -223,42 +204,53 @@ export default function TeacherClasses() {
                   </Button>
                 </div>
 
-                {/* STUDENTS ATTENDANCE */}
+                {/* STUDENTS LIST */}
                 {selectedClassId === c._id && (
                   <div className="mt-5 border-t pt-4">
-                    <h3 className="font-semibold mb-2">
-                      Mark Attendance
-                    </h3>
 
-                    {students.map((s) => (
-                      <div
-                        key={s._id}
-                        className="flex justify-between items-center mb-2"
-                      >
-                        <span>{s.name}</span>
+                    {students.length === 0 ? (
+                      <p className="text-sm text-muted-foreground">
+                        No students enrolled
+                      </p>
+                    ) : (
+                      students.map((s: any) => (
+                        <div
+                          key={s._id}
+                          className="flex justify-between items-center mb-2"
+                        >
+                          <span>{s.name}</span>
 
-                        <div className="flex gap-2">
-                          <Button
-                            size="sm"
-                            onClick={() =>
-                              markAttendance(c._id, s._id, "Present")
-                            }
-                          >
-                            Present
-                          </Button>
+                          <div className="flex gap-2">
+                            <Button
+                              size="sm"
+                              onClick={() =>
+                                markAttendance(
+                                  c._id,
+                                  s._id,
+                                  "Present"
+                                )
+                              }
+                            >
+                              Present
+                            </Button>
 
-                          <Button
-                            size="sm"
-                            variant="destructive"
-                            onClick={() =>
-                              markAttendance(c._id, s._id, "Absent")
-                            }
-                          >
-                            Absent
-                          </Button>
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              onClick={() =>
+                                markAttendance(
+                                  c._id,
+                                  s._id,
+                                  "Absent"
+                                )
+                              }
+                            >
+                              Absent
+                            </Button>
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      ))
+                    )}
                   </div>
                 )}
 
