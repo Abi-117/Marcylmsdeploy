@@ -184,59 +184,76 @@ export default function TeacherClasses() {
                 </div>
 
                 {/* STUDENTS */}
-               {/* STUDENTS */}
-{selectedClassId === c._id && (
+                  {selectedClassId === c._id && (
   <div className="mt-5 border-t pt-4">
 
     {students.length === 0 ? (
       <p>No students enrolled</p>
     ) : (
       students.map((s: any) => {
-        const status =
-  selectedClass?.attendanceMap?.[
-    s._id.toString()
-  ];
+
+        const attendanceStatus =
+          selectedClass?.attendanceMap?.[
+            s._id?.toString()
+          ];
 
         return (
           <div
             key={s._id}
-            className="flex justify-between items-center mt-2"
+            className="flex items-center justify-between mt-3"
           >
-            <span>{s.name}</span>
+            {/* STUDENT NAME */}
+            <div className="flex flex-col">
+              <span className="font-medium">
+                {s.name}
+              </span>
 
-            {/* STATUS DISPLAY */}
-            <span
-              className={`text-sm font-bold ${
-                status === "Present"
-                  ? "text-green-600"
-                  : status === "Absent"
-                  ? "text-red-600"
-                  : "text-gray-400"
-              }`}
-            >
-              {status || "Not Marked"}
-            </span>
+              <span
+                className={`text-xs ${
+                  attendanceStatus === "Present"
+                    ? "text-green-600"
+                    : attendanceStatus === "Absent"
+                    ? "text-red-600"
+                    : "text-gray-400"
+                }`}
+              >
+                {attendanceStatus || "Not Marked"}
+              </span>
+            </div>
 
             {/* BUTTONS */}
             <div className="flex gap-2">
+
               <Button
+                type="button"
                 size="sm"
+                className="bg-green-600 hover:bg-green-700 text-white"
                 onClick={() =>
-                  markAttendance(c._id, s._id, "Present")
+                  markAttendance(
+                    c._id,
+                    s._id,
+                    "Present"
+                  )
                 }
               >
                 Present
               </Button>
 
               <Button
+                type="button"
                 size="sm"
                 variant="destructive"
                 onClick={() =>
-                  markAttendance(c._id, s._id, "Absent")
+                  markAttendance(
+                    c._id,
+                    s._id,
+                    "Absent"
+                  )
                 }
               >
                 Absent
               </Button>
+
             </div>
           </div>
         );
