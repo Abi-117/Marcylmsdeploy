@@ -21,7 +21,9 @@ const paymentSchema = new mongoose.Schema(
     },
 
     paidAt: Date,
+    invoiceUrl: String,
   },
+  
   {
     timestamps: true,
   }

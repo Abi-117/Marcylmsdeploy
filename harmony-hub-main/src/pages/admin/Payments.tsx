@@ -36,6 +36,7 @@ type Payment = {
   status: "Paid" | "Pending" | "Failed";
 
   date: string;
+  invoiceUrl?: string;
 };
 
 function AdminPayments() {
@@ -92,7 +93,7 @@ function AdminPayments() {
     .reduce((a, p) => a + p.amount, 0);
 
   const pending = payments
-    .filter((p) => p.status !== "Paid")
+    .filter((p) => p.status === "Pending")
     .reduce((a, p) => a + p.amount, 0);
 
   return (
@@ -248,13 +249,19 @@ function AdminPayments() {
                       <td className="px-5 py-3.5">
 
                         <Button
-                          variant="ghost"
-                          size="sm"
-                        >
+  variant="ghost"
+  size="sm"
+  onClick={() => {
+    if (!p.invoiceUrl) {
+      alert("Invoice not available");
+      return;
+    }
 
-                          <Download className="h-3.5 w-3.5" />
-
-                        </Button>
+    window.open(p.invoiceUrl, "_blank");
+  }}
+>
+  <Download className="h-3.5 w-3.5" />
+</Button>
 
                       </td>
 
