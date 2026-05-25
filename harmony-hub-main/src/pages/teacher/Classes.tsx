@@ -61,33 +61,37 @@ export default function TeacherClasses() {
   // =========================
   // MARK ATTENDANCE
   // =========================
-  const markAttendance = async (
-    classId: string,
-    studentId: string,
-    status: "Present" | "Absent"
-  ) => {
-    try {
-      await axios.put(`${API}/attendance/mark`, {
-        classId,
-        studentId,
-        status,
-      });
+ const markAttendance = async (
+  classId: string,
+  studentId: string,
+  status: "Present" | "Absent"
+) => {
+  try {
+    await axios.put(`${API}/attendance/mark`, {
+      classId,
+      studentId,
+      status,
+    });
 
-      await fetchClasses(); // refresh
+    // 🔥 ALWAYS REFRESH FROM SERVER (BEST PRACTICE)
+    const res = await axios.get(
+      `${API}/classes/teacher/${teacherId}`
+    );
 
-      // also refresh selected class students
-      const updated = classes.find((c) => c._id === classId);
-      if (updated) {
-        setSelectedClass(updated);
-        setStudents(updated.students || []);
-      }
+    setClasses(res.data);
 
-      alert("Attendance updated");
-    } catch (err) {
-      console.log(err);
-    }
-  };
+    // 🔥 update selected class properly from fresh data
+    const updatedClass = res.data.find(
+      (c: any) => c._id === classId
+    );
 
+    setSelectedClass(updatedClass);
+    setStudents(updatedClass?.students || []);
+
+  } catch (err) {
+    console.log(err);
+  }
+};
   // =========================
   // STATUS UPDATE
   // =========================
@@ -189,7 +193,9 @@ export default function TeacherClasses() {
     ) : (
       students.map((s: any) => {
         const status =
-          selectedClass?.attendanceMap?.[s._id];
+  selectedClass?.attendanceMap?.[
+    s._id.toString()
+  ];
 
         return (
           <div

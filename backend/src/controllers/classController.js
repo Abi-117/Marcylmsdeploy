@@ -5,33 +5,49 @@ export const getTeacherClasses = async (req, res) => {
   try {
     const { teacherId } = req.params;
 
-    const classes = await Class.find({ teacherId })
+    // GET CLASSES
+    const classes = await Class.find({
+      teacherId,
+    })
       .populate("students", "name email")
       .populate("courseId", "name");
 
-    const today = new Date().toISOString().split("T")[0];
+    // TODAY DATE
+    const today = new Date()
+      .toISOString()
+      .split("T")[0];
 
-    const result = await Promise.all(
+    // ADD ATTENDANCE MAP
+    const updatedClasses = await Promise.all(
       classes.map(async (cls) => {
-        const attendance = await Attendance.find({
-          classId: cls._id,
-          date: today,
-        });
+        const attendance =
+          await Attendance.find({
+            classId: cls._id,
+            date: today,
+          });
 
-        const map = {};
+        const attendanceMap = {};
+
         attendance.forEach((a) => {
-          map[a.studentId.toString()] = a.status;
+          attendanceMap[
+            a.studentId.toString()
+          ] = a.status;
         });
 
         return {
           ...cls.toObject(),
-          attendanceMap: map,
+          attendanceMap,
         };
       })
     );
 
-    res.json(result);
+    res.json(updatedClasses);
+
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    console.log(err);
+
+    res.status(500).json({
+      message: err.message,
+    });
   }
 };
