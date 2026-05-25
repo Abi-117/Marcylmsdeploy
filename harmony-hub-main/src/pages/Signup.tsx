@@ -526,85 +526,138 @@ function Signup() {
 
                 {/* STEP 3 */}
 
-                {step === 2 && (
+               {step === 2 && (
+  <div className="space-y-6">
 
-                  <div className="space-y-6">
+    <div>
+      <div className="text-xs font-semibold uppercase tracking-wider text-gold">
+        Step 3 of 5
+      </div>
 
-                    <h1 className="font-display text-3xl">
-                      Schedule
-                    </h1>
+      <h1 className="mt-2 font-display text-3xl">
+        Available Schedule
+      </h1>
 
-                    {/* DAYS */}
+      <p className="text-sm text-muted-foreground">
+        Select your preferred days and time slots (06:00 AM - 11:00 PM)
+      </p>
+    </div>
 
-                    <div>
+    {/* ===================== */}
+    {/* DAYS SELECTION */}
+    {/* ===================== */}
+    <div>
+      <Label>Available Days</Label>
 
-                      <Label>
-                        Available Days
-                      </Label>
+      <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
+        {[
+          "Monday",
+          "Tuesday",
+          "Wednesday",
+          "Thursday",
+          "Friday",
+          "Saturday",
+          "Sunday",
+        ].map((day) => (
+          <button
+            key={day}
+            type="button"
+            onClick={() => {
+              setData((prev) => ({
+                ...prev,
+                availableDays: prev.availableDays.includes(day)
+                  ? prev.availableDays.filter((d) => d !== day)
+                  : [...prev.availableDays, day],
+              }));
+            }}
+            className={`rounded-xl border p-4 text-sm transition-all ${
+              data.availableDays.includes(day)
+                ? "border-gold bg-gold-soft"
+                : "border-border hover:border-gold/40"
+            }`}
+          >
+            {day}
+          </button>
+        ))}
+      </div>
+    </div>
 
-                      <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
+    {/* ===================== */}
+    {/* FROM TIME */}
+    {/* ===================== */}
+    <div>
+      <Label>Available From</Label>
 
-                        {days.map((day) => (
+      <div className="mt-3 grid grid-cols-3 sm:grid-cols-6 gap-2">
+        {Array.from({ length: 18 }, (_, i) => {
+          const hour = i + 6;
+          const displayHour = hour > 12 ? hour - 12 : hour;
+          const ampm = hour >= 12 ? "PM" : "AM";
 
-                          <button
-                            key={day}
-                            type="button"
-                            onClick={() => {
+          const time = `${String(displayHour).padStart(2, "0")}:00 ${ampm}`;
 
-                              if (
-                                data.availableDays.includes(
-                                  day
-                                )
-                              ) {
+          return (
+            <button
+              key={time}
+              type="button"
+              onClick={() =>
+                setData((prev) => ({
+                  ...prev,
+                  fromTime: time,
+                }))
+              }
+              className={`rounded-xl border p-3 text-xs transition-all ${
+                data.fromTime === time
+                  ? "border-gold bg-gold-soft"
+                  : "border-border hover:border-gold/40"
+              }`}
+            >
+              {time}
+            </button>
+          );
+        })}
+      </div>
+    </div>
 
-                                setData({
-                                  ...data,
-                                  availableDays:
-                                    data.availableDays.filter(
-                                      (
-                                        d
-                                      ) =>
-                                        d !==
-                                        day
-                                    ),
-                                });
+    {/* ===================== */}
+    {/* TO TIME */}
+    {/* ===================== */}
+    <div>
+      <Label>Available To</Label>
 
-                              } else {
+      <div className="mt-3 grid grid-cols-3 sm:grid-cols-6 gap-2">
+        {Array.from({ length: 18 }, (_, i) => {
+          const hour = i + 6;
+          const displayHour = hour > 12 ? hour - 12 : hour;
+          const ampm = hour >= 12 ? "PM" : "AM";
 
-                                setData({
-                                  ...data,
-                                  availableDays:
-                                    [
-                                      ...data.availableDays,
-                                      day,
-                                    ],
-                                });
+          const time = `${String(displayHour).padStart(2, "0")}:00 ${ampm}`;
 
-                              }
+          return (
+            <button
+              key={time}
+              type="button"
+              onClick={() =>
+                setData((prev) => ({
+                  ...prev,
+                  toTime: time,
+                }))
+              }
+              className={`rounded-xl border p-3 text-xs transition-all ${
+                data.toTime === time
+                  ? "border-gold bg-gold-soft"
+                  : "border-border hover:border-gold/40"
+              }`}
+            >
+              {time}
+            </button>
+          );
+        })}
+      </div>
+    </div>
 
-                            }}
-                            className={`rounded-xl border p-4 text-sm ${
-                              data.availableDays.includes(
-                                day
-                              )
-                                ? "border-gold bg-gold-soft"
-                                : "border-border"
-                            }`}
-                          >
-
-                            {day}
-
-                          </button>
-
-                        ))}
-
-                      </div>
-
-                    </div>
-
-                  </div>
-
-                )}
+  </div>
+)}
 
                 {/* STEP 4 */}
 
