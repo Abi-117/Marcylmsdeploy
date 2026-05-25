@@ -6,24 +6,51 @@ import Class from "../models/Class.js";
 // ================================
 export const markAttendance = async (req, res) => {
   try {
-    const { classId, studentId, status } = req.body;
 
-    const today = new Date().toISOString().split("T")[0];
+    console.log("BODY:", req.body);
 
-    const attendance = await Attendance.findOneAndUpdate(
-      { classId, studentId, date: today },
-      {
-        classId,
-        studentId,
-        status,
-        date: today,
-      },
-      { upsert: true, new: true }
-    );
+    const {
+      classId,
+      studentId,
+      status,
+    } = req.body;
+
+    const today =
+      new Date()
+        .toISOString()
+        .split("T")[0];
+
+    const attendance =
+      await Attendance.findOneAndUpdate(
+        {
+          classId,
+          studentId,
+          date: today,
+        },
+        {
+          classId,
+          studentId,
+          status,
+          date: today,
+        },
+        {
+          upsert: true,
+          new: true,
+        }
+      );
+
+    console.log("SAVED:", attendance);
 
     res.json(attendance);
+
   } catch (err) {
-    res.status(500).json({ message: err.message });
+
+    console.log(err);
+
+    res.status(500).json({
+      message: err.message,
+    });
+
   }
 };
 
