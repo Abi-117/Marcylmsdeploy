@@ -12,22 +12,16 @@ import ClassModel from "../models/Class.js";
 
 
 const router = express.Router();
-
 router.get("/dashboard", async (req, res) => {
   try {
-    // =========================
-    // BASIC STATS
-    // =========================
+
+    // =======================
+    // TOTALS
+    // =======================
     const totalStudents = await User.countDocuments({ role: "student" });
     const totalTeachers = await User.countDocuments({ role: "teacher" });
+    const liveClasses = await ClassModel.countDocuments({ status: "Live" });
 
-    const liveClasses = await ClassModel.countDocuments({
-      status: "Live",
-    });
-
-    // =========================
-    // REVENUE
-    // =========================
     const payments = await Payment.find();
 
     const totalRevenue = payments.reduce(
@@ -35,81 +29,89 @@ router.get("/dashboard", async (req, res) => {
       0
     );
 
-    // 🔥 FIX: Group by MONTH from createdAt
-    const revenueMap = {};
+    // =======================
+    // REVENUE CHART (FIXED)
+    // =======================
+    const revenueData = await Payment.aggregate([
+      {
+        $group: {
+          _id: {
+            $dateToString: {
+              format: "%Y-%m",
+              date: "$createdAt",
+            },
+          },
+          revenue: { $sum: "$amount" },
+        },
+      },
+      { $sort: { _id: 1 } },
+      {
+        $project: {
+          month: "$_id",
+          revenue: 1,
+          _id: 0,
+        },
+      },
+    ]);
 
-    payments.forEach((p) => {
-      const month = new Date(p.createdAt).toLocaleString("default", {
-        month: "short",
-      });
+    // =======================
+    // ATTENDANCE (REAL FIX)
+    // =======================
+    const attendanceRecords = await Attendance.find();
 
-      if (!revenueMap[month]) {
-        revenueMap[month] = 0;
+    const grouped = {};
+
+    attendanceRecords.forEach((a) => {
+      if (!a.date || !a.status) return;
+
+      const date = new Date(a.date);
+
+      const week = Math.ceil(
+        ((date - new Date(date.getFullYear(), 0, 1)) /
+          86400000 +
+          1) /
+          7
+      );
+
+      const key = `W${week}`;
+
+      if (!grouped[key]) {
+        grouped[key] = { present: 0, absent: 0 };
       }
 
-      if (p.status === "Paid") {
-        revenueMap[month] += p.amount || 0;
+      if (a.status === "present") {
+        grouped[key].present += 1;
+      } else {
+        grouped[key].absent += 1;
       }
     });
 
-    const revenueData = Object.keys(revenueMap).map((m) => ({
-      month: m,
-      revenue: revenueMap[m],
-    }));
+    const attendanceData = Object.keys(grouped)
+      .sort((a, b) => a - b)
+      .map((week) => ({
+        week,
+        present: grouped[week].present,
+        absent: grouped[week].absent,
+      }));
 
-    // =========================
-    // ATTENDANCE (FIXED)
-    // =========================
-    const attendanceRaw = await Attendance.find();
+    // =======================
+    // TOP STUDENTS (SORT FIX)
+    // =======================
+    const topStudents = await User.find({ role: "student" })
+      .limit(5)
+      .select("name course")
+      .sort({ createdAt: -1 });
 
-    const attendanceData = [
-      { week: "W1", present: 80, absent: 20 },
-      { week: "W2", present: 85, absent: 15 },
-      { week: "W3", present: 78, absent: 22 },
-      { week: "W4", present: 90, absent: 10 },
-    ];
+    // =======================
+    // CLASSES (SAFE)
+    // =======================
+    const classes = await ClassModel.find({
+      status: { $ne: "Completed" },
+    }).sort({ date: 1 });
 
-    // =========================
-    // TOP STUDENTS
-    // =========================
-    const users = await User.find({ role: "student" });
-
-    const topStudents = users
-      .map((u) => {
-        const total = (u.payments || [])
-          .filter((p) => p.status === "Paid")
-          .reduce((sum, p) => sum + (p.amount || 0), 0);
-
-        return {
-          _id: u._id,
-          name: u.name,
-          course: u.course || "Course",
-          total,
-        };
-      })
-      .sort((a, b) => b.total - a.total)
-      .slice(0, 5);
-
-    // =========================
-    // CLASSES
-    // =========================
-    const classes = await ClassModel.find()
-      .sort({ date: 1 })
-      .limit(10);
-
-    const formattedClasses = classes.map((c) => ({
-      _id: c._id,
-      title: c.title,
-      batchName: c.batchName,
-      teacher: c.teacher,
-      date: c.date,
-      status: c.status,
-      platform: c.platform,
-    }));
-
-    // =========================
+    // =======================
     // RESPONSE
-    // =========================
+    // =======================
     res.json({
       totalRevenue,
       totalStudents,
@@ -118,15 +120,17 @@ router.get("/dashboard", async (req, res) => {
       revenueData,
       attendanceData,
       topStudents,
-      classes: formattedClasses,
+      classes,
     });
 
   } catch (error) {
     console.log(error);
-    res.status(500).json({ message: "Server Error" });
+    res.status(500).json({
+      message: "Dashboard error",
+      error: error.message,
+    });
   }
 });
-
 // GET STUDENTS
 // GET STUDENTS
 router.get("/students", async (req, res) => {
