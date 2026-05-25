@@ -15,64 +15,90 @@ const router = express.Router();
 
 router.get("/dashboard", async (req, res) => {
   try {
-    const users = await User.find();
-    const payments = await Payment.find();
-    const classes = await Class.find().catch(() => []);
 
-    const totalStudents = users?.length || 0;
+    // TOTAL STUDENTS
+    const totalStudents = await User.countDocuments({
+      role: "student",
+    });
 
-    const totalRevenue = payments
-      ?.filter((p) => p?.status === "Paid")
-      ?.reduce((sum, p) => sum + (p?.amount || 0), 0) || 0;
-
+    // TOTAL TEACHERS
     const totalTeachers = await User.countDocuments({
       role: "teacher",
     });
 
-    const formattedClasses = (classes || []).map((c) => ({
-      _id: c?._id,
-      title: c?.title || "",
-      batchName: c?.batchName || "",
-      teacher: c?.teacher?.name || "Teacher",
-      date: c?.date || new Date(),
-      status: c?.status || "Upcoming",
-      platform: c?.platform || "Zoom",
-    }));
-
-    const liveClasses =
-      classes?.filter((c) => c?.status === "Live")?.length || 0;
-
-    const topStudents = users.map((u) => {
-      const total =
-        u?.payments
-          ?.filter((p) => p?.status === "Paid")
-          ?.reduce((sum, p) => sum + (p?.amount || 0), 0) || 0;
-
-      return {
-        _id: u._id,
-        name: u.name,
-        course: u.selectedLevel || "Course",
-        total,
-      };
+    // LIVE CLASSES
+    const liveClasses = await ClassModel.countDocuments({
+      status: "Live",
     });
 
-    topStudents.sort((a, b) => b.total - a.total);
+    // TOTAL REVENUE
+    const payments = await Payment.find();
 
-    res.json({
+    const totalRevenue = payments.reduce(
+      (total, item) => total + item.amount,
+      0
+    );
+
+    // REVENUE CHART
+    const revenueData = await Payment.aggregate([
+      {
+        $group: {
+          _id: "$month",
+
+          revenue: {
+            $sum: "$amount",
+          },
+        },
+      },
+
+      {
+        $sort: {
+          _id: 1,
+        },
+      },
+    ]);
+
+    // ATTENDANCE
+    const attendanceData = await Attendance.find();
+
+    // TOP STUDENTS
+    const topStudents = await User.find({
+      role: "student",
+    })
+      .limit(5)
+      .select("name course");
+
+    // CLASSES
+    const classes = await ClassModel.find({
+      status: {
+        $ne: "Completed",
+      },
+    }).sort({ date: 1 });
+
+    res.status(200).json({
       totalRevenue,
+
       totalStudents,
+
       totalTeachers,
+
       liveClasses,
-      revenueData: [],
-      attendanceData: [],
-      classes: formattedClasses,
-      topStudents: topStudents.slice(0, 5),
+
+      revenueData,
+
+      attendanceData,
+
+      topStudents,
+
+      classes,
     });
 
-  } catch (err) {
-    console.log("DASHBOARD ERROR:", err);
+  } catch (error) {
+
+    console.log(error);
+
     res.status(500).json({
-      message: "Dashboard error",
+      message: "Server Error",
     });
   }
 });
