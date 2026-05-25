@@ -77,45 +77,45 @@ router.get("/:id", async (req, res) => {
 // GET TEACHER CLASSES
 // =====================================
 
-router.get(
-  "/teacher/:teacherId",
-  async (req, res) => {
+// router.get(
+//   "/teacher/:teacherId",
+//   async (req, res) => {
 
-    try {
+//     try {
 
-      const classes = await Class.find({
+//       const classes = await Class.find({
 
-        teacherId:
-          req.params.teacherId,
+//         teacherId:
+//           req.params.teacherId,
 
-      })
+//       })
 
-        .populate({
-  path: "students",
-  select:
-    "name email phone paymentStatus selectedLevel availableDays fromTime toTime mode course",
-  populate: {
-    path: "course",
-    model: "Course",
-  },
-})
+//         .populate({
+//   path: "students",
+//   select:
+//     "name email phone paymentStatus selectedLevel availableDays fromTime toTime mode course",
+//   populate: {
+//     path: "course",
+//     model: "Course",
+//   },
+// })
 
-        .sort({ date: -1 });
+//         .sort({ date: -1 });
 
-      res.json(classes);
+//       res.json(classes);
 
-    } catch (err) {
+//     } catch (err) {
 
-      console.log(err);
+//       console.log(err);
 
-      res.status(500).json({
-        message: "Fetch failed",
-      });
+//       res.status(500).json({
+//         message: "Fetch failed",
+//       });
 
-    }
+//     }
 
-  }
-);
+//   }
+// );
 
 
 // =====================================

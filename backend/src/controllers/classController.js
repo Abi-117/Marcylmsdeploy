@@ -5,21 +5,23 @@ export const getTeacherClasses = async (req, res) => {
   try {
     const { teacherId } = req.params;
 
-    // GET CLASSES
     const classes = await Class.find({
       teacherId,
     })
-      .populate("students", "name email")
-      .populate("courseId", "name");
+      .populate({
+        path: "students",
+        select: "name email phone",
+      })
+      .populate("courseId", "name")
+      .sort({ date: -1 });
 
-    // TODAY DATE
     const today = new Date()
       .toISOString()
       .split("T")[0];
 
-    // ADD ATTENDANCE MAP
     const updatedClasses = await Promise.all(
       classes.map(async (cls) => {
+
         const attendance =
           await Attendance.find({
             classId: cls._id,
@@ -44,10 +46,12 @@ export const getTeacherClasses = async (req, res) => {
     res.json(updatedClasses);
 
   } catch (err) {
+
     console.log(err);
 
     res.status(500).json({
       message: err.message,
     });
+
   }
 };
