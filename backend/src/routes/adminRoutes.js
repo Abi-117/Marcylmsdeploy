@@ -15,61 +15,40 @@ const router = express.Router();
 
 router.get("/dashboard", async (req, res) => {
   try {
-    // =========================
-    // USERS / STUDENTS
-    // =========================
     const users = await User.find();
-    const totalStudents = users.length;
-
-    // =========================
-    // PAYMENTS (REVENUE)
-    // =========================
     const payments = await Payment.find();
+    const classes = await Class.find().catch(() => []);
+
+    const totalStudents = users?.length || 0;
 
     const totalRevenue = payments
-      .filter((p) => p.status === "Paid")
-      .reduce((sum, p) => sum + (p.amount || 0), 0);
+      ?.filter((p) => p?.status === "Paid")
+      ?.reduce((sum, p) => sum + (p?.amount || 0), 0) || 0;
 
-    // =========================
-    // TEACHERS (if no model, fallback)
-    // =========================
     const totalTeachers = await User.countDocuments({
       role: "teacher",
     });
 
-    // =========================
-    // CLASSES
-    // =========================
-    const classes = await Class.find()
-      .limit(10)
-      .sort({ date: 1 })
-      .populate("teacher", "name");
-
-    const formattedClasses = classes.map((c) => ({
-      _id: c._id,
-      title: c.title,
-      batchName: c.batchName || "Batch",
-      teacher: c.teacher?.name || "Teacher",
-      date: c.date,
-      status: c.status || "Upcoming",
-      platform: c.platform || "Zoom",
+    const formattedClasses = (classes || []).map((c) => ({
+      _id: c?._id,
+      title: c?.title || "",
+      batchName: c?.batchName || "",
+      teacher: c?.teacher?.name || "Teacher",
+      date: c?.date || new Date(),
+      status: c?.status || "Upcoming",
+      platform: c?.platform || "Zoom",
     }));
 
-    const liveClasses = classes.filter(
-      (c) => c.status === "Live"
-    ).length;
+    const liveClasses =
+      classes?.filter((c) => c?.status === "Live")?.length || 0;
 
-    // =========================
-    // TOP STUDENTS (based on payments)
-    // =========================
-    const topStudentsMap = {};
+    const topStudents = users.map((u) => {
+      const total =
+        u?.payments
+          ?.filter((p) => p?.status === "Paid")
+          ?.reduce((sum, p) => sum + (p?.amount || 0), 0) || 0;
 
-    users.forEach((u) => {
-      const total = (u.payments || [])
-        .filter((p) => p.status === "Paid")
-        .reduce((sum, p) => sum + (p.amount || 0), 0);
-
-      topStudentsMap[u._id] = {
+      return {
         _id: u._id,
         name: u.name,
         course: u.selectedLevel || "Course",
@@ -77,45 +56,21 @@ router.get("/dashboard", async (req, res) => {
       };
     });
 
-    const topStudents = Object.values(topStudentsMap)
-      .sort((a, b) => b.total - a.total)
-      .slice(0, 5);
+    topStudents.sort((a, b) => b.total - a.total);
 
-    // =========================
-    // CHART DATA (REAL BASIC VERSION)
-    // =========================
-    const revenueData = [
-      { month: "Jan", revenue: 12000 },
-      { month: "Feb", revenue: 18000 },
-      { month: "Mar", revenue: 15000 },
-      { month: "Apr", revenue: 22000 },
-      { month: "May", revenue },
-      { month: "Jun", revenue: totalRevenue },
-    ];
-
-    const attendanceData = [
-      { week: "W1", present: 80, absent: 20 },
-      { week: "W2", present: 85, absent: 15 },
-      { week: "W3", present: 78, absent: 22 },
-      { week: "W4", present: 90, absent: 10 },
-    ];
-
-    // =========================
-    // RESPONSE
-    // =========================
     res.json({
       totalRevenue,
       totalStudents,
       totalTeachers,
       liveClasses,
-      revenueData,
-      attendanceData,
+      revenueData: [],
+      attendanceData: [],
       classes: formattedClasses,
-      topStudents,
+      topStudents: topStudents.slice(0, 5),
     });
 
   } catch (err) {
-    console.log(err);
+    console.log("DASHBOARD ERROR:", err);
     res.status(500).json({
       message: "Dashboard error",
     });
