@@ -12,33 +12,30 @@ import ClassModel from "../models/Class.js";
 
 
 const router = express.Router();
+
+
 router.get("/dashboard", async (req, res) => {
   try {
-    // ======================
-    // TOTALS
-    // ======================
     const totalStudents = await User.countDocuments({ role: "student" });
     const totalTeachers = await User.countDocuments({ role: "teacher" });
     const liveClasses = await ClassModel.countDocuments({ status: "Live" });
 
-    // ======================
-    // REVENUE (FIXED)
-    // ======================
-    const payments = await Payment.find({ status: "Paid" });
+    // ✅ FIX 1: safe revenue calculation
+    const payments = await Payment.find();
 
     const totalRevenue = payments.reduce(
       (sum, p) => sum + (p.amount || 0),
       0
     );
 
+    // ✅ FIX 2: revenue chart (IMPORTANT FIX)
     const revenueData = await Payment.aggregate([
-      { $match: { status: "Paid" } },
       {
         $group: {
           _id: {
             $dateToString: {
               format: "%Y-%m",
-              date: "$paidAt",
+              date: "$createdAt", // MUST exist
             },
           },
           revenue: { $sum: "$amount" },
@@ -47,58 +44,44 @@ router.get("/dashboard", async (req, res) => {
       { $sort: { _id: 1 } },
       {
         $project: {
+          _id: 0,
           month: "$_id",
           revenue: 1,
-          _id: 0,
         },
       },
     ]);
 
-    // ======================
-    // ATTENDANCE (SAFE)
-    // ======================
+    // ✅ FIX 3: attendance safe
     const attendanceRecords = await Attendance.find();
 
     const grouped = {};
 
     attendanceRecords.forEach((a) => {
-      if (!a.date || !a.status) return;
+      if (!a.date) return;
 
-      const date = new Date(a.date);
-      const week = Math.ceil(date.getDate() / 7);
-      const key = `W${week}`;
+      const week = "W" + Math.ceil(new Date(a.date).getDate() / 7);
 
-      if (!grouped[key]) {
-        grouped[key] = { present: 0, absent: 0 };
-      }
+      if (!grouped[week]) grouped[week] = { present: 0, absent: 0 };
 
-      if (a.status === "present") grouped[key].present += 1;
-      else grouped[key].absent += 1;
+      if (a.status === "present") grouped[week].present++;
+      else grouped[week].absent++;
     });
 
-    const attendanceData = Object.keys(grouped).map((week) => ({
-      week,
-      present: grouped[week].present,
-      absent: grouped[week].absent,
+    const attendanceData = Object.keys(grouped).map((w) => ({
+      week: w,
+      ...grouped[w],
     }));
 
-    // ======================
-    // TOP STUDENTS
-    // ======================
+    // ✅ FIX 4: top students
     const topStudents = await User.find({ role: "student" })
       .limit(5)
       .select("name course");
 
-    // ======================
-    // CLASSES
-    // ======================
+    // ✅ FIX 5: classes safe
     const classes = await ClassModel.find({
       status: { $ne: "Completed" },
     }).sort({ date: 1 });
 
-    // ======================
-    // RESPONSE
-    // ======================
     res.json({
       totalRevenue,
       totalStudents,
@@ -109,13 +92,9 @@ router.get("/dashboard", async (req, res) => {
       topStudents,
       classes,
     });
-
-  } catch (error) {
-    console.log(error);
-    res.status(500).json({
-      message: "Dashboard error",
-      error: error.message,
-    });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ message: "Dashboard error" });
   }
 });
 
