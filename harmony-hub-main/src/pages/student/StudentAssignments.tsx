@@ -6,6 +6,8 @@ import { Badge } from "@/components/ui/badge";
 import { ClipboardList } from "lucide-react";
 
 import SubmitAssignment from "./SubmitAssignment";
+import StudentFeedback from "./StudentFeedback";
+
 
 const API = "https://marcylmsdeploy.onrender.com/api";
 
@@ -17,6 +19,7 @@ export default function StudentAssignments() {
 
   const [assignments, setAssignments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const teacherId = assignments?.[0]?.teacherId;
 
   const fetchAssignments = async () => {
     try {
@@ -52,6 +55,7 @@ export default function StudentAssignments() {
 
   return (
     <div className="space-y-6">
+        <StudentFeedback teacherId={teacherId} />
 
       {assignments.map((a) => {
 

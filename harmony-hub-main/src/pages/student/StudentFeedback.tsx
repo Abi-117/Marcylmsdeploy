@@ -19,11 +19,11 @@ export default function StudentFeedback({ teacherId, teacherName }: Props) {
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const submitFeedback = async () => {
+  const sendFeedback = async () => {
     try {
       if (!studentId) return alert("Student missing");
       if (!teacherId) return alert("Teacher missing");
-      if (!message.trim()) return alert("Enter feedback");
+      if (!message.trim()) return alert("Enter message");
 
       setLoading(true);
 
@@ -33,7 +33,7 @@ export default function StudentFeedback({ teacherId, teacherName }: Props) {
         message,
       });
 
-      alert("Feedback sent successfully");
+      alert("Feedback sent");
       setMessage("");
     } catch (err: any) {
       console.log(err?.response?.data || err);
@@ -44,19 +44,19 @@ export default function StudentFeedback({ teacherId, teacherName }: Props) {
   };
 
   return (
-    <div className="border rounded-xl p-4 space-y-3 bg-white shadow-sm">
+    <div className="border rounded-xl p-4 space-y-3 bg-white">
 
-      <h2 className="font-semibold text-lg">
-        Send Feedback {teacherName && `to ${teacherName}`}
+      <h2 className="font-semibold">
+        Feedback {teacherName && `to ${teacherName}`}
       </h2>
 
       <Textarea
-        placeholder="Write your feedback..."
+        placeholder="Write feedback..."
         value={message}
         onChange={(e) => setMessage(e.target.value)}
       />
 
-      <Button onClick={submitFeedback} disabled={loading}>
+      <Button onClick={sendFeedback} disabled={loading}>
         {loading ? "Sending..." : "Send Feedback"}
       </Button>
 
