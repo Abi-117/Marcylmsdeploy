@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 
-const API = "https://marcylmsdeploy.onrender.com/api";
+const API =
+  "https://marcylmsdeploy.onrender.com/api";
 
 export default function AssignmentReviewPanel({
   assignment,
@@ -20,13 +21,18 @@ export default function AssignmentReviewPanel({
   const [feedback, setFeedback] =
     useState("");
 
-  // ✅ SAFE GUARD
+  // =========================
+  // SAFETY
+  // =========================
+
   if (!assignment) {
+
     return (
       <div className="border rounded-xl p-4 text-sm text-muted-foreground">
         No assignment selected
       </div>
     );
+
   }
 
   // =========================
@@ -38,20 +44,34 @@ export default function AssignmentReviewPanel({
     try {
 
       if (!selectedStudent) {
-        return alert("Select student");
+
+        return alert(
+          "Select student"
+        );
+
       }
 
       await axios.put(
         `${API}/assignments/review`,
         {
-          assignmentId: assignment._id,
-          studentId: selectedStudent,
+          assignmentId:
+            assignment._id,
+
+          studentId:
+            selectedStudent,
+
           marks,
+
           feedback,
         }
       );
 
-      alert("Reviewed successfully");
+      alert(
+        "Reviewed successfully"
+      );
+
+      setMarks("");
+      setFeedback("");
 
     } catch (err) {
 
@@ -63,63 +83,124 @@ export default function AssignmentReviewPanel({
 
   };
 
+  // =========================
+  // UI
+  // =========================
+
   return (
 
     <div className="border rounded-xl p-4 space-y-4">
+
+      {/* TITLE */}
 
       <h2 className="font-semibold text-lg">
         Review Submissions
       </h2>
 
       {/* EMPTY */}
-      {assignment?.submissions?.length === 0 && (
+
+      {assignment?.submissions
+        ?.length === 0 && (
+
         <div className="text-sm text-muted-foreground">
+
           No submissions yet
+
         </div>
+
       )}
 
-      {/* STUDENTS */}
+      {/* SUBMISSIONS */}
+
       <div className="space-y-2">
 
-        {assignment?.submissions?.map((s: any) => (
+        {assignment?.submissions?.map(
+          (s: any) => (
 
           <div
-            key={s.studentId}
+            key={s.studentId?._id}
             className={`flex items-center justify-between border p-3 rounded-xl ${
-              selectedStudent === s.studentId
+              selectedStudent ===
+              s.studentId?._id
                 ? "border-gold bg-gold-soft"
                 : ""
             }`}
           >
 
-            <div>
+            {/* LEFT */}
+
+            <div className="space-y-1">
 
               <div className="text-sm font-medium">
-                Student: {s.studentId}
+
+                Student:{" "}
+
+                {s.studentId?.name ||
+                  "Unknown"}
+
               </div>
 
+              <div className="text-xs text-muted-foreground">
+
+                {s.studentId?.email}
+
+              </div>
+
+              {/* FILE */}
+
               {s.fileUrl && (
+
                 <a
                   href={s.fileUrl}
                   target="_blank"
                   rel="noreferrer"
-                  className="text-blue-500 text-xs"
+                  className="text-blue-500 text-xs underline"
                 >
-                  View File
+                  View Uploaded File
                 </a>
+
+              )}
+
+              {/* EXISTING REVIEW */}
+
+              {s.marks && (
+
+                <div className="text-xs text-green-600">
+
+                  Marks: {s.marks}
+
+                </div>
+
+              )}
+
+              {s.feedback && (
+
+                <div className="text-xs text-muted-foreground">
+
+                  Feedback: {s.feedback}
+
+                </div>
+
               )}
 
             </div>
+
+            {/* BUTTON */}
 
             <Button
               size="sm"
               onClick={() =>
                 setSelectedStudent(
-                  s.studentId
+                  s.studentId?._id
                 )
               }
             >
-              Select
+
+              {selectedStudent ===
+              s.studentId?._id
+                ? "Selected"
+                : "Select"}
+
             </Button>
 
           </div>
@@ -129,29 +210,38 @@ export default function AssignmentReviewPanel({
       </div>
 
       {/* MARKS */}
+
       <Input
-        placeholder="Marks"
+        placeholder="Enter marks"
         value={marks}
         onChange={(e) =>
-          setMarks(e.target.value)
+          setMarks(
+            e.target.value
+          )
         }
       />
 
       {/* FEEDBACK */}
+
       <Textarea
-        placeholder="Feedback"
+        placeholder="Enter feedback"
         value={feedback}
         onChange={(e) =>
-          setFeedback(e.target.value)
+          setFeedback(
+            e.target.value
+          )
         }
       />
 
       {/* SUBMIT */}
+
       <Button
         onClick={review}
         className="bg-gold text-black"
       >
+
         Submit Review
+
       </Button>
 
     </div>
