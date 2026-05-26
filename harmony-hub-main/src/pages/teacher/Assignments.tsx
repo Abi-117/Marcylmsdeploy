@@ -362,7 +362,85 @@ export default function TeacherAssignments() {
                     </div>
 
                   </div>
+                          {/* SUBMISSIONS */}
 
+{t.submissions?.length > 0 && (
+
+  <div className="mt-4 border rounded-xl p-4 space-y-3">
+
+    <h3 className="font-medium">
+      Student Submissions
+    </h3>
+
+    {t.submissions.map(
+      (s: any, index: number) => (
+
+      <div
+        key={index}
+        className="border rounded-lg p-3 flex items-center justify-between"
+      >
+
+        <div>
+
+          <div className="font-medium text-sm">
+
+            {s.studentId?.name ||
+              "Unknown Student"}
+
+          </div>
+
+          <div className="text-xs text-muted-foreground">
+
+            {s.studentId?.email}
+
+          </div>
+
+          <div className="text-xs text-muted-foreground mt-1">
+
+            Submitted:
+            {" "}
+            {new Date(
+              s.submittedAt
+            ).toLocaleString()}
+
+          </div>
+
+          {s.marks && (
+
+            <div className="text-xs text-green-600 mt-1">
+
+              Marks:
+              {" "}
+              {s.marks}
+
+            </div>
+
+          )}
+
+        </div>
+
+        {/* FILE */}
+
+        {s.fileUrl && (
+
+          <a
+            href={s.fileUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="text-blue-600 underline text-sm"
+          >
+            View File
+          </a>
+
+        )}
+
+      </div>
+
+    ))}
+
+  </div>
+
+)}
                   {/* RIGHT */}
 
                   <div className="flex flex-col gap-3">
