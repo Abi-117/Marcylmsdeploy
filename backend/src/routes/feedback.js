@@ -5,31 +5,36 @@ const router = express.Router();
 
 //
 // ===============================
-// STUDENT SEND FEEDBACK
+// CREATE FEEDBACK
 // ===============================
 //
-router.post("/feedback/create", async (req, res) => {
+router.post("/create", async (req, res) => {
   try {
-    const { studentId, teacherId, message } = req.body;
+    const { studentId, teacherId, message, rating } = req.body;
 
     if (!studentId || !teacherId || !message) {
-      return res.status(400).json({
-        message: "Missing fields",
-      });
+      return res.status(400).json({ message: "Missing fields" });
     }
 
     const feedback = await Feedback.create({
       studentId,
       teacherId,
       message,
+      rating: rating || 5,
       createdAt: new Date(),
     });
 
-    res.json(feedback);
+    res.status(201).json({
+      message: "Feedback created",
+      feedback,
+    });
+
   } catch (err) {
+    console.log("CREATE FEEDBACK ERROR:", err);
     res.status(500).json({ message: err.message });
   }
 });
+
 //
 // ===============================
 // ADMIN GET ALL FEEDBACK
@@ -49,16 +54,18 @@ router.get("/all", async (req, res) => {
   }
 });
 
-
+//
 // ===============================
-// GET FEEDBACK FOR TEACHER
+// TEACHER FEEDBACK LIST
 // ===============================
+//
 router.get("/teacher/:teacherId", async (req, res) => {
   try {
     const data = await Feedback.find({
       teacherId: req.params.teacherId,
     })
       .populate("studentId", "name email")
+      .populate("teacherId", "name email")
       .sort({ createdAt: -1 });
 
     res.json(data);
@@ -67,4 +74,5 @@ router.get("/teacher/:teacherId", async (req, res) => {
     res.status(500).json({ message: "Fetch failed" });
   }
 });
+
 export default router;

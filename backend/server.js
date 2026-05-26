@@ -61,7 +61,7 @@ app.use(
   "/api/admin-attendance",
   adminAttendanceRoutes
 );
-app.use("/api/feedback", feedbackRoutes);
+app.use("/api/feedback", feedbackRouter);
 // serve uploaded videos
 app.use("/uploads", express.static("uploads"));
 
