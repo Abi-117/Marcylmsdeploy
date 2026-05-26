@@ -89,7 +89,7 @@ function StudentOverview() {
       {/* STATS */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard label="Current level" value={overview.student?.level} icon={Music2} accent />
-        <StatCard label="Practice streak" value={`${overview.stats?.streak || 0} days`} icon={Flame} />
+        {/* <StatCard label="Practice streak" value={`${overview.stats?.streak || 0} days`} icon={Flame} /> */}
         <StatCard label="Classes attended" value={`${overview.stats?.attended || 0}/${overview.stats?.totalClasses || 0}`} icon={Video} />
         <StatCard label="Certificates" value={String(overview.stats?.certificates || 0)} icon={Trophy} />
       </div>
@@ -128,7 +128,7 @@ function StudentOverview() {
       </div>
 
       {/* 🔥 TEACHER CLASS LINKS (NEW SECTION) */}
-      <div className="mt-6">
+      {/* <div className="mt-6">
         <Card>
           <CardContent className="p-6">
 
@@ -182,7 +182,7 @@ function StudentOverview() {
 
           </CardContent>
         </Card>
-      </div>
+      </div> */}
 
     </div>
   );

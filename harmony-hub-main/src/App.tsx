@@ -24,6 +24,7 @@ import AdminBatches from "./pages/admin/Batches";
 import AdminClasses from "./pages/admin/Classes";
 import AdminPayments from "./pages/admin/Payments";
 import AdminCourses from "./pages/admin/Courses";
+import AdminFeedback from "./pages/admin/AdminFeedback";
 import AdminEvents from "./pages/admin/Events";
 import AdminReports from "./pages/admin/Reports";
 
@@ -33,6 +34,7 @@ import TeacherStudents from "./pages/teacher/Students";
 import TeacherAttendance from "./pages/teacher/TeacherAttendance";
 import TeacherGrades from "./pages/teacher/TeacherAttendanceDashboard";
 import TeacherAssignments from "./pages/teacher/Assignments";
+import TeacherFeedback from "./pages/teacher/TeacherFeedback";
 import TeacherAssignmentReviews from "./pages/teacher/AssignmentReviewPanel";
 import TeacherSchedule from "./pages/teacher/Schedule";
 
@@ -43,6 +45,7 @@ import StudentProgress from "./pages/student/Progress";
 import NotificationAssignments from "./pages/student/StudentAssignments";
 import StudentAssignments from "./pages/student/SubmitAssignment";
 import StudentAttendance from "./pages/student/StudentAttendance";
+import StudentFeedback from "./pages/student/StudentFeedback";
 import StudentPayments from "./pages/student/Payments";
 import StudentCertificates from "./pages/student/Certificates";
 
@@ -97,6 +100,7 @@ export default function App() {
         <Route path="courses" element={<AdminCourses />} />
         <Route path="events" element={<AdminEvents />} />
         <Route path="reports" element={<AdminReports />} />
+        <Route path="feedback" element={<AdminFeedback />} />
       </Route>
 
       {/* Teacher */}
@@ -109,6 +113,7 @@ export default function App() {
         <Route path="assignments" element={<TeacherAssignments />} />
         <Route path="assignmentreviews" element={<TeacherAssignmentReviews />} />
         <Route path="schedule" element={<TeacherSchedule />} />
+        <Route path="feedback" element={<TeacherFeedback />} />
       </Route>
 
       {/* Student */}
@@ -122,6 +127,7 @@ export default function App() {
         <Route path="attendance" element={<StudentAttendance />} />
         <Route path="payments" element={<StudentPayments />} />
         <Route path="certificates" element={<StudentCertificates />} />
+        <Route path="feedback" element={<StudentFeedback />} />
       </Route>
 
       <Route path="*" element={<NotFound />} />
