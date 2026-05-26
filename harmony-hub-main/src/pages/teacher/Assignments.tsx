@@ -19,8 +19,6 @@ import {
 
 import {
   ClipboardList,
-  CheckCircle2,
-  RefreshCcw,
   Users,
 } from "lucide-react";
 
@@ -37,26 +35,26 @@ type Assignment = {
 
 export default function TeacherAssignments() {
 
-  // =========================
-  // AUTH
-  // =========================
+  // ================= AUTH =================
   const authData = JSON.parse(localStorage.getItem("ms-auth") || "{}");
   const teacher = authData?.state?.user;
   const teacherId = teacher?._id || teacher?.id;
 
-  // =========================
-  // STATE
-  // =========================
+  // ================= STATE =================
   const [tasks, setTasks] = useState<Assignment[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState("all");
 
-  // ✅ FIXED STATE (IMPORTANT)
-  const [selectedStudent, setSelectedStudent] = useState("");
+  // ✅ FIXED: per assignment + student
+  const [reviewTarget, setReviewTarget] = useState<{
+    assignmentId: string | null;
+    studentId: string | null;
+  }>({
+    assignmentId: null,
+    studentId: null,
+  });
 
-  // =========================
-  // FETCH
-  // =========================
+  // ================= FETCH =================
   const fetchTasks = async () => {
     try {
       if (!teacherId) return;
@@ -85,18 +83,14 @@ export default function TeacherAssignments() {
     if (teacherId) fetchTasks();
   }, [teacherId]);
 
-  // =========================
-  // STATUS UPDATE
-  // =========================
+  // ================= STATUS UPDATE =================
   const updateStatus = async (id: string, status: string) => {
     try {
       await axios.put(`${API}/assignments/status/${id}`, { status });
 
       setTasks((prev) =>
         prev.map((t) =>
-          t._id === id
-            ? { ...t, status: status as Assignment["status"] }
-            : t
+          t._id === id ? { ...t, status: status as Assignment["status"] } : t
         )
       );
     } catch (err) {
@@ -105,17 +99,13 @@ export default function TeacherAssignments() {
     }
   };
 
-  // =========================
-  // FILTER
-  // =========================
+  // ================= FILTER =================
   const filteredTasks =
     statusFilter === "all"
       ? tasks
       : tasks.filter((t) => t.status === statusFilter);
 
-  // =========================
-  // LOADING
-  // =========================
+  // ================= LOADING =================
   if (loading) {
     return (
       <div className="p-6 text-muted-foreground">
@@ -124,13 +114,10 @@ export default function TeacherAssignments() {
     );
   }
 
-  // =========================
-  // UI
-  // =========================
+  // ================= UI =================
   return (
     <div className="space-y-6">
 
-      {/* HEADER */}
       <PageHeader
         title="Assignments"
         subtitle="Manage student submissions"
@@ -142,7 +129,6 @@ export default function TeacherAssignments() {
         <NewAssignmentButton onRefresh={fetchTasks} />
 
         <Button variant="outline" onClick={fetchTasks}>
-          <RefreshCcw className="h-4 w-4 mr-2" />
           Refresh
         </Button>
 
@@ -161,7 +147,7 @@ export default function TeacherAssignments() {
 
       </div>
 
-      {/* EMPTY */}
+      {/* LIST */}
       {filteredTasks.length === 0 ? (
         <div className="border rounded-2xl p-10 text-center text-muted-foreground">
           No assignments found
@@ -172,13 +158,11 @@ export default function TeacherAssignments() {
           {filteredTasks.map((t) => (
 
             <Card key={t._id} className="rounded-2xl border shadow-sm">
-
               <CardContent className="p-6 space-y-5">
 
-                {/* TOP */}
+                {/* HEADER */}
                 <div className="flex justify-between">
 
-                  {/* LEFT */}
                   <div className="flex gap-4">
 
                     <div className="h-12 w-12 rounded-xl bg-gold-soft flex items-center justify-center">
@@ -189,10 +173,7 @@ export default function TeacherAssignments() {
                       <h2 className="text-lg font-semibold">{t.title}</h2>
 
                       <div className="flex gap-2 mt-2 flex-wrap">
-
-                        <Badge variant="outline">
-                          Due: {t.due}
-                        </Badge>
+                        <Badge variant="outline">Due: {t.due}</Badge>
 
                         <Badge variant="secondary">
                           <Users className="h-3 w-3 mr-1" />
@@ -202,126 +183,124 @@ export default function TeacherAssignments() {
                         <Badge variant="secondary">
                           {t.submissions?.length || 0} Submitted
                         </Badge>
-
                       </div>
                     </div>
 
                   </div>
 
-                  {/* RIGHT */}
-                  <div className="flex flex-col items-end gap-2">
-
-                    <Badge
-                      className={
-                        t.status === "Reviewed"
-                          ? "bg-green-600 text-white"
-                          : t.status === "Submitted"
-                          ? "bg-yellow-500 text-white"
-                          : "bg-gray-500 text-white"
-                      }
-                    >
-                      {t.status}
-                    </Badge>
-
-                    <Select
-                      value={t.status}
-                      onValueChange={(v) => updateStatus(t._id, v)}
-                    >
-                      <SelectTrigger className="w-36">
-                        <SelectValue />
-                      </SelectTrigger>
-
-                      <SelectContent>
-                        <SelectItem value="Pending">Pending</SelectItem>
-                        <SelectItem value="Submitted">Submitted</SelectItem>
-                        <SelectItem value="Reviewed">Reviewed</SelectItem>
-                      </SelectContent>
-
-                    </Select>
-
-                  </div>
+                  <Badge>
+                    {t.status}
+                  </Badge>
 
                 </div>
 
                 {/* SUBMISSIONS */}
                 {t.submissions?.length > 0 && (
-                  <div className="border rounded-xl p-4 bg-gray-50 space-y-3">
+                  <div className="border rounded-xl p-4 space-y-3 bg-gray-50">
 
                     <h3 className="text-sm font-medium">
                       📄 Submissions
                     </h3>
 
-                    {t.submissions.map((s: any, i: number) => (
-                      <div
-                        key={i}
-                        className="flex justify-between items-center border rounded-lg p-3 bg-white"
-                      >
+                    {t.submissions.map((s: any, i: number) => {
 
-                        <div>
+                      const isSelected =
+                        reviewTarget.assignmentId === t._id &&
+                        reviewTarget.studentId === s.studentId?._id;
 
-                          <div className="text-sm font-medium">
-                            {s.studentId?.name}
-                          </div>
+                      return (
+                        <div
+                          key={i}
+                          className="flex justify-between items-center border rounded-lg p-3 bg-white"
+                        >
 
-                          <div className="text-xs text-muted-foreground">
-                            {s.studentId?.email}
-                          </div>
+                          <div>
 
-                          {s.marks && (
-                            <div className="text-xs text-green-600">
-                              Marks: {s.marks}
+                            <div className="text-sm font-medium">
+                              {s.studentId?.name}
                             </div>
-                          )}
 
-                        </div>
+                            <div className="text-xs text-muted-foreground">
+                              {s.studentId?.email}
+                            </div>
 
-                        <div className="flex gap-2 items-center">
+                            {s.marks !== undefined && s.marks !== null && (
+                              <div className="text-xs text-green-600">
+                                Marks: {s.marks}
+                              </div>
+                            )}
 
-                          {s.fileUrl && (
-                            <a
-                              href={s.fileUrl}
-                              className="text-blue-600 text-sm underline"
-                              target="_blank"
+                            {s.feedback && (
+                              <div className="text-xs text-muted-foreground">
+                                Feedback: {s.feedback}
+                              </div>
+                            )}
+
+                          </div>
+
+                          <div className="flex gap-2 items-center">
+
+                            {s.fileUrl && (
+                              <a
+                                href={s.fileUrl}
+                                target="_blank"
+                                className="text-blue-600 text-sm underline"
+                              >
+                                View
+                              </a>
+                            )}
+
+                            <Button
+                              size="sm"
+                              variant={isSelected ? "default" : "outline"}
+                              onClick={() =>
+                                setReviewTarget((prev) =>
+                                  isSelected
+                                    ? { assignmentId: null, studentId: null }
+                                    : {
+                                        assignmentId: t._id,
+                                        studentId: s.studentId?._id,
+                                      }
+                                )
+                              }
                             >
-                              View
-                            </a>
-                          )}
+                              {isSelected ? "Selected" : "Review"}
+                            </Button>
 
-                          <Button
-                            size="sm"
-                            onClick={() =>
-  setSelectedStudent((prev) =>
-    prev === s.studentId?._id ? "" : s.studentId?._id
-  )
-}
-                          >
-                            Review
-                          </Button>
+                          </div>
 
                         </div>
-
-                      </div>
-                    ))}
+                      );
+                    })}
 
                   </div>
                 )}
 
-               {selectedStudent && (
-  <div className="border rounded-xl p-4 bg-white shadow-sm relative">
+                {/* REVIEW PANEL */}
+                {reviewTarget.assignmentId === t._id &&
+                  reviewTarget.studentId && (
+                    <div className="border rounded-xl p-4 bg-white shadow-sm">
 
-    {/* CLOSE BUTTON */}
-    <button
-      onClick={() => setSelectedStudent("")}
-      className="absolute top-2 right-3 text-sm text-gray-500 hover:text-red-500"
-    >
-      ✕ Close
-    </button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="mb-2"
+                        onClick={() =>
+                          setReviewTarget({ assignmentId: null, studentId: null })
+                        }
+                      >
+                        ✕ Close
+                      </Button>
 
-    <AssignmentReviewPanel assignment={t} />
-  </div>
-)}
+                      <AssignmentReviewPanel
+                        assignment={t}
+                        studentId={reviewTarget.studentId}
+                      />
+
+                    </div>
+                  )}
+
               </CardContent>
-
             </Card>
 
           ))}

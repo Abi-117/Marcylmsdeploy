@@ -135,7 +135,7 @@ export default function StudentAssignments() {
     {assignments.map((a) => {
 
       const isSubmitted = a.status === "Submitted";
-      const isGraded = a.status === "Graded";
+      const isGraded = a.status === "Reviewed";
 
       return (
         <Card
@@ -207,18 +207,31 @@ export default function StudentAssignments() {
 
             </div>
 
-            {/* FUTURE: marks display ready */}
-            {a.marks && (
-              <div className="text-sm text-green-700 font-semibold">
-                Marks: {a.marks}
-              </div>
-            )}
+           {a.submissions?.map((s: any) => (
+  s.studentId?._id === studentId && (
+    <div key={s._id} className="space-y-1 mt-2">
+      
+      {s.marks !== undefined && s.marks !== null && (
+        <div className="text-green-700 font-semibold">
+          Marks: {s.marks}
+        </div>
+      )}
 
-            {a.feedback && (
-              <div className="text-sm text-muted-foreground">
-                Feedback: {a.feedback}
-              </div>
-            )}
+      {s.feedback && (
+        <div className="text-muted-foreground text-sm">
+          Feedback: {s.feedback}
+        </div>
+      )}
+
+      {s.status && (
+        <div className="text-xs text-blue-600">
+          Status: {s.status}
+        </div>
+      )}
+
+    </div>
+  )
+))}
 
             {/* SUBMIT SECTION */}
             <div className="pt-2">
