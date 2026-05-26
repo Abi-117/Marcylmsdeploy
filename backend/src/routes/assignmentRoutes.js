@@ -64,6 +64,7 @@ router.get(
 // 📌 GET STUDENT ASSIGNMENTS
 // =========================================
 //
+
 router.get(
   "/student/:studentId",
   async (req, res) => {
@@ -83,7 +84,8 @@ router.get(
       const data =
         await Assignment.find({
 
-          studentIds: studentId,
+          studentIds:
+            studentId,
 
         }).sort({
           createdAt: -1,
@@ -91,7 +93,11 @@ router.get(
 
       console.log(
         "FOUND ASSIGNMENTS:",
-        data
+        JSON.stringify(
+          data,
+          null,
+          2
+        )
       );
 
       res.json(data);
@@ -109,6 +115,7 @@ router.get(
 
   }
 );
+
 //
 // =========================================
 // 📌 CREATE ASSIGNMENT
@@ -162,7 +169,8 @@ router.post(
       console.log(err);
 
       res.status(500).json({
-        message: err.message,
+        message:
+          err.message,
       });
 
     }
@@ -188,6 +196,11 @@ router.post(
         fileUrl,
       } = req.body;
 
+      console.log(
+        "SUBMIT BODY:",
+        req.body
+      );
+
       const assignment =
         await Assignment.findById(
           assignmentId
@@ -204,16 +217,22 @@ router.post(
 
       }
 
-      // ============================
+      // ====================================
       // CHECK ALREADY SUBMITTED
-      // ============================
+      // ====================================
 
       const already =
         assignment.submissions.find(
           (s) =>
-            s.studentId.toString() ===
-            studentId
+            String(
+              s.studentId
+            ) ===
+            String(studentId)
         );
+
+      // ====================================
+      // UPDATE EXISTING
+      // ====================================
 
       if (already) {
 
@@ -223,40 +242,86 @@ router.post(
         already.submittedAt =
           new Date();
 
-      } else {
+        already.status =
+          "Submitted";
+
+      }
+
+      // ====================================
+      // NEW SUBMISSION
+      // ====================================
+
+      else {
 
         assignment.submissions.push({
 
-          studentId,
+          studentId:
+            new mongoose.Types.ObjectId(
+              studentId
+            ),
 
           fileUrl,
 
           submittedAt:
             new Date(),
 
-          marks: "",
+          status:
+            "Submitted",
+
+          marks: null,
 
           feedback: "",
-
-          reviewed:
-            false,
         });
 
       }
 
+      // ====================================
+      // UPDATE ASSIGNMENT STATUS
+      // ====================================
+
       assignment.status =
         "Submitted";
 
+      // ====================================
+      // SAVE
+      // ====================================
+
       await assignment.save();
+
+      // ====================================
+      // RETURN UPDATED
+      // ====================================
+
+      const updated =
+        await Assignment.findById(
+          assignmentId
+        ).populate(
+          "submissions.studentId",
+          "name email"
+        );
+
+      console.log(
+        "UPDATED ASSIGNMENT:",
+        JSON.stringify(
+          updated,
+          null,
+          2
+        )
+      );
 
       res.json({
         message:
           "Assignment submitted",
+        assignment:
+          updated,
       });
 
     } catch (err) {
 
-      console.log(err);
+      console.log(
+        "SUBMIT ERROR:",
+        err
+      );
 
       res.status(500).json({
         message:
@@ -306,8 +371,10 @@ router.put(
       const submission =
         assignment.submissions.find(
           (s) =>
-            s.studentId.toString() ===
-            studentId
+            String(
+              s.studentId
+            ) ===
+            String(studentId)
         );
 
       if (!submission) {
@@ -327,8 +394,8 @@ router.put(
       submission.feedback =
         feedback;
 
-      submission.reviewed =
-        true;
+      submission.status =
+        "Reviewed";
 
       assignment.status =
         "Reviewed";
