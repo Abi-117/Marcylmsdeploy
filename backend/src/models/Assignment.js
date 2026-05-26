@@ -1,85 +1,66 @@
 import mongoose from "mongoose";
 
-const assignmentSchema = new mongoose.Schema(
-  {
-    title: {
-      type: String,
-      required: true,
-    },
+const assignmentSchema =
+  new mongoose.Schema(
+    {
 
-    description: {
-      type: String,
-      default: "",
-    },
+      title: String,
 
-    teacherId: {
-      type: String,
-      required: true,
-    },
+      description: String,
 
-    teacherName: {
-      type: String,
-      default: "",
-    },
+      teacherId: String,
 
-    courseName: {
-      type: String,
-      default: "",
-    },
+      teacherName: String,
 
-    studentIds: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
-      },
-    ],
-
-    due: String,
-
-    status: {
-      type: String,
-      enum: ["Pending", "Submitted", "Reviewed"],
-      default: "Pending",
-    },
-
-    submissions: [
-      {
-        studentId: {
-          type: mongoose.Schema.Types.ObjectId,
+      studentIds: [
+        {
+          type:
+            mongoose.Schema.Types.ObjectId,
           ref: "User",
         },
+      ],
 
-        fileUrl: String,
+      due: String,
 
-        submittedAt: {
-          type: Date,
-          default: Date.now,
-        },
-
-        status: {
-          type: String,
-          default: "Submitted",
-        },
-
-        marks: {
-          type: Number,
-          default: 0,
-        },
-
-        feedback: {
-          type: String,
-          default: "",
-        },
-
-        reviewed: {
-          type: Boolean,
-          default: false,
-        },
+      status: {
+        type: String,
+        default: "Pending",
       },
-    ],
-  },
-  { timestamps: true }
-);
+
+      submissions: [
+        {
+
+          studentId: {
+            type:
+              mongoose.Schema.Types.ObjectId,
+            ref: "User",
+          },
+
+          fileUrl: String,
+
+          submittedAt: {
+            type: Date,
+            default: Date.now,
+          },
+
+          status: {
+            type: String,
+            default: "Submitted",
+          },
+
+          marks: Number,
+
+          feedback: String,
+
+        },
+      ],
+
+    },
+
+    {
+      timestamps: true,
+    }
+  );
 
 export default mongoose.model(
   "Assignment",

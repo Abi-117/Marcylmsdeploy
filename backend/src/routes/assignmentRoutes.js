@@ -57,19 +57,19 @@ router.get(
     try {
 
       const studentId =
-        req.params.studentId;
+        new mongoose.Types.ObjectId(
+          req.params.studentId
+        );
 
       console.log(
-        "FETCHING FOR STUDENT:",
+        "FETCH STUDENT:",
         studentId
       );
 
       const data =
         await Assignment.find({
 
-          studentIds: {
-            $in: [studentId],
-          },
+          studentIds: studentId,
 
         }).sort({
           createdAt: -1,
@@ -77,7 +77,7 @@ router.get(
 
       console.log(
         "FOUND ASSIGNMENTS:",
-        data.length
+        data
       );
 
       res.json(data);
