@@ -8,14 +8,13 @@ const router = express.Router();
 // STUDENT SEND FEEDBACK
 // ===============================
 //
-router.post("/create", async (req, res) => {
+router.post("/feedback/create", async (req, res) => {
   try {
-    const { studentId, teacherId, message, rating } = req.body;
+    const { studentId, teacherId, message } = req.body;
 
-    // ✅ VALIDATION (IMPORTANT)
     if (!studentId || !teacherId || !message) {
       return res.status(400).json({
-        message: "Missing required fields",
+        message: "Missing fields",
       });
     }
 
@@ -23,18 +22,12 @@ router.post("/create", async (req, res) => {
       studentId,
       teacherId,
       message,
-      rating: rating || 5,
+      createdAt: new Date(),
     });
 
-    res.status(201).json({
-      message: "Feedback sent successfully",
-      feedback,
-    });
+    res.json(feedback);
   } catch (err) {
-    console.log("FEEDBACK ERROR:", err); // 👈 VERY IMPORTANT
-    res.status(500).json({
-      message: err.message,
-    });
+    res.status(500).json({ message: err.message });
   }
 });
 //
