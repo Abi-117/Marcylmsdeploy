@@ -58,18 +58,19 @@ router.get(
     try {
 
       const studentId =
-        new mongoose.Types.ObjectId(
-          req.params.studentId
-        );
+  req.params.studentId;
 
-      const data =
-        await Assignment.find({
+const data =
+  await Assignment.find({
 
-          studentIds: studentId,
+    studentIds: {
+      $in: [studentId],
+    },
 
-        }).sort({
-          createdAt: -1,
-        });
+  }).sort({
+    createdAt: -1,
+  });
+
 
       res.json(data);
 
