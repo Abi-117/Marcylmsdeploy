@@ -4,79 +4,98 @@ import axios from "axios";
 import { PageHeader } from "@/components/dashboard/Primitives";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
+import NewAssignmentButton from "./NewAssignmentButton";
 
 import {
   ClipboardList,
   CheckCircle2,
-  User,
-  Calendar,
+  RefreshCcw,
 } from "lucide-react";
 
 const API = "https://marcylmsdeploy.onrender.com/api";
 
+type Assignment = {
+  _id: string;
+  title: string;
+  studentName: string;
+  due: string;
+  status: "Pending" | "Submitted" | "Reviewed";
+};
+
 export default function TeacherAssignments() {
   const teacherId = "teacher1";
 
-  const [tasks, setTasks] = useState<any[]>([]);
-  const [students, setStudents] = useState<any[]>([]);
+  const [tasks, setTasks] = useState<Assignment[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedStudent, setSelectedStudent] = useState("all");
 
-  const [form, setForm] = useState({
-    title: "",
-    studentId: "",
-    due: "",
-  });
-
-  // =========================
-  // FETCH
-  // =========================
+  // ======================
+  // FETCH TASKS
+  // ======================
   const fetchTasks = async () => {
-    const res = await axios.get(
-      `${API}/assignments/teacher/${teacherId}`
-    );
-    setTasks(res.data);
-  };
+    try {
+      setLoading(true);
 
-  const fetchStudents = async () => {
-    const res = await axios.get(`${API}/students`);
-    setStudents(res.data);
+      const res = await axios.get(
+        `${API}/assignments/teacher/${teacherId}`
+      );
+
+      setTasks(res.data || []);
+    } catch (err) {
+      console.log("Assignments error:", err);
+      setTasks([]);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
-    (async () => {
-      setLoading(true);
-      await Promise.all([fetchTasks(), fetchStudents()]);
-      setLoading(false);
-    })();
+    fetchTasks();
   }, []);
 
-  // =========================
-  // CREATE
-  // =========================
-  const createAssignment = async () => {
-    if (!form.title || !form.studentId || !form.due) return;
-
-    await axios.post(`${API}/assignments/create`, {
-      title: form.title,
-      studentId: form.studentId,
-      teacherId,
-      due: form.due,
-    });
-
-    setForm({ title: "", studentId: "", due: "" });
-    fetchTasks();
-  };
-
-  // =========================
-  // STATUS UPDATE
-  // =========================
+  // ======================
+  // UPDATE STATUS
+  // ======================
   const updateStatus = async (id: string, status: string) => {
-    await axios.put(`${API}/assignments/status/${id}`, { status });
-    fetchTasks();
+    try {
+      await axios.put(`${API}/assignments/status/${id}`, {
+        status,
+      });
+
+      fetchTasks();
+    } catch (err) {
+      console.log("Update error:", err);
+      alert("Failed to update status");
+    }
   };
 
+  // ======================
+  // FILTER SAFE DATA
+  // ======================
+  const filteredTasks =
+    selectedStudent === "all"
+      ? tasks
+      : tasks.filter((t) => t.studentName === selectedStudent);
+
+  // ======================
+  // GET UNIQUE STUDENTS (FROM TASKS ONLY)
+  // ======================
+  const students = Array.from(
+    new Set(tasks.map((t) => t.studentName))
+  );
+
+  // ======================
+  // LOADING
+  // ======================
   if (loading) {
     return (
       <div className="p-6 text-muted-foreground">
@@ -86,175 +105,113 @@ export default function TeacherAssignments() {
   }
 
   return (
-    <div className="space-y-6">
-
+    <div className="space-y-5">
+      {/* HEADER */}
       <PageHeader
         title="Assignments"
-        subtitle="Create, assign and track student work"
+        subtitle="Manage student assignments easily"
       />
 
-      {/* =========================
-          CREATE PANEL (PREMIUM CARD)
-      ========================= */}
-      <Card className="rounded-2xl border shadow-sm">
-        <CardContent className="p-6 space-y-4">
+      {/* ACTIONS */}
+      <div className="flex items-center gap-3">
+        <NewAssignmentButton onRefresh={fetchTasks} />
 
-          <div className="grid md:grid-cols-2 gap-4">
-
-            {/* TITLE */}
-            <div className="space-y-1">
-              <label className="text-xs text-muted-foreground">
-                Assignment Title
-              </label>
-              <Input
-                placeholder="e.g. Practice Scales"
-                value={form.title}
-                onChange={(e) =>
-                  setForm({ ...form, title: e.target.value })
-                }
-              />
-            </div>
-
-            {/* STUDENT */}
-            <div className="space-y-1">
-              <label className="text-xs text-muted-foreground">
-                Select Student
-              </label>
-
-              <div className="flex items-center gap-2 border rounded-lg px-3 py-2">
-                <User className="h-4 w-4 text-muted-foreground" />
-
-                <select
-                  className="w-full outline-none bg-transparent text-sm"
-                  value={form.studentId}
-                  onChange={(e) =>
-                    setForm({ ...form, studentId: e.target.value })
-                  }
-                >
-                  <option value="">Choose student</option>
-                  {students.map((s) => (
-                    <option key={s._id} value={s._id}>
-                      {s.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            {/* DUE DATE */}
-            <div className="space-y-1 md:col-span-2">
-              <label className="text-xs text-muted-foreground">
-                Due Date
-              </label>
-
-              <div className="flex items-center gap-2 border rounded-lg px-3 py-2">
-                <Calendar className="h-4 w-4 text-muted-foreground" />
-                <Input
-                  type="date"
-                  className="border-0 focus-visible:ring-0"
-                  value={form.due}
-                  onChange={(e) =>
-                    setForm({ ...form, due: e.target.value })
-                  }
-                />
-              </div>
-            </div>
-
-          </div>
-
-          {/* BUTTON */}
-          <Button
-            onClick={createAssignment}
-            className="w-full bg-black text-white hover:bg-black/90"
-          >
-            Assign to Student
-          </Button>
-
-        </CardContent>
-      </Card>
-
-      {/* =========================
-          LIST HEADER
-      ========================= */}
-      <div className="flex items-center justify-between">
-        <h2 className="font-semibold text-lg">
-          Recent Assignments
-        </h2>
-        <Badge variant="outline">
-          {tasks.length} total
-        </Badge>
+        <Button variant="outline" onClick={fetchTasks}>
+          <RefreshCcw className="h-4 w-4 mr-2" />
+          Refresh
+        </Button>
       </div>
 
-      {/* =========================
-          TASK LIST (CLEAN CARDS)
-      ========================= */}
+      {/* FILTER */}
+      <div className="flex gap-3">
+        <Select onValueChange={setSelectedStudent}>
+          <SelectTrigger className="w-64">
+            <SelectValue placeholder="Filter by student" />
+          </SelectTrigger>
+
+          <SelectContent>
+            <SelectItem value="all">All Students</SelectItem>
+
+            {students.map((name, idx) => (
+              <SelectItem key={idx} value={name}>
+                {name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* LIST */}
       <div className="grid gap-4">
+        {filteredTasks.length === 0 ? (
+          <div className="p-6 border rounded-xl text-muted-foreground">
+            No assignments found
+          </div>
+        ) : (
+          filteredTasks.map((t) => (
+            <Card key={t._id} className="hover:shadow-md transition">
+              <CardContent className="p-5 flex items-center justify-between">
 
-        {tasks.map((t) => (
-          <Card
-            key={t._id}
-            className="rounded-2xl hover:shadow-md transition"
-          >
-            <CardContent className="p-5 flex flex-wrap items-center gap-4">
+                {/* LEFT */}
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 flex items-center justify-center rounded-lg bg-gold-soft">
+                    <ClipboardList className="h-4 w-4" />
+                  </div>
 
-              {/* ICON */}
-              <div className="h-10 w-10 flex items-center justify-center rounded-xl bg-gray-100">
-                <ClipboardList className="h-4 w-4" />
-              </div>
-
-              {/* INFO */}
-              <div className="flex-1 min-w-[200px]">
-                <div className="font-medium">
-                  {t.title}
+                  <div>
+                    <div className="font-medium">{t.title}</div>
+                    <div className="text-xs text-muted-foreground">
+                      {t.studentName}
+                    </div>
+                  </div>
                 </div>
-                <div className="text-xs text-muted-foreground">
-                  {t.studentName}
+
+                {/* RIGHT */}
+                <div className="flex items-center gap-3">
+
+                  {/* DUE */}
+                  <Badge variant="outline">{t.due}</Badge>
+
+                  {/* STATUS */}
+                  <Badge
+                    className={
+                      t.status === "Reviewed"
+                        ? "bg-green-100 text-green-700"
+                        : t.status === "Submitted"
+                        ? "bg-yellow-100 text-yellow-700"
+                        : "bg-gray-100 text-gray-700"
+                    }
+                  >
+                    {t.status === "Reviewed" && (
+                      <CheckCircle2 className="h-3 w-3 mr-1" />
+                    )}
+                    {t.status}
+                  </Badge>
+
+                  {/* UPDATE STATUS */}
+                  <Select
+                    value={t.status}
+                    onValueChange={(value) =>
+                      updateStatus(t._id, value)
+                    }
+                  >
+                    <SelectTrigger className="w-36">
+                      <SelectValue />
+                    </SelectTrigger>
+
+                    <SelectContent>
+                      <SelectItem value="Pending">Pending</SelectItem>
+                      <SelectItem value="Submitted">Submitted</SelectItem>
+                      <SelectItem value="Reviewed">Reviewed</SelectItem>
+                    </SelectContent>
+                  </Select>
+
                 </div>
-              </div>
-
-              {/* DUE */}
-              <Badge variant="outline">
-                {t.due}
-              </Badge>
-
-              {/* STATUS */}
-              <Badge
-                className={
-                  t.status === "Reviewed"
-                    ? "bg-green-100 text-green-700"
-                    : t.status === "Submitted"
-                    ? "bg-yellow-100 text-yellow-700"
-                    : "bg-gray-100"
-                }
-              >
-                {t.status === "Reviewed" && (
-                  <CheckCircle2 className="mr-1 h-3 w-3" />
-                )}
-                {t.status}
-              </Badge>
-
-              {/* ACTION */}
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() =>
-                  updateStatus(
-                    t._id,
-                    t.status === "Pending"
-                      ? "Submitted"
-                      : "Reviewed"
-                  )
-                }
-              >
-                Review
-              </Button>
-
-            </CardContent>
-          </Card>
-        ))}
-
+              </CardContent>
+            </Card>
+          ))
+        )}
       </div>
-
     </div>
   );
 }

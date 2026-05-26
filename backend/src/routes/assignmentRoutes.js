@@ -1,5 +1,6 @@
 import express from "express";
 import Assignment from "../models/Assignment.js";
+import upload from "../middleware/upload.js"; // ✅ multer-cloudinary middleware
 
 const router = express.Router();
 
@@ -14,24 +15,39 @@ router.get("/teacher/:teacherId", async (req, res) => {
 
     res.json(data);
   } catch (err) {
+    console.log(err);
     res.status(500).json({ message: "Fetch failed" });
   }
 });
 
 //
-// 📌 CREATE ASSIGNMENT
+// 📌 CREATE ASSIGNMENT (WITH FILE UPLOAD)
 //
-router.post("/create", async (req, res) => {
+router.post("/create", upload.single("file"), async (req, res) => {
   try {
-    const newTask = await Assignment.create(req.body);
+    const { title, studentName, due, teacherId } = req.body;
+
+    const newTask = await Assignment.create({
+      title,
+      studentName,
+      due,
+      teacherId,
+
+      // ✅ Cloudinary file URL
+      fileUrl: req.file ? req.file.path : null,
+
+      status: "Pending",
+    });
+
     res.status(201).json(newTask);
   } catch (err) {
-    res.status(500).json({ message: "Create failed" });
+    console.log(err);
+    res.status(500).json({ message: err.message });
   }
 });
 
 //
-// 📌 UPDATE STATUS (Review / Submit)
+// 📌 UPDATE STATUS (Review / Submitted / Pending)
 //
 router.put("/status/:id", async (req, res) => {
   try {
@@ -43,16 +59,21 @@ router.put("/status/:id", async (req, res) => {
 
     res.json(updated);
   } catch (err) {
+    console.log(err);
     res.status(500).json({ message: "Update failed" });
   }
 });
 
-router.post("/create", async (req, res) => {
+//
+// 📌 DELETE ASSIGNMENT (optional but useful)
+//
+router.delete("/:id", async (req, res) => {
   try {
-    const data = await Assignment.create(req.body);
-    res.status(201).json(data);
+    await Assignment.findByIdAndDelete(req.params.id);
+    res.json({ message: "Deleted successfully" });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    console.log(err);
+    res.status(500).json({ message: "Delete failed" });
   }
 });
 

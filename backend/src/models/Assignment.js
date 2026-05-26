@@ -3,21 +3,45 @@ import mongoose from "mongoose";
 const assignmentSchema = new mongoose.Schema(
   {
     title: String,
-    description: String,
+    teacherId: String,
 
-    studentName: String,
+    studentIds: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
 
     due: String,
 
     status: {
       type: String,
-      enum: ["Pending", "Submitted", "Reviewed"],
       default: "Pending",
     },
 
-    teacherId: String,
+    // ✅ NEW: submissions
+    submissions: [
+      {
+        studentId: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "User",
+        },
 
-    submissionUrl: String, // video/pdf/image later
+        fileUrl: String,
+        submittedAt: {
+          type: Date,
+          default: Date.now,
+        },
+
+        status: {
+          type: String,
+          default: "Submitted",
+        },
+
+        marks: Number,
+        feedback: String,
+      },
+    ],
   },
   { timestamps: true }
 );
