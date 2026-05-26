@@ -50,33 +50,61 @@ function NewAssignmentButton({ onRefresh }: any) {
   // =========================
   // CREATE
   // =========================
- const createAssignment = async () => {
+const createAssignment = async () => {
 
   if (loading) return;
 
   try {
 
-    if (!title || selectedStudents.length === 0) {
+    if (
+      !title ||
+      selectedStudents.length === 0
+    ) {
       return alert("Fill all fields");
     }
 
     setLoading(true);
 
+    const authData = JSON.parse(
+      localStorage.getItem("ms-auth") || "{}"
+    );
+
+    const teacher =
+      authData?.state?.user;
+
     await axios.post(
       `${API}/assignments/create`,
       {
         title,
-        studentIds: selectedStudents,
+
         due,
-        teacherId: "teacher1",
+
+        studentIds:
+          selectedStudents,
+
+        teacherId:
+          teacher?._id || teacher?.id,
+
+        teacherName:
+          teacher?.name,
       }
     );
 
-    alert("Assignment created");
+    alert(
+      "Assignment created successfully"
+    );
+
+    setTitle("");
+    setDue("");
+    setSelectedStudents([]);
+
+    onRefresh?.();
 
   } catch (err) {
 
     console.log(err);
+
+    alert("Create failed");
 
   } finally {
 

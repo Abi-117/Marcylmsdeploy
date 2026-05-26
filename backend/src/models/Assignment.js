@@ -2,8 +2,30 @@ import mongoose from "mongoose";
 
 const assignmentSchema = new mongoose.Schema(
   {
-    title: String,
-    teacherId: String,
+    title: {
+      type: String,
+      required: true,
+    },
+
+    description: {
+      type: String,
+      default: "",
+    },
+
+    teacherId: {
+      type: String,
+      required: true,
+    },
+
+    teacherName: {
+      type: String,
+      default: "",
+    },
+
+    courseName: {
+      type: String,
+      default: "",
+    },
 
     studentIds: [
       {
@@ -16,10 +38,10 @@ const assignmentSchema = new mongoose.Schema(
 
     status: {
       type: String,
+      enum: ["Pending", "Submitted", "Reviewed"],
       default: "Pending",
     },
 
-    // ✅ NEW: submissions
     submissions: [
       {
         studentId: {
@@ -28,6 +50,7 @@ const assignmentSchema = new mongoose.Schema(
         },
 
         fileUrl: String,
+
         submittedAt: {
           type: Date,
           default: Date.now,
@@ -38,12 +61,27 @@ const assignmentSchema = new mongoose.Schema(
           default: "Submitted",
         },
 
-        marks: Number,
-        feedback: String,
+        marks: {
+          type: Number,
+          default: 0,
+        },
+
+        feedback: {
+          type: String,
+          default: "",
+        },
+
+        reviewed: {
+          type: Boolean,
+          default: false,
+        },
       },
     ],
   },
   { timestamps: true }
 );
 
-export default mongoose.model("Assignment", assignmentSchema);
+export default mongoose.model(
+  "Assignment",
+  assignmentSchema
+);

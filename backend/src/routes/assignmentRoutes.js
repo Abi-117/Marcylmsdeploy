@@ -50,7 +50,6 @@ router.get(
 // 📌 GET STUDENT ASSIGNMENTS
 // =========================================
 //
-
 router.get(
   "/student/:studentId",
   async (req, res) => {
@@ -58,19 +57,23 @@ router.get(
     try {
 
       const studentId =
-  req.params.studentId;
+        new mongoose.Types.ObjectId(
+          req.params.studentId
+        );
 
-const data =
-  await Assignment.find({
+      const data =
+        await Assignment.find({
 
-    studentIds: {
-      $in: [studentId],
-    },
+          studentIds: studentId,
 
-  }).sort({
-    createdAt: -1,
-  });
-
+        })
+          .populate(
+            "studentIds",
+            "name email"
+          )
+          .sort({
+            createdAt: -1,
+          });
 
       res.json(data);
 
@@ -107,6 +110,7 @@ router.post(
         teacherId,
         teacherName,
         studentIds,
+        courseName,
       } = req.body;
 
       const newTask =
@@ -122,10 +126,11 @@ router.post(
 
           teacherName,
 
+          courseName,
+
           studentIds,
 
-          status:
-            "Pending",
+          status: "Pending",
 
           submissions: [],
         });
@@ -139,8 +144,7 @@ router.post(
       console.log(err);
 
       res.status(500).json({
-        message:
-          err.message,
+        message: err.message,
       });
 
     }
