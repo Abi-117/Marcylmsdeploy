@@ -22,6 +22,7 @@ import teacherAttendanceRoutes
 from "./src/routes/teacherAttendance.js";
 import adminAttendanceRoutes from "./src/routes/adminAttendanceRoutes.js";
 import feedbackRouter from "./src/routes/feedback.js";
+import certificateRoutes from "./src/routes/certificate.routes.js";
 import path from "path";
 
 
@@ -62,6 +63,10 @@ app.use(
   adminAttendanceRoutes
 );
 app.use("/api/feedback", feedbackRouter);
+app.use(
+  "/api/student/certificates",
+  certificateRoutes
+);
 // serve uploaded videos
 app.use("/uploads", express.static("uploads"));
 

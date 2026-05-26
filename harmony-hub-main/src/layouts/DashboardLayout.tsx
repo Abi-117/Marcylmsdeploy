@@ -49,11 +49,11 @@ const navByRole: Record<Role, { to: string; label: string; icon: React.Component
     { to: "/student/classes", label: "Classes", icon: Video },
     // { to: "/student/practice", label: "Practice", icon: Music2 },
     { to: "/student/progress", label: "Progress", icon: Award },
-    { to: "/student/Notificationassignments", label: "Assignments", icon: ClipboardList },
+    { to: "/student/Notificationassignments", label: "Assignments & Feedback", icon: ClipboardList },
     // { to: "/student/assignments", label: "Assignments", icon: ClipboardList },
     { to: "/student/payments", label: "Payments", icon: Wallet },
     { to: '/student/attendance', label: "Attendance", icon: CalendarDays },
-    { to: "/student/feedback", label: "Feedback", icon: BarChart3 },
+    // { to: "/student/feedback", label: "Feedback", icon: BarChart3 },
     { to: "/student/certificates", label: "Certificates", icon: Trophy },
   ],
 };

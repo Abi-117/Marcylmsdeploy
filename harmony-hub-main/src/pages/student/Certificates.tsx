@@ -1,15 +1,24 @@
+// ================================
+// FRONTEND - Certificates Page
+// ================================
+
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { PageHeader } from "@/components/dashboard/Primitives";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Award, Download, CheckCircle2 } from "lucide-react";
+import {
+  Award,
+  Download,
+  CheckCircle2,
+} from "lucide-react";
 import { useAuth } from "@/store/auth";
 
 type Certificate = {
   _id: string;
   title: string;
   course: string;
+  level: string;
   date: string;
   earned: boolean;
   fileUrl?: string;
@@ -17,11 +26,20 @@ type Certificate = {
 
 export default function Certificates() {
   const { user } = useAuth();
-  const [certificates, setCertificates] = useState<Certificate[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [downloadingId, setDownloadingId] = useState<string | null>(null);
 
-  // ✅ Fetch certificates from backend
+  const [certificates, setCertificates] = useState<
+    Certificate[]
+  >([]);
+
+  const [loading, setLoading] = useState(false);
+
+  const [downloadingId, setDownloadingId] =
+    useState<string | null>(null);
+
+  // ============================
+  // FETCH CERTIFICATES
+  // ============================
+
   const fetchCertificates = async () => {
     if (!user?._id) return;
 
@@ -34,7 +52,7 @@ export default function Certificates() {
 
       setCertificates(res.data || []);
     } catch (err) {
-      console.error("Failed to fetch certificates:", err);
+      console.error(err);
     } finally {
       setLoading(false);
     }
@@ -44,27 +62,40 @@ export default function Certificates() {
     fetchCertificates();
   }, [user?._id]);
 
-  // ✅ Download certificate
-  const handleDownload = async (cert: Certificate) => {
+  // ============================
+  // DOWNLOAD PDF
+  // ============================
+
+  const handleDownload = async (
+    cert: Certificate
+  ) => {
     if (!cert.fileUrl) return;
 
     try {
       setDownloadingId(cert._id);
 
       const res = await fetch(cert.fileUrl);
+
       const blob = await res.blob();
 
-      const url = window.URL.createObjectURL(blob);
+      const url =
+        window.URL.createObjectURL(blob);
+
       const a = document.createElement("a");
+
       a.href = url;
+
       a.download = `${cert.title}.pdf`;
+
       document.body.appendChild(a);
+
       a.click();
+
       a.remove();
 
       window.URL.revokeObjectURL(url);
     } catch (err) {
-      console.error("Download failed:", err);
+      console.error(err);
     } finally {
       setDownloadingId(null);
     }
@@ -74,42 +105,64 @@ export default function Certificates() {
     <div className="p-6 space-y-6">
       <PageHeader
         title="Certificates"
-        subtitle="Your earned achievements"
+        subtitle="Your earned certificates"
       />
 
       {loading ? (
-        <p className="text-sm text-gray-500">Loading certificates...</p>
+        <p>Loading...</p>
       ) : certificates.length === 0 ? (
-        <p className="text-sm text-gray-500">No certificates found</p>
+        <p>No certificates found</p>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {certificates.map((cert) => (
-            <Card key={cert._id} className="hover:shadow-md transition">
-              <CardContent className="p-5 space-y-3">
+            <Card
+              key={cert._id}
+              className="hover:shadow-md transition"
+            >
+              <CardContent className="p-5 space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <Award className="w-5 h-5 text-yellow-500" />
-                    <h2 className="font-semibold">{cert.title}</h2>
+
+                    <div>
+                      <h2 className="font-semibold">
+                        {cert.title}
+                      </h2>
+
+                      <p className="text-xs text-gray-500">
+                        {cert.course}
+                      </p>
+                    </div>
                   </div>
 
                   {cert.earned ? (
-                    <CheckCircle2 className="text-green-500 w-5 h-5" />
+                    <CheckCircle2 className="w-5 h-5 text-green-500" />
                   ) : (
-                    <span className="text-xs text-gray-400">Locked</span>
+                    <span className="text-xs text-gray-400">
+                      Locked
+                    </span>
                   )}
                 </div>
 
-                <p className="text-sm text-gray-500">{cert.course}</p>
-                <p className="text-xs text-gray-400">
-                  Earned · {cert.date}
-                </p>
+                <div className="text-sm text-gray-500">
+                  Level : {cert.level}
+                </div>
+
+                <div className="text-xs text-gray-400">
+                  Completed : {cert.date}
+                </div>
 
                 <Button
                   className="w-full"
-                  disabled={!cert.earned || !cert.fileUrl}
-                  onClick={() => handleDownload(cert)}
+                  disabled={
+                    !cert.earned || !cert.fileUrl
+                  }
+                  onClick={() =>
+                    handleDownload(cert)
+                  }
                 >
                   <Download className="w-4 h-4 mr-2" />
+
                   {downloadingId === cert._id
                     ? "Downloading..."
                     : "Download Certificate"}
