@@ -28,9 +28,15 @@ const API =
 
 type Assignment = {
   _id: string;
+
   title: string;
+
   due: string;
-  status: "Pending" | "Submitted" | "Reviewed";
+
+  status:
+    | "Pending"
+    | "Submitted"
+    | "Reviewed";
 
   studentIds: string[];
 
@@ -39,7 +45,23 @@ type Assignment = {
 
 export default function TeacherAssignments() {
 
-  const teacherId = "teacher1";
+  // =====================================
+  // REAL LOGGED TEACHER
+  // =====================================
+
+  const authData = JSON.parse(
+    localStorage.getItem("ms-auth") || "{}"
+  );
+
+  const teacher =
+    authData?.state?.user;
+
+  const teacherId =
+    teacher?._id || teacher?.id;
+
+  // =====================================
+  // STATES
+  // =====================================
 
   const [tasks, setTasks] =
     useState<Assignment[]>([]);
@@ -58,10 +80,24 @@ export default function TeacherAssignments() {
 
     try {
 
+      if (!teacherId) {
+        return;
+      }
+
       setLoading(true);
+
+      console.log(
+        "FETCHING TEACHER:",
+        teacherId
+      );
 
       const res = await axios.get(
         `${API}/assignments/teacher/${teacherId}`
+      );
+
+      console.log(
+        "ASSIGNMENTS:",
+        res.data
       );
 
       // REMOVE DUPLICATES
@@ -75,7 +111,8 @@ export default function TeacherAssignments() {
           ) =>
             index ===
             self.findIndex(
-              (a) => a._id === item._id
+              (a) =>
+                a._id === item._id
             )
         );
 
@@ -98,11 +135,19 @@ export default function TeacherAssignments() {
 
   };
 
+  // =====================================
+  // INITIAL LOAD
+  // =====================================
+
   useEffect(() => {
 
-    fetchTasks();
+    if (teacherId) {
 
-  }, []);
+      fetchTasks();
+
+    }
+
+  }, [teacherId]);
 
   // =====================================
   // UPDATE STATUS
@@ -155,7 +200,8 @@ export default function TeacherAssignments() {
       ? tasks
       : tasks.filter(
           (t) =>
-            t.status === statusFilter
+            t.status ===
+            statusFilter
         );
 
   // =====================================
@@ -171,6 +217,10 @@ export default function TeacherAssignments() {
     );
 
   }
+
+  // =====================================
+  // UI
+  // =====================================
 
   return (
     <div className="space-y-6">
@@ -285,26 +335,26 @@ export default function TeacherAssignments() {
                           Due: {t.due}
                         </Badge>
 
-                        <Badge
-                          variant="secondary"
-                        >
+                        <Badge variant="secondary">
+
                           <Users className="h-3 w-3 mr-1" />
 
                           {
                             t.studentIds
-                              ?.length
+                              ?.length || 0
                           }{" "}
                           Students
+
                         </Badge>
 
-                        <Badge
-                          variant="secondary"
-                        >
+                        <Badge variant="secondary">
+
                           {
                             t.submissions
                               ?.length || 0
                           }{" "}
                           Submitted
+
                         </Badge>
 
                       </div>
@@ -333,14 +383,16 @@ export default function TeacherAssignments() {
 
                       {t.status ===
                         "Reviewed" && (
+
                         <CheckCircle2 className="h-3 w-3 mr-1" />
+
                       )}
 
                       {t.status}
 
                     </Badge>
 
-                    {/* STATUS UPDATE */}
+                    {/* UPDATE STATUS */}
 
                     <Select
                       value={t.status}

@@ -15,8 +15,8 @@ const API =
   "https://marcylmsdeploy.onrender.com/api";
 
 type Props = {
-  assignment?: any;
-  studentId?: string;
+  assignment: any;
+  studentId: string;
 };
 
 export default function SubmitAssignment({
@@ -34,7 +34,10 @@ export default function SubmitAssignment({
   // SAFETY CHECK
   // =========================
 
-  if (!assignment) {
+  if (
+    !assignment ||
+    !assignment._id
+  ) {
 
     return (
       <div className="border rounded-xl p-4 text-sm text-muted-foreground">
@@ -45,7 +48,7 @@ export default function SubmitAssignment({
   }
 
   // =========================
-  // REAL CLOUDINARY UPLOAD
+  // CLOUDINARY UPLOAD
   // =========================
 
   const uploadFile = async (
@@ -60,13 +63,11 @@ export default function SubmitAssignment({
       file
     );
 
-    // ✅ YOUR CLOUDINARY UPLOAD PRESET
     formData.append(
       "upload_preset",
       "marcy_unsigned"
     );
 
-    // ✅ YOUR CLOUDINARY CLOUD NAME
     const cloudName =
       "dza8um2ng";
 
@@ -81,7 +82,7 @@ export default function SubmitAssignment({
   };
 
   // =========================
-  // SUBMIT
+  // SUBMIT ASSIGNMENT
   // =========================
 
   const submit = async () => {
@@ -91,30 +92,48 @@ export default function SubmitAssignment({
       if (!file) {
 
         return alert(
-          "Upload file"
+          "Please upload file"
+        );
+
+      }
+
+      if (!studentId) {
+
+        return alert(
+          "Student ID missing"
         );
 
       }
 
       setLoading(true);
 
-      // ✅ UPLOAD TO CLOUDINARY
+      // ======================
+      // UPLOAD FILE
+      // ======================
 
       const fileUrl =
         await uploadFile(file);
 
-      // ✅ SAVE SUBMISSION
+      // ======================
+      // SAVE TO DB
+      // ======================
 
-      await axios.post(
-        `${API}/assignments/submit`,
-        {
-          assignmentId:
-            assignment._id,
+      const res =
+        await axios.post(
+          `${API}/assignments/submit`,
+          {
+            assignmentId:
+              assignment._id,
 
-          studentId,
+            studentId,
 
-          fileUrl,
-        }
+            fileUrl,
+          }
+        );
+
+      console.log(
+        "SUBMIT RESPONSE:",
+        res.data
       );
 
       alert(
@@ -125,7 +144,11 @@ export default function SubmitAssignment({
 
     } catch (err: any) {
 
-      console.log(err);
+      console.log(
+        "SUBMIT ERROR:",
+        err?.response?.data ||
+          err
+      );
 
       alert(
         err?.response?.data
@@ -149,7 +172,7 @@ export default function SubmitAssignment({
       <div className="flex items-center justify-between">
 
         <div className="text-sm text-muted-foreground">
-          Upload your assignment file
+          Upload Assignment
         </div>
 
         <Badge
@@ -163,12 +186,19 @@ export default function SubmitAssignment({
               : "bg-gray-100 text-gray-700"
           }
         >
-          {assignment.status}
+          {assignment.status ||
+            "Pending"}
         </Badge>
 
       </div>
 
-      {/* FILE PICKER */}
+      {/* TITLE */}
+
+      <div className="font-medium">
+        {assignment.title}
+      </div>
+
+      {/* FILE */}
 
       <div className="space-y-2">
 
@@ -200,7 +230,7 @@ export default function SubmitAssignment({
 
       </div>
 
-      {/* SUBMIT BUTTON */}
+      {/* BUTTON */}
 
       <Button
         onClick={submit}
@@ -209,9 +239,13 @@ export default function SubmitAssignment({
       >
 
         {loading ? (
+
           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+
         ) : (
+
           <FileUp className="mr-2 h-4 w-4" />
+
         )}
 
         {loading

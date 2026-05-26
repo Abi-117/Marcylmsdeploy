@@ -57,23 +57,28 @@ router.get(
     try {
 
       const studentId =
-        new mongoose.Types.ObjectId(
-          req.params.studentId
-        );
+        req.params.studentId;
+
+      console.log(
+        "FETCHING FOR STUDENT:",
+        studentId
+      );
 
       const data =
         await Assignment.find({
 
-          studentIds: studentId,
+          studentIds: {
+            $in: [studentId],
+          },
 
-        })
-          .populate(
-            "studentIds",
-            "name email"
-          )
-          .sort({
-            createdAt: -1,
-          });
+        }).sort({
+          createdAt: -1,
+        });
+
+      console.log(
+        "FOUND ASSIGNMENTS:",
+        data.length
+      );
 
       res.json(data);
 
@@ -90,7 +95,6 @@ router.get(
 
   }
 );
-
 //
 // =========================================
 // 📌 CREATE ASSIGNMENT
