@@ -21,6 +21,7 @@ import attendanceRoutes from "./src/routes/attendanceRoutes.js";
 import teacherAttendanceRoutes
 from "./src/routes/teacherAttendance.js";
 import adminAttendanceRoutes from "./src/routes/adminAttendanceRoutes.js";
+import feedbackRoutes from "./src/routes/feedback.js";
 import path from "path";
 
 
@@ -60,6 +61,7 @@ app.use(
   "/api/admin-attendance",
   adminAttendanceRoutes
 );
+app.use("/api/feedback", feedbackRoutes);
 // serve uploaded videos
 app.use("/uploads", express.static("uploads"));
 
