@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import {
   FileUp,
   CheckCircle2,
+  Loader2,
 } from "lucide-react";
 
 const API =
@@ -44,27 +45,38 @@ export default function SubmitAssignment({
   }
 
   // =========================
-  // FAKE FILE UPLOAD
+  // REAL CLOUDINARY UPLOAD
   // =========================
 
   const uploadFile = async (
     file: File
   ) => {
 
-    return new Promise<string>(
-      (resolve) => {
+    const formData =
+      new FormData();
 
-        setTimeout(() => {
-
-          resolve(
-            "https://fake-upload.com/" +
-              file.name
-          );
-
-        }, 1000);
-
-      }
+    formData.append(
+      "file",
+      file
     );
+
+    // ✅ YOUR CLOUDINARY UPLOAD PRESET
+    formData.append(
+      "upload_preset",
+      "marcy_unsigned"
+    );
+
+    // ✅ YOUR CLOUDINARY CLOUD NAME
+    const cloudName =
+      "dza8um2ng";
+
+    const res =
+      await axios.post(
+        `https://api.cloudinary.com/v1_1/${cloudName}/auto/upload`,
+        formData
+      );
+
+    return res.data.secure_url;
 
   };
 
@@ -78,14 +90,20 @@ export default function SubmitAssignment({
 
       if (!file) {
 
-        return alert("Upload file");
+        return alert(
+          "Upload file"
+        );
 
       }
 
       setLoading(true);
 
+      // ✅ UPLOAD TO CLOUDINARY
+
       const fileUrl =
         await uploadFile(file);
+
+      // ✅ SAVE SUBMISSION
 
       await axios.post(
         `${API}/assignments/submit`,
@@ -105,11 +123,15 @@ export default function SubmitAssignment({
 
       setFile(null);
 
-    } catch (err) {
+    } catch (err: any) {
 
       console.log(err);
 
-      alert("Submit failed");
+      alert(
+        err?.response?.data
+          ?.message ||
+          "Submit failed"
+      );
 
     } finally {
 
@@ -151,14 +173,15 @@ export default function SubmitAssignment({
       <div className="space-y-2">
 
         <label className="text-sm font-medium">
-          Upload File
+          Upload File / Video / PDF
         </label>
 
         <Input
           type="file"
           onChange={(e) =>
             setFile(
-              e.target.files?.[0] || null
+              e.target.files?.[0] ||
+                null
             )
           }
         />
@@ -185,10 +208,14 @@ export default function SubmitAssignment({
         className="w-full"
       >
 
-        <FileUp className="mr-2 h-4 w-4" />
+        {loading ? (
+          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+        ) : (
+          <FileUp className="mr-2 h-4 w-4" />
+        )}
 
         {loading
-          ? "Submitting..."
+          ? "Uploading..."
           : "Submit Assignment"}
 
       </Button>
