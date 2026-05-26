@@ -12,11 +12,18 @@ router.post("/create", async (req, res) => {
   try {
     const { studentId, teacherId, message, rating } = req.body;
 
+    // ✅ VALIDATION (IMPORTANT)
+    if (!studentId || !teacherId || !message) {
+      return res.status(400).json({
+        message: "Missing required fields",
+      });
+    }
+
     const feedback = await Feedback.create({
       studentId,
       teacherId,
       message,
-      rating,
+      rating: rating || 5,
     });
 
     res.status(201).json({
@@ -24,11 +31,12 @@ router.post("/create", async (req, res) => {
       feedback,
     });
   } catch (err) {
-    console.log(err);
-    res.status(500).json({ message: "Error sending feedback" });
+    console.log("FEEDBACK ERROR:", err); // 👈 VERY IMPORTANT
+    res.status(500).json({
+      message: err.message,
+    });
   }
 });
-
 //
 // ===============================
 // ADMIN GET ALL FEEDBACK
