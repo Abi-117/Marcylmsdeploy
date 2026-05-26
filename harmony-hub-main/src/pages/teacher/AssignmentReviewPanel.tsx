@@ -88,164 +88,120 @@ export default function AssignmentReviewPanel({
   // =========================
 
   return (
+  <div className="border rounded-2xl p-5 space-y-5 bg-white shadow-sm">
 
-    <div className="border rounded-xl p-4 space-y-4">
+    {/* TITLE */}
+    <h2 className="font-semibold text-xl">
+      Review Submissions
+    </h2>
 
-      {/* TITLE */}
+    {/* EMPTY STATE */}
+    {assignment?.submissions?.length === 0 && (
+      <div className="text-sm text-muted-foreground p-4 border rounded-xl">
+        No submissions yet
+      </div>
+    )}
 
-      <h2 className="font-semibold text-lg">
-        Review Submissions
-      </h2>
+    {/* SUBMISSIONS LIST */}
+    <div className="space-y-3">
 
-      {/* EMPTY */}
+      {assignment?.submissions?.map((s: any) => {
 
-      {assignment?.submissions
-        ?.length === 0 && (
+        const isSelected = selectedStudent === s.studentId?._id;
 
-        <div className="text-sm text-muted-foreground">
-
-          No submissions yet
-
-        </div>
-
-      )}
-
-      {/* SUBMISSIONS */}
-
-      <div className="space-y-2">
-
-        {assignment?.submissions?.map(
-          (s: any) => (
-
+        return (
           <div
             key={s.studentId?._id}
-            className={`flex items-center justify-between border p-3 rounded-xl ${
-              selectedStudent ===
-              s.studentId?._id
-                ? "border-gold bg-gold-soft"
-                : ""
+            className={`p-4 rounded-xl border transition-all flex items-center justify-between ${
+              isSelected
+                ? "border-gold bg-gold-soft shadow-sm"
+                : "hover:bg-gray-50"
             }`}
           >
 
-            {/* LEFT */}
-
+            {/* LEFT INFO */}
             <div className="space-y-1">
 
-              <div className="text-sm font-medium">
-
-                Student:{" "}
-
-                {s.studentId?.name ||
-                  "Unknown"}
-
+              <div className="font-medium text-sm">
+                👤 {s.studentId?.name || "Unknown Student"}
               </div>
 
               <div className="text-xs text-muted-foreground">
-
                 {s.studentId?.email}
-
               </div>
 
               {/* FILE */}
-
               {s.fileUrl && (
-
                 <a
                   href={s.fileUrl}
                   target="_blank"
                   rel="noreferrer"
-                  className="text-blue-500 text-xs underline"
+                  className="text-blue-600 text-xs underline"
                 >
-                  View Uploaded File
+                  📎 View Submission
                 </a>
-
               )}
 
               {/* EXISTING REVIEW */}
-
               {s.marks && (
-
-                <div className="text-xs text-green-600">
-
+                <div className="text-xs text-green-600 font-medium">
                   Marks: {s.marks}
-
                 </div>
-
               )}
 
               {s.feedback && (
-
                 <div className="text-xs text-muted-foreground">
-
                   Feedback: {s.feedback}
-
                 </div>
-
               )}
 
             </div>
 
-            {/* BUTTON */}
-
+            {/* SELECT BUTTON */}
             <Button
               size="sm"
-              onClick={() =>
-                setSelectedStudent(
-                  s.studentId?._id
-                )
-              }
+              variant={isSelected ? "default" : "outline"}
+              onClick={() => setSelectedStudent(s.studentId?._id)}
             >
-
-              {selectedStudent ===
-              s.studentId?._id
-                ? "Selected"
-                : "Select"}
-
+              {isSelected ? "Selected" : "Select"}
             </Button>
 
           </div>
+        );
+      })}
 
-        ))}
+    </div>
 
-      </div>
+    {/* GRADING PANEL */}
+    <div className="border rounded-xl p-4 space-y-3 bg-gray-50">
 
-      {/* MARKS */}
+      <h3 className="font-medium text-sm">
+        Give Marks & Feedback
+      </h3>
 
       <Input
-        placeholder="Enter marks"
+        placeholder="Enter marks (e.g. 85)"
         value={marks}
-        onChange={(e) =>
-          setMarks(
-            e.target.value
-          )
-        }
+        onChange={(e) => setMarks(e.target.value)}
       />
-
-      {/* FEEDBACK */}
 
       <Textarea
-        placeholder="Enter feedback"
+        placeholder="Enter feedback..."
         value={feedback}
-        onChange={(e) =>
-          setFeedback(
-            e.target.value
-          )
-        }
+        onChange={(e) => setFeedback(e.target.value)}
       />
-
-      {/* SUBMIT */}
 
       <Button
         onClick={review}
-        className="bg-gold text-black"
+        disabled={!selectedStudent}
+        className="w-full bg-gold text-black"
       >
-
         Submit Review
-
       </Button>
 
     </div>
 
-  );
+  </div>
+);
 
 }

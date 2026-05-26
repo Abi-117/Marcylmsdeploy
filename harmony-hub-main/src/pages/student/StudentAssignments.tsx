@@ -130,65 +130,110 @@ export default function StudentAssignments() {
   // =========================
 
   return (
-    <div className="space-y-5">
+  <div className="space-y-6">
 
-      {assignments.map((a) => (
+    {assignments.map((a) => {
 
+      const isSubmitted = a.status === "Submitted";
+      const isGraded = a.status === "Graded";
+
+      return (
         <Card
           key={a._id}
-          className="rounded-2xl"
+          className="rounded-2xl shadow-sm hover:shadow-md transition-all border"
         >
-
-          <CardContent className="p-5 space-y-4">
+          <CardContent className="p-6 space-y-4">
 
             {/* HEADER */}
-
             <div className="flex items-start justify-between">
 
-              <div className="flex items-center gap-3">
+              {/* LEFT */}
+              <div className="flex items-center gap-4">
 
                 <div className="h-12 w-12 rounded-xl bg-gold-soft flex items-center justify-center">
-
                   <ClipboardList className="h-5 w-5" />
-
                 </div>
 
                 <div>
-
-                  <h2 className="font-semibold text-lg">
+                  <h2 className="text-lg font-semibold">
                     {a.title}
                   </h2>
 
                   <p className="text-sm text-muted-foreground">
-                    Due: {a.due}
+                    Due Date:{" "}
+                    <span className="font-medium text-black">
+                      {a.due}
+                    </span>
                   </p>
-
                 </div>
 
               </div>
 
-              <Badge>
-
+              {/* STATUS BADGE */}
+              <Badge
+                className={
+                  isGraded
+                    ? "bg-green-600 text-white"
+                    : isSubmitted
+                    ? "bg-blue-600 text-white"
+                    : "bg-gray-400 text-white"
+                }
+              >
                 {a.status || "Pending"}
-
               </Badge>
 
             </div>
 
-            {/* SUBMIT */}
+            {/* STATUS INFO BOX */}
+            <div className="rounded-xl bg-muted p-3 text-sm text-muted-foreground">
 
-            <SubmitAssignment
-              assignment={a}
-              studentId={studentId}
-            />
+              {isGraded && (
+                <div className="text-green-700 font-medium">
+                  ✔ Assignment Reviewed
+                </div>
+              )}
+
+              {isSubmitted && !isGraded && (
+                <div className="text-blue-700 font-medium">
+                  ⏳ Submitted - Waiting for review
+                </div>
+              )}
+
+              {!isSubmitted && (
+                <div>
+                  ❗ Not submitted yet
+                </div>
+              )}
+
+            </div>
+
+            {/* FUTURE: marks display ready */}
+            {a.marks && (
+              <div className="text-sm text-green-700 font-semibold">
+                Marks: {a.marks}
+              </div>
+            )}
+
+            {a.feedback && (
+              <div className="text-sm text-muted-foreground">
+                Feedback: {a.feedback}
+              </div>
+            )}
+
+            {/* SUBMIT SECTION */}
+            <div className="pt-2">
+              <SubmitAssignment
+                assignment={a}
+                studentId={studentId}
+              />
+            </div>
 
           </CardContent>
-
         </Card>
+      );
+    })}
 
-      ))}
-
-    </div>
-  );
+  </div>
+);
 
 }
