@@ -25,9 +25,23 @@ router.get(
 
         })
 
+          .populate(
+            "submissions.studentId",
+            "name email"
+          )
+
           .sort({
             createdAt: -1,
           });
+
+      console.log(
+        "TEACHER ASSIGNMENTS:",
+        JSON.stringify(
+          data,
+          null,
+          2
+        )
+      );
 
       res.json(data);
 
