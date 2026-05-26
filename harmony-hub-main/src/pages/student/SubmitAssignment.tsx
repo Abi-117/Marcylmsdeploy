@@ -30,36 +30,44 @@ export default function StudentAssignments() {
   // =========================
   // FETCH ASSIGNMENTS
   // =========================
+const fetchAssignments = async () => {
 
-  const fetchAssignments =
-    async () => {
+  try {
 
-      try {
+    setLoading(true);
 
-        setLoading(true);
+    const res = await axios.get(
+      `${API}/assignments/student/${studentId}`
+    );
 
-        const res =
-          await axios.get(
+    // ✅ REMOVE DUPLICATES
 
-            `${API}/assignments/student/${studentId}`
+    const uniqueAssignments =
+      res.data.filter(
+        (
+          item: any,
+          index: number,
+          self: any[]
+        ) =>
+          index ===
+          self.findIndex(
+            (a) => a._id === item._id
+          )
+      );
 
-          );
+    setAssignments(uniqueAssignments);
 
-        setAssignments(
-          res.data || []
-        );
+  } catch (err) {
 
-      } catch (err) {
+    console.log(err);
 
-        console.log(err);
+  } finally {
 
-      } finally {
+    setLoading(false);
 
-        setLoading(false);
+  }
 
-      }
-
-    };
+};
 
   useEffect(() => {
 

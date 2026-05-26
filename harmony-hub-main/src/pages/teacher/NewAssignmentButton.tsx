@@ -50,34 +50,41 @@ function NewAssignmentButton({ onRefresh }: any) {
   // =========================
   // CREATE
   // =========================
-  const createAssignment = async () => {
-    try {
-      if (!title || selectedStudents.length === 0) {
-        return alert("Fill all fields");
-      }
+ const createAssignment = async () => {
 
-      setLoading(true);
+  if (loading) return;
 
-      await axios.post(`${API}/assignments/create`, {
+  try {
+
+    if (!title || selectedStudents.length === 0) {
+      return alert("Fill all fields");
+    }
+
+    setLoading(true);
+
+    await axios.post(
+      `${API}/assignments/create`,
+      {
         title,
-        studentIds: selectedStudents, // ✅ MULTI
+        studentIds: selectedStudents,
         due,
         teacherId: "teacher1",
-      });
+      }
+    );
 
-      setTitle("");
-      setDue("");
-      setSelectedStudents([]);
+    alert("Assignment created");
 
-      onRefresh();
-      alert("Assignment created!");
-    } catch (err) {
-      console.log(err);
-      alert("Failed");
-    } finally {
-      setLoading(false);
-    }
-  };
+  } catch (err) {
+
+    console.log(err);
+
+  } finally {
+
+    setLoading(false);
+
+  }
+
+};
 
   return (
     <Dialog>
