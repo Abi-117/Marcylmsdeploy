@@ -1,184 +1,199 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import axios from "axios";
 
-import SubmitAssignment from "./SubmitAssignment";
-
-import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 
-import { ClipboardList } from "lucide-react";
-
-import { useAuth } from "@/store/auth";
+import {
+  FileUp,
+  CheckCircle2,
+} from "lucide-react";
 
 const API =
   "https://marcylmsdeploy.onrender.com/api";
 
-export default function StudentAssignments() {
+type Props = {
+  assignment?: any;
+  studentId?: string;
+};
 
-  const user =
-    useAuth((s) => s.user);
+export default function SubmitAssignment({
+  assignment,
+  studentId,
+}: Props) {
 
-  const studentId =
-    user?.id || user?._id;
-
-  const [assignments, setAssignments] =
-    useState<any[]>([]);
+  const [file, setFile] =
+    useState<File | null>(null);
 
   const [loading, setLoading] =
-    useState(true);
+    useState(false);
 
   // =========================
-  // FETCH ASSIGNMENTS
+  // SAFETY CHECK
   // =========================
-const fetchAssignments = async () => {
 
-  try {
+  if (!assignment) {
 
-    setLoading(true);
-
-    const res = await axios.get(
-      `${API}/assignments/student/${studentId}`
+    return (
+      <div className="border rounded-xl p-4 text-sm text-muted-foreground">
+        Assignment not found
+      </div>
     );
-
-    // ✅ REMOVE DUPLICATES
-
-    const uniqueAssignments =
-      res.data.filter(
-        (
-          item: any,
-          index: number,
-          self: any[]
-        ) =>
-          index ===
-          self.findIndex(
-            (a) => a._id === item._id
-          )
-      );
-
-    setAssignments(uniqueAssignments);
-
-  } catch (err) {
-
-    console.log(err);
-
-  } finally {
-
-    setLoading(false);
 
   }
 
-};
+  // =========================
+  // FAKE FILE UPLOAD
+  // =========================
 
-  useEffect(() => {
+  const uploadFile = async (
+    file: File
+  ) => {
 
-    if (studentId) {
+    return new Promise<string>(
+      (resolve) => {
 
-      fetchAssignments();
+        setTimeout(() => {
+
+          resolve(
+            "https://fake-upload.com/" +
+              file.name
+          );
+
+        }, 1000);
+
+      }
+    );
+
+  };
+
+  // =========================
+  // SUBMIT
+  // =========================
+
+  const submit = async () => {
+
+    try {
+
+      if (!file) {
+
+        return alert("Upload file");
+
+      }
+
+      setLoading(true);
+
+      const fileUrl =
+        await uploadFile(file);
+
+      await axios.post(
+        `${API}/assignments/submit`,
+        {
+          assignmentId:
+            assignment._id,
+
+          studentId,
+
+          fileUrl,
+        }
+      );
+
+      alert(
+        "Assignment submitted successfully"
+      );
+
+      setFile(null);
+
+    } catch (err) {
+
+      console.log(err);
+
+      alert("Submit failed");
+
+    } finally {
+
+      setLoading(false);
 
     }
 
-  }, [studentId]);
-
-  // =========================
-  // LOADING
-  // =========================
-
-  if (loading) {
-
-    return (
-      <div className="p-6">
-        Loading assignments...
-      </div>
-    );
-
-  }
+  };
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-4">
 
-      <div>
+      {/* STATUS */}
 
-        <h1 className="text-2xl font-bold">
-          My Assignments
-        </h1>
+      <div className="flex items-center justify-between">
 
-        <p className="text-sm text-muted-foreground">
-          Submit your tasks here
-        </p>
+        <div className="text-sm text-muted-foreground">
+          Upload your assignment file
+        </div>
+
+        <Badge
+          className={
+            assignment.status ===
+            "Reviewed"
+              ? "bg-green-100 text-green-700"
+              : assignment.status ===
+                "Submitted"
+              ? "bg-yellow-100 text-yellow-700"
+              : "bg-gray-100 text-gray-700"
+          }
+        >
+          {assignment.status}
+        </Badge>
 
       </div>
 
-      {assignments.length === 0 ? (
+      {/* FILE PICKER */}
 
-        <div className="border rounded-xl p-6 text-muted-foreground">
-          No assignments available
-        </div>
+      <div className="space-y-2">
 
-      ) : (
+        <label className="text-sm font-medium">
+          Upload File
+        </label>
 
-        assignments.map(
-          (assignment) => (
+        <Input
+          type="file"
+          onChange={(e) =>
+            setFile(
+              e.target.files?.[0] || null
+            )
+          }
+        />
 
-            <Card
-              key={assignment._id}
-            >
+        {file && (
 
-              <CardContent className="p-5 space-y-4">
+          <div className="flex items-center gap-2 text-sm text-green-600">
 
-                {/* TOP */}
+            <CheckCircle2 className="h-4 w-4" />
 
-                <div className="flex items-center justify-between">
+            {file.name}
 
-                  <div className="flex items-center gap-3">
+          </div>
 
-                    <div className="h-10 w-10 rounded-lg bg-gold-soft flex items-center justify-center">
+        )}
 
-                      <ClipboardList className="h-4 w-4" />
+      </div>
 
-                    </div>
+      {/* SUBMIT BUTTON */}
 
-                    <div>
+      <Button
+        onClick={submit}
+        disabled={loading}
+        className="w-full"
+      >
 
-                      <div className="font-semibold">
-                        {assignment.title}
-                      </div>
+        <FileUp className="mr-2 h-4 w-4" />
 
-                      <div className="text-xs text-muted-foreground">
-                        Due:
-                        {" "}
-                        {assignment.due}
-                      </div>
+        {loading
+          ? "Submitting..."
+          : "Submit Assignment"}
 
-                    </div>
-
-                  </div>
-
-                  <Badge>
-                    {assignment.status}
-                  </Badge>
-
-                </div>
-
-                {/* SUBMIT */}
-
-                <SubmitAssignment
-                  assignment={
-                    assignment
-                  }
-                  studentId={
-                    studentId
-                  }
-                />
-
-              </CardContent>
-
-            </Card>
-
-          )
-        )
-
-      )}
+      </Button>
 
     </div>
   );
+
 }
