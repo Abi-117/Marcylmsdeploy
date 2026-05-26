@@ -40,7 +40,8 @@ import StudentDashboard from "./pages/student/Dashboard";
 import StudentClasses from "./pages/student/Classes";
 import StudentPractice from "./pages/student/Practice";
 import StudentProgress from "./pages/student/Progress";
-import StudentAssignment from "./pages/student/SubmitAssignment";
+import NotificationAssignments from "./pages/student/StudentAssignments";
+import StudentAssignments from "./pages/student/SubmitAssignment";
 import StudentAttendance from "./pages/student/StudentAttendance";
 import StudentPayments from "./pages/student/Payments";
 import StudentCertificates from "./pages/student/Certificates";
@@ -116,7 +117,8 @@ export default function App() {
         <Route path="classes" element={<StudentClasses />} />
         <Route path="practice" element={<StudentPractice />} />
         <Route path="progress" element={<StudentProgress />} />
-        <Route path="assignment" element={<StudentAssignment />} />
+        <Route path="notificationassignments" element={<NotificationAssignments />} />
+        <Route path="assignments" element={<StudentAssignments />} />
         <Route path="attendance" element={<StudentAttendance />} />
         <Route path="payments" element={<StudentPayments />} />
         <Route path="certificates" element={<StudentCertificates />} />
