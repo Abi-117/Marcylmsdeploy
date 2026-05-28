@@ -383,7 +383,9 @@ function AdminCourses() {
                   })
                 }
               >
-
+                <option>
+                  Beginner
+                </option>
                 <option>
                   Initial
                 </option>
