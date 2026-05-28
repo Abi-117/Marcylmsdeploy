@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Lock, CheckCircle2, Award, CreditCard } from "lucide-react";
+import { Lock, CheckCircle2, Award } from "lucide-react";
 import axios from "axios";
 
 import { Card, CardContent } from "@/components/ui/card";
@@ -48,7 +48,7 @@ function StudentProgress() {
     (c: any) => c._id === user?.course
   );
 
-  // ================= LEVEL GROUPING FIXED =================
+  // ================= LEVELS (NO TOTAL SUM) =================
   const levels = levelOrder.map((level) => {
     const levelCourses = courses.filter(
       (c: any) =>
@@ -56,43 +56,25 @@ function StudentProgress() {
         c.mainLevel === level
     );
 
-    const totalFee = levelCourses.reduce(
-      (sum: number, item: any) => sum + Number(item.fee || 0),
-      0
-    );
-
     return {
       l: level,
       courses: levelCourses,
-      totalFee,
       unlocked: user?.unlockedLevels?.includes(level),
       completed: user?.completedLevels?.includes(level),
     };
   });
 
-  // ================= UNLOCK =================
-  const handleUnlock = (
-    level: string,
-    levelCourses: any[],
-    totalFee: number
-  ) => {
-    if (!levelCourses.length) {
-      alert("No grades found for this level");
-      return;
-    }
-
+  // ================= OPEN PAYMENT =================
+  const handlePay = (level: string, course: any) => {
     setSelectedLevel(level);
-    setSelectedCourse({
-      courses: levelCourses,
-      totalFee,
-    });
+    setSelectedCourse(course);
     setOpenPayment(true);
   };
 
-  // ================= PAYMENT =================
+  // ================= RAZORPAY PAYMENT =================
   const handleRazorpayPayment = async () => {
     try {
-      if (!selectedCourse?.totalFee) {
+      if (!selectedCourse?.fee) {
         alert("Invalid payment data");
         return;
       }
@@ -100,7 +82,7 @@ function StudentProgress() {
       const { data } = await axios.post(
         "https://marcylmsdeploy.onrender.com/api/payments/create-order",
         {
-          amount: selectedCourse.totalFee,
+          amount: selectedCourse.fee,
         }
       );
 
@@ -111,7 +93,7 @@ function StudentProgress() {
         amount: order.amount,
         currency: order.currency,
         name: "Marcy LMS",
-        description: `${selectedLevel} Level Unlock`,
+        description: `${selectedCourse.grade} Payment`,
         order_id: order.id,
 
         handler: async function (response: any) {
@@ -124,14 +106,13 @@ function StudentProgress() {
                 razorpay_signature: response.razorpay_signature,
                 userId: user?.id,
                 level: selectedLevel,
-                amount: selectedCourse.totalFee,
+                courseId: selectedCourse._id,
+                amount: selectedCourse.fee,
               }
             );
 
-            alert(`${selectedLevel} unlocked successfully`);
-
+            alert("Payment successful");
             setOpenPayment(false);
-
             window.location.href = "/student/classes";
           } catch (err) {
             console.log(err);
@@ -166,7 +147,9 @@ function StudentProgress() {
       <div className="mb-6 rounded-2xl border bg-card p-5">
         <div className="flex items-center justify-between">
           <div>
-            <div className="text-sm text-muted-foreground">Current Course</div>
+            <div className="text-sm text-muted-foreground">
+              Current Course
+            </div>
             <div className="mt-1 text-2xl font-bold">
               {currentCourse?.name || "-"}
             </div>
@@ -180,8 +163,12 @@ function StudentProgress() {
 
       {/* LEVELS */}
       <div className="grid gap-6 lg:grid-cols-3">
-        {levels.map((m, i) => (
-          <motion.div key={m.l} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+        {levels.map((m) => (
+          <motion.div
+            key={m.l}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+          >
             <Card
               className={`h-full ${
                 m.completed
@@ -202,39 +189,33 @@ function StudentProgress() {
                       <Lock />
                     )}
                   </div>
+
                   <LevelBadge level={m.l} />
                 </div>
 
                 <div className="mt-4 font-bold text-xl">{m.l}</div>
 
-                {/* GRADES (SAFE LOOP) */}
+                {/* GRADES LIST */}
                 <div className="mt-5 space-y-3">
                   {m.courses?.map((c: any) => (
-                    <div key={c._id} className="border p-3 rounded-xl">
-                      <div className="font-medium">{c.grade || "Grade"}</div>
-                      <div className="text-sm text-gray-500">₹{c.fee}</div>
+                    <div
+                      key={c._id}
+                      className="border p-3 rounded-xl flex justify-between items-center"
+                    >
+                      <div>
+                        <div className="font-medium">{c.grade}</div>
+                        <div className="text-sm text-gray-500">
+                          ₹{c.fee}
+                        </div>
+                      </div>
+
+                      <Button
+                        onClick={() => handlePay(m.l, c)}
+                      >
+                        Pay
+                      </Button>
                     </div>
                   ))}
-                </div>
-
-                {/* TOTAL */}
-                <div className="mt-5 flex justify-between items-center">
-                  <div>
-                    <div className="text-sm">Total</div>
-                    <div className="text-xl font-bold">₹{m.totalFee}</div>
-                  </div>
-
-                  {!m.unlocked ? (
-                    <Button
-                      onClick={() =>
-                        handleUnlock(m.l, m.courses, m.totalFee)
-                      }
-                    >
-                      Unlock
-                    </Button>
-                  ) : (
-                    <Badge>Active</Badge>
-                  )}
                 </div>
               </CardContent>
             </Card>
@@ -243,24 +224,20 @@ function StudentProgress() {
       </div>
 
       {/* PAYMENT MODAL */}
-      {openPayment && (
+      {openPayment && selectedCourse && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center">
           <div className="bg-white p-6 rounded-xl w-[400px]">
             <h2 className="text-xl font-bold">
-              Unlock {selectedLevel}
+              Pay {selectedCourse.grade}
             </h2>
 
-            <div className="mt-4 space-y-2">
-              {selectedCourse?.courses?.map((c: any) => (
-                <div key={c._id} className="flex justify-between">
-                  <span>{c.grade}</span>
-                  <span>₹{c.fee}</span>
-                </div>
-              ))}
+            <div className="mt-4 flex justify-between">
+              <span>{selectedCourse.grade}</span>
+              <span>₹{selectedCourse.fee}</span>
             </div>
 
             <div className="mt-5 font-bold text-xl">
-              ₹{selectedCourse?.totalFee}
+              ₹{selectedCourse.fee}
             </div>
 
             <Button
