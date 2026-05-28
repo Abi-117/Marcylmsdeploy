@@ -56,6 +56,8 @@ router.post("/create-order", async (req, res) => {
 // ========================================
 // VERIFY PAYMENT
 // ========================================
+import Payment from "../models/Payment.js";
+
 router.post("/verify", async (req, res) => {
   try {
     const {
@@ -76,57 +78,43 @@ router.post("/verify", async (req, res) => {
       .digest("hex");
 
     if (expectedSignature !== razorpay_signature) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid signature",
-      });
+      return res.status(400).json({ message: "Invalid signature" });
     }
 
     const user = await User.findById(userId);
 
     if (!user) {
-      return res.status(404).json({
-        message: "User not found",
-      });
+      return res.status(404).json({ message: "User not found" });
     }
 
-    // ===============================
-    // 🔥 NEW: STORE PER COURSE PAYMENT
-    // ===============================
+    // =========================
+    // PREVENT DUPLICATE PAYMENT
+    // =========================
+    const exists = await Payment.findOne({
+      student: userId,
+      course: courseId,
+    });
 
-    const alreadyPaid = user.payments.find(
-      (p) => p.courseId === courseId
-    );
-
-    if (alreadyPaid) {
+    if (exists) {
       return res.status(400).json({
         message: "Already paid for this course",
       });
     }
 
-    // ===============================
-    // SAVE PAYMENT
-    // ===============================
-
-    user.payments.push({
-      invoice: "INV-" + Date.now(),
-      level,
-      courseId, // 🔥 IMPORTANT ADDITION
+    // =========================
+    // CREATE PAYMENT RECORD
+    // =========================
+    const payment = await Payment.create({
+      student: userId,
+      course: courseId,
       amount,
-      paymentId: razorpay_payment_id,
-      orderId: razorpay_order_id,
       status: "Paid",
-      createdAt: new Date(),
+      paidAt: new Date(),
     });
 
-    // ===============================
-    // OPTIONAL: AUTO UNLOCK LEVEL ONLY IF ALL COURSES PAID
-    // ===============================
-
-    const levelCourses = await User.aggregate([
-      { $match: { _id: user._id } }
-    ]);
-
+    // =========================
+    // UPDATE USER (ONLY ACCESS CONTROL)
+    // =========================
     if (!user.unlockedLevels.includes(level)) {
       user.unlockedLevels.push(level);
     }
@@ -139,12 +127,14 @@ router.post("/verify", async (req, res) => {
     res.json({
       success: true,
       message: "Payment verified",
-      unlockedLevels: user.unlockedLevels,
+      payment,
     });
+
   } catch (err) {
-    console.log(err);
+    console.log("VERIFY ERROR:", err);
     res.status(500).json({
       message: "Verification failed",
+      error: err.message,
     });
   }
 });

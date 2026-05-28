@@ -102,11 +102,6 @@ const userSchema = new mongoose.Schema(
       default: "Pending",
     },
 
-    payments: {
-      type: [paymentSchema],
-      default: [],
-    },
-
     mode: {
       type: String,
       default: "Online",
