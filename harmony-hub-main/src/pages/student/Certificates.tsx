@@ -5,6 +5,9 @@ import {
 
 import axios from "axios";
 
+import { useAuth }
+from "@/store/auth";
+
 const API =
   "https://marcylmsdeploy.onrender.com/api";
 
@@ -16,12 +19,9 @@ StudentCertificates() {
     setCerts,
   ] = useState<any[]>([]);
 
-  const user =
-    JSON.parse(
-      localStorage.getItem(
-        "user"
-      ) || "{}"
-    );
+  // ZUSTAND USER
+  const { user } =
+    useAuth();
 
   // =========================
   // FETCH CERTIFICATES
@@ -32,10 +32,23 @@ StudentCertificates() {
 
       try {
 
+        if (!user?._id)
+          return;
+
+        console.log(
+          "USER ID:",
+          user._id
+        );
+
         const res =
           await axios.get(
             `${API}/certificates/student/${user._id}`
           );
+
+        console.log(
+          "CERT RESPONSE:",
+          res.data
+        );
 
         setCerts(
           res.data.certs || []
@@ -43,20 +56,19 @@ StudentCertificates() {
 
       } catch (err) {
 
-        console.log(err);
+        console.log(
+          "FETCH ERROR:",
+          err
+        );
 
       }
     };
 
   useEffect(() => {
 
-    if (user?._id) {
+    fetchCertificates();
 
-      fetchCertificates();
-
-    }
-
-  }, []);
+  }, [user?._id]);
 
   return (
 
@@ -101,11 +113,13 @@ StudentCertificates() {
                 <p className="mt-2 text-slate-500">
 
                   {cert.level}
+
                 </p>
 
                 <p className="mt-2 text-slate-500">
 
                   {cert.completionDate}
+
                 </p>
 
                 <a
@@ -123,7 +137,9 @@ StudentCertificates() {
                     font-bold
                   "
                 >
+
                   View Certificate
+
                 </a>
 
               </div>
