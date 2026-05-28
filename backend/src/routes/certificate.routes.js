@@ -181,7 +181,6 @@ router.get(
 // =========================
 // APPROVE CERTIFICATE
 // =========================
-
 router.put(
   "/approve/:id",
 
@@ -191,6 +190,10 @@ router.put(
   ) => {
 
     try {
+
+      console.log(
+        "APPROVE START"
+      );
 
       const cert =
         await CertificateRequest.findById(
@@ -208,8 +211,13 @@ router.put(
         });
       }
 
+      console.log(
+        "CERT FOUND:",
+        cert.studentName
+      );
+
       // =========================
-      // PDF GENERATE
+      // GENERATE PDF
       // =========================
 
       const pdfUrl =
@@ -237,8 +245,13 @@ router.put(
             cert.completionDate,
         });
 
+      console.log(
+        "PDF URL:",
+        pdfUrl
+      );
+
       // =========================
-      // SAVE
+      // UPDATE
       // =========================
 
       cert.status =
@@ -249,16 +262,13 @@ router.put(
 
       await cert.save();
 
-      // =========================
-      // RESPONSE
-      // =========================
+      console.log(
+        "CERT SAVED"
+      );
 
       res.json({
 
         success: true,
-
-        message:
-          "Certificate approved",
 
         certificate:
           cert,

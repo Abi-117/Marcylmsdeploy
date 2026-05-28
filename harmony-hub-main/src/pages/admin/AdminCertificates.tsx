@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 
 const API =
-  "http://localhost:5000/api";
+  "https://marcylmsdeploy.onrender.com/api";
 
 export default function AdminCertificates() {
 
