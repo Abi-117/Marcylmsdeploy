@@ -143,6 +143,16 @@ router.put(
           req.params.id
         );
 
+      if (!cert) {
+
+        return res.status(404).json({
+          message:
+            "Certificate not found",
+        });
+      }
+
+      // GENERATE PDF
+
       const pdfUrl =
         await generateCertificate({
 
@@ -152,12 +162,23 @@ router.put(
           course:
             cert.course,
 
+          category:
+            cert.category,
+
           level:
             cert.level,
+
+          description:
+            cert.description,
+
+          duration:
+            cert.duration,
 
           completionDate:
             cert.completionDate,
         });
+
+      // UPDATE
 
       cert.status =
         "approved";
@@ -167,18 +188,25 @@ router.put(
 
       await cert.save();
 
+      // SEND UPDATED DATA
+
       res.json({
-        success:
-          true,
+        success: true,
+        pdfUrl,
+        cert,
       });
 
     } catch (err) {
+
+      console.log(
+        "APPROVE ERROR:",
+        err
+      );
 
       res.status(500).json({
         message:
           err.message,
       });
-
     }
   }
 );

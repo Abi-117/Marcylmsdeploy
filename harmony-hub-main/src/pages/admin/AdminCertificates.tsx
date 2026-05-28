@@ -11,26 +11,34 @@ import {
   Calendar,
   Award,
   Search,
-  Filter,
   Clock3,
+  FileText,
+  Eye,
 } from "lucide-react";
 
 const API =
   "http://localhost:5000/api";
 
-export default function AdminCertificatePreview() {
+export default function AdminCertificates() {
 
+  // =========================
+  // STATES
+  // =========================
 
+  const [
+    pendingCerts,
+    setPendingCerts,
+  ] = useState<any[]>([]);
 
- const [
-  certs,
-  setCerts,
-] = useState<any[]>([]);
+  const [
+    approvedCerts,
+    setApprovedCerts,
+  ] = useState<any[]>([]);
 
-const [
-  loadingId,
-  setLoadingId,
-] = useState("");
+  const [
+    loadingId,
+    setLoadingId,
+  ] = useState("");
 
   const [
     search,
@@ -38,7 +46,7 @@ const [
   ] = useState("");
 
   // =========================
-  // FETCH
+  // FETCH PENDING
   // =========================
 
   const fetchPending =
@@ -51,7 +59,7 @@ const [
             `${API}/certificates/pending`
           );
 
-        setCerts(
+        setPendingCerts(
           res.data
         );
 
@@ -62,9 +70,40 @@ const [
       }
     };
 
+  // =========================
+  // FETCH APPROVED
+  // =========================
+
+  const fetchApproved =
+    async () => {
+
+      try {
+
+        const res =
+          await axios.get(
+            `${API}/certificates/approved`
+          );
+
+        setApprovedCerts(
+          res.data
+        );
+
+      } catch (err) {
+
+        console.log(err);
+
+      }
+    };
+
+  // =========================
+  // INITIAL LOAD
+  // =========================
+
   useEffect(() => {
 
     fetchPending();
+
+    fetchApproved();
 
   }, []);
 
@@ -81,11 +120,13 @@ const [
 
         setLoadingId(id);
 
-        await axios.put(
-          `${API}/certificates/approve/${id}`
-        );
+        const res =
+          await axios.put(
+            `${API}/certificates/approve/${id}`
+          );
 
-        setCerts(
+        // remove from pending
+        setPendingCerts(
           (prev) =>
             prev.filter(
               (item) =>
@@ -93,9 +134,27 @@ const [
             )
         );
 
+        // add to approved list
+        if (
+          res.data?.certificate
+        ) {
+
+          setApprovedCerts(
+            (prev) => [
+              res.data.certificate,
+              ...prev,
+            ]
+          );
+
+        }
+
       } catch (err) {
 
         console.log(err);
+
+        alert(
+          "PDF generation failed"
+        );
 
       } finally {
 
@@ -105,11 +164,11 @@ const [
     };
 
   // =========================
-  // FILTER
+  // SEARCH FILTER
   // =========================
 
-  const filtered =
-    certs.filter(
+  const filteredPending =
+    pendingCerts.filter(
       (item) =>
 
         item.studentName
@@ -127,23 +186,25 @@ const [
 
   return (
 
-    <div className="min-h-screen bg-[#f3f6fb] p-5 md:p-10">
+    <div className="min-h-screen bg-[#eef2ff] p-5 md:p-10">
 
+      {/* ========================= */}
       {/* HEADER */}
+      {/* ========================= */}
 
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-5 mb-10">
+      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 mb-10">
 
         <div>
 
-          <h1 className="text-4xl md:text-5xl font-black text-slate-800">
+          <h1 className="text-5xl font-black text-slate-800">
 
-            Certificate Requests
+            Certificate Dashboard
 
           </h1>
 
           <p className="text-slate-500 mt-3 text-lg">
 
-            Manage & approve student certificates
+            Manage student certificate approvals
 
           </p>
 
@@ -151,30 +212,71 @@ const [
 
         {/* STATS */}
 
-        <div className="bg-white px-6 py-4 rounded-3xl shadow-lg border border-slate-200 flex items-center gap-4">
+        <div className="flex gap-5 flex-wrap">
 
-          <div className="bg-indigo-100 p-4 rounded-2xl">
+          <div className="bg-white px-6 py-5 rounded-3xl shadow-xl border border-slate-200 min-w-[220px]">
 
-            <Award
-              className="text-indigo-600"
-              size={28}
-            />
+            <div className="flex items-center gap-4">
+
+              <div className="bg-orange-100 p-4 rounded-2xl">
+
+                <Clock3
+                  className="text-orange-600"
+                  size={28}
+                />
+
+              </div>
+
+              <div>
+
+                <p className="text-slate-500 font-semibold">
+
+                  Pending
+
+                </p>
+
+                <h2 className="text-4xl font-black text-slate-800">
+
+                  {pendingCerts.length}
+
+                </h2>
+
+              </div>
+
+            </div>
 
           </div>
 
-          <div>
+          <div className="bg-white px-6 py-5 rounded-3xl shadow-xl border border-slate-200 min-w-[220px]">
 
-            <p className="text-slate-500 text-sm font-semibold">
+            <div className="flex items-center gap-4">
 
-              Pending Requests
+              <div className="bg-green-100 p-4 rounded-2xl">
 
-            </p>
+                <Award
+                  className="text-green-600"
+                  size={28}
+                />
 
-            <h2 className="text-3xl font-black text-slate-800">
+              </div>
 
-              {certs.length}
+              <div>
 
-            </h2>
+                <p className="text-slate-500 font-semibold">
+
+                  Approved
+
+                </p>
+
+                <h2 className="text-4xl font-black text-slate-800">
+
+                  {approvedCerts.length}
+
+                </h2>
+
+              </div>
+
+            </div>
 
           </div>
 
@@ -182,9 +284,11 @@ const [
 
       </div>
 
+      {/* ========================= */}
       {/* SEARCH */}
+      {/* ========================= */}
 
-      <div className="bg-white p-4 rounded-3xl shadow-lg border border-slate-200 mb-10 flex items-center gap-4">
+      <div className="bg-white p-5 rounded-3xl shadow-xl border border-slate-200 flex items-center gap-4 mb-10">
 
         <div className="bg-slate-100 p-3 rounded-2xl">
 
@@ -204,238 +308,388 @@ const [
               e.target.value
             )
           }
-          className="w-full outline-none text-lg bg-transparent"
+          className="w-full outline-none bg-transparent text-lg"
         />
-
-        <button className="bg-slate-100 p-3 rounded-2xl">
-
-          <Filter
-            className="text-slate-600"
-            size={22}
-          />
-
-        </button>
 
       </div>
 
-      {/* EMPTY */}
+      {/* ========================= */}
+      {/* PENDING SECTION */}
+      {/* ========================= */}
 
-      {filtered.length === 0 && (
+      <div className="mb-14">
 
-        <div className="bg-white rounded-[35px] p-20 text-center shadow-lg border border-slate-200">
+        <div className="flex items-center gap-3 mb-8">
 
-          <Award
-            size={80}
-            className="mx-auto text-indigo-500 mb-6"
+          <Clock3
+            className="text-orange-500"
+            size={28}
           />
 
-          <h2 className="text-4xl font-black text-slate-800">
+          <h2 className="text-3xl font-black text-slate-800">
 
-            No Pending Requests
+            Pending Requests
 
           </h2>
 
-          <p className="text-slate-500 text-lg mt-4">
+        </div>
 
-            All certificates are approved
+        {filteredPending.length === 0 ? (
 
-          </p>
+          <div className="bg-white rounded-[35px] p-16 text-center shadow-xl border border-slate-200">
+
+            <Award
+              size={70}
+              className="mx-auto text-indigo-500 mb-5"
+            />
+
+            <h2 className="text-4xl font-black text-slate-800">
+
+              No Pending Certificates
+
+            </h2>
+
+          </div>
+
+        ) : (
+
+          <div className="grid xl:grid-cols-2 2xl:grid-cols-3 gap-8">
+
+            {filteredPending.map(
+              (cert) => (
+
+                <div
+                  key={cert._id}
+                  className="bg-white rounded-[35px] overflow-hidden shadow-xl border border-slate-200"
+                >
+
+                  {/* TOP */}
+
+                  <div className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 p-6 text-white">
+
+                    <div className="flex justify-between items-start">
+
+                      <div>
+
+                        <h2 className="text-3xl font-black">
+
+                          {cert.studentName}
+
+                        </h2>
+
+                        <p className="text-white/80 mt-2">
+
+                          Certificate Request
+
+                        </p>
+
+                      </div>
+
+                      <div className="bg-white/20 p-4 rounded-2xl">
+
+                        <Award size={28} />
+
+                      </div>
+
+                    </div>
+
+                  </div>
+
+                  {/* DETAILS */}
+
+                  <div className="p-6 space-y-5">
+
+                    <div className="bg-slate-50 p-5 rounded-2xl border border-slate-200">
+
+                      <div className="flex items-center gap-3 mb-3">
+
+                        <div className="bg-cyan-100 p-3 rounded-xl">
+
+                          <GraduationCap
+                            className="text-cyan-600"
+                            size={20}
+                          />
+
+                        </div>
+
+                        <p className="text-slate-500 font-semibold">
+
+                          Course
+
+                        </p>
+
+                      </div>
+
+                      <h3 className="text-2xl font-black text-slate-800">
+
+                        {cert.course}
+
+                      </h3>
+
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+
+                      <div className="bg-slate-50 p-5 rounded-2xl border border-slate-200">
+
+                        <p className="text-slate-500 font-semibold mb-2">
+
+                          Level
+
+                        </p>
+
+                        <h3 className="text-xl font-black text-slate-800">
+
+                          {cert.level}
+
+                        </h3>
+
+                      </div>
+
+                      <div className="bg-slate-50 p-5 rounded-2xl border border-slate-200">
+
+                        <p className="text-slate-500 font-semibold mb-2">
+
+                          Duration
+
+                        </p>
+
+                        <h3 className="text-xl font-black text-slate-800">
+
+                          {cert.duration}
+
+                        </h3>
+
+                      </div>
+
+                    </div>
+
+                    <div className="bg-slate-50 p-5 rounded-2xl border border-slate-200">
+
+                      <div className="flex items-center gap-3 mb-3">
+
+                        <div className="bg-green-100 p-3 rounded-xl">
+
+                          <Calendar
+                            className="text-green-600"
+                            size={20}
+                          />
+
+                        </div>
+
+                        <p className="text-slate-500 font-semibold">
+
+                          Completion Date
+
+                        </p>
+
+                      </div>
+
+                      <h3 className="text-xl font-black text-slate-800">
+
+                        {cert.completionDate}
+
+                      </h3>
+
+                    </div>
+
+                    {/* PREVIEW IMAGE */}
+
+                    {cert.previewImage && (
+
+                      <img
+                        src={cert.previewImage}
+                        alt=""
+                        className="w-full h-[240px] object-cover rounded-2xl border border-slate-200"
+                      />
+
+                    )}
+
+                  </div>
+
+                  {/* BUTTON */}
+
+                  <div className="p-6 pt-0">
+
+                    <button
+                      onClick={() =>
+                        approve(
+                          cert._id
+                        )
+                      }
+                      disabled={
+                        loadingId === cert._id
+                      }
+                      className="w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white py-5 rounded-2xl text-xl font-black shadow-lg hover:scale-[1.02] transition-all duration-300 flex items-center justify-center gap-3"
+                    >
+
+                      {loadingId === cert._id ? (
+
+                        <>
+                          Generating PDF...
+                        </>
+
+                      ) : (
+
+                        <>
+                          <CheckCircle2 size={26} />
+
+                          Approve Certificate
+                        </>
+
+                      )}
+
+                    </button>
+
+                  </div>
+
+                </div>
+
+              )
+            )}
+
+          </div>
+
+        )}
+
+      </div>
+
+      {/* ========================= */}
+      {/* APPROVED SECTION */}
+      {/* ========================= */}
+
+      <div>
+
+        <div className="flex items-center gap-3 mb-8">
+
+          <CheckCircle2
+            className="text-green-500"
+            size={28}
+          />
+
+          <h2 className="text-3xl font-black text-slate-800">
+
+            Approved Certificates
+
+          </h2>
 
         </div>
 
-      )}
+        {approvedCerts.length === 0 ? (
 
-      {/* CARDS */}
+          <div className="bg-white rounded-[35px] p-12 text-center shadow-xl border border-slate-200">
 
-      <div className="grid xl:grid-cols-2 2xl:grid-cols-3 gap-8">
+            <FileText
+              size={60}
+              className="mx-auto text-slate-400 mb-4"
+            />
 
-        {filtered.map(
-          (cert) => (
+            <h2 className="text-3xl font-black text-slate-700">
 
-            <div
-              key={cert._id}
-              className="bg-white rounded-[35px] overflow-hidden shadow-xl border border-slate-200 hover:shadow-2xl transition-all duration-300"
-            >
+              No Approved Certificates
 
-              {/* TOP */}
+            </h2>
 
-              <div className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 p-6 text-white relative overflow-hidden">
+          </div>
 
-                <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full blur-3xl" />
+        ) : (
 
-                <div className="relative z-10">
+          <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-6">
 
-                  <div className="flex items-center justify-between mb-6">
+            {approvedCerts.map(
+              (cert) => (
 
-                    <div className="bg-white/20 p-4 rounded-2xl backdrop-blur-lg">
-
-                      <Award size={30} />
-
-                    </div>
-
-                    <div className="bg-white/20 px-4 py-2 rounded-full text-sm font-bold backdrop-blur-lg flex items-center gap-2">
-
-                      <Clock3 size={16} />
-
-                      Pending
-
-                    </div>
-
-                  </div>
-
-                  <h2 className="text-3xl font-black">
-
-                    {cert.studentName}
-
-                  </h2>
-
-                  <p className="text-white/80 mt-2">
-
-                    Certificate Request
-                  </p>
-
-                </div>
-
-              </div>
-
-              {/* DETAILS */}
-
-              <div className="p-6 space-y-5">
-
-                {/* COURSE */}
-
-                <div className="bg-slate-50 rounded-2xl p-5 border border-slate-200">
-
-                  <div className="flex items-center gap-3 mb-3">
-
-                    <div className="bg-cyan-100 p-3 rounded-xl">
-
-                      <GraduationCap
-                        className="text-cyan-600"
-                        size={20}
-                      />
-
-                    </div>
-
-                    <p className="text-slate-500 font-semibold">
-
-                      Course
-                    </p>
-
-                  </div>
-
-                  <h3 className="text-2xl font-black text-slate-800">
-
-                    {cert.course}
-
-                  </h3>
-
-                </div>
-
-                {/* LEVEL */}
-
-                <div className="grid grid-cols-2 gap-4">
-
-                  <div className="bg-slate-50 rounded-2xl p-5 border border-slate-200">
-
-                    <p className="text-slate-500 font-semibold mb-2">
-
-                      Level
-                    </p>
-
-                    <h3 className="text-xl font-black text-slate-800">
-
-                      {cert.level}
-                    </h3>
-
-                  </div>
-
-                  <div className="bg-slate-50 rounded-2xl p-5 border border-slate-200">
-
-                    <p className="text-slate-500 font-semibold mb-2">
-
-                      Duration
-                    </p>
-
-                    <h3 className="text-xl font-black text-slate-800">
-
-                      {cert.duration}
-                    </h3>
-
-                  </div>
-
-                </div>
-
-                {/* DATE */}
-
-                <div className="bg-slate-50 rounded-2xl p-5 border border-slate-200">
-
-                  <div className="flex items-center gap-3 mb-3">
-
-                    <div className="bg-green-100 p-3 rounded-xl">
-
-                      <Calendar
-                        className="text-green-600"
-                        size={20}
-                      />
-
-                    </div>
-
-                    <p className="text-slate-500 font-semibold">
-
-                      Completion Date
-                    </p>
-
-                  </div>
-
-                  <h3 className="text-xl font-black text-slate-800">
-
-                    {cert.completionDate}
-                  </h3>
-
-                </div>
-
-              </div>
-
-              {/* BUTTON */}
-
-              <div className="p-6 pt-0">
-
-                <button
-                  onClick={() =>
-                    approve(
-                      cert._id
-                    )
-                  }
-                  disabled={
-                    loadingId === cert._id
-                  }
-                  className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 text-white py-5 rounded-2xl text-xl font-black shadow-lg flex items-center justify-center gap-3"
+                <div
+                  key={cert._id}
+                  className="bg-white rounded-3xl p-6 shadow-xl border border-slate-200"
                 >
 
-                  {loadingId === cert._id ? (
+                  <div className="flex justify-between items-start mb-5">
 
-                    <>
-                      Generating PDF...
-                    </>
+                    <div>
 
-                  ) : (
+                      <h3 className="text-2xl font-black text-slate-800">
 
-                    <>
-                      <CheckCircle2 size={26} />
+                        {cert.studentName}
 
-                      Approve Certificate
-                    </>
+                      </h3>
+
+                      <p className="text-slate-500 mt-1">
+
+                        {cert.course}
+                      </p>
+
+                    </div>
+
+                    <div className="bg-green-100 p-3 rounded-2xl">
+
+                      <CheckCircle2
+                        className="text-green-600"
+                        size={24}
+                      />
+
+                    </div>
+
+                  </div>
+
+                  <div className="space-y-3 mb-6">
+
+                    <div className="flex justify-between">
+
+                      <span className="text-slate-500">
+
+                        Level
+
+                      </span>
+
+                      <span className="font-bold text-slate-800">
+
+                        {cert.level}
+                      </span>
+
+                    </div>
+
+                    <div className="flex justify-between">
+
+                      <span className="text-slate-500">
+
+                        Date
+
+                      </span>
+
+                      <span className="font-bold text-slate-800">
+
+                        {cert.completionDate}
+                      </span>
+
+                    </div>
+
+                  </div>
+
+                  {cert.pdfUrl && (
+
+                    <a
+                      href={cert.pdfUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-4 rounded-2xl font-black flex items-center justify-center gap-3 transition-all duration-300"
+                    >
+
+                      <Eye size={22} />
+
+                      View PDF
+
+                    </a>
 
                   )}
 
-                </button>
+                </div>
 
-              </div>
+              )
+            )}
 
-            </div>
+          </div>
 
-          )
         )}
 
       </div>
