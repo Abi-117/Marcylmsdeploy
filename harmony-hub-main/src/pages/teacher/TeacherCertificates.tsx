@@ -178,7 +178,7 @@ TeacherCertificateForm() {
         await html2canvas(
           previewRef.current,
           {
-            scale: 2,
+            scale: 1,
             useCORS: true,
             backgroundColor:
               "#ffffff",
@@ -189,10 +189,11 @@ TeacherCertificateForm() {
         "CANVAS DONE"
       );
 
-      const previewImage =
-        canvas.toDataURL(
-          "image/png"
-        );
+     const previewImage =
+  canvas.toDataURL(
+    "image/jpeg",
+    0.4
+  );
 
       console.log(
         "IMAGE DONE"
