@@ -5,6 +5,11 @@ const paymentSchema = new mongoose.Schema(
     level: {
       type: String,
     },
+    courseId: {
+      type: String, // 🔥 ADD THIS (IMPORTANT)
+      required: true,
+    },
+
 
     amount: {
       type: Number,

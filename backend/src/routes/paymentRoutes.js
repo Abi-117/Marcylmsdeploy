@@ -27,7 +27,6 @@ const razorpay = new Razorpay({
 
 router.post("/create-order", async (req, res) => {
   try {
-
     const { amount } = req.body;
 
     if (!amount || amount <= 0) {
@@ -37,7 +36,7 @@ router.post("/create-order", async (req, res) => {
     }
 
     const order = await razorpay.orders.create({
-      amount: Number(amount) * 100,
+      amount: Math.round(Number(amount) * 100),
       currency: "INR",
       receipt: "receipt_" + Date.now(),
     });
@@ -46,130 +45,109 @@ router.post("/create-order", async (req, res) => {
       success: true,
       order,
     });
-
   } catch (err) {
-
     console.log(err);
-
     res.status(500).json({
       message: "Order creation failed",
     });
-
   }
 });
 
 // ========================================
 // VERIFY PAYMENT
 // ========================================
-
 router.post("/verify", async (req, res) => {
-
   try {
-
     const {
       razorpay_order_id,
       razorpay_payment_id,
       razorpay_signature,
       userId,
       level,
+      courseId,
       amount,
     } = req.body;
 
-    const body =
-      `${razorpay_order_id}|${razorpay_payment_id}`;
+    const body = `${razorpay_order_id}|${razorpay_payment_id}`;
 
     const expectedSignature = crypto
-      .createHmac(
-        "sha256",
-        process.env.RAZORPAY_SECRET
-      )
+      .createHmac("sha256", process.env.RAZORPAY_SECRET)
       .update(body)
       .digest("hex");
 
-    if (
-      expectedSignature !==
-      razorpay_signature
-    ) {
-
+    if (expectedSignature !== razorpay_signature) {
       return res.status(400).json({
         success: false,
         message: "Invalid signature",
       });
-
     }
 
     const user = await User.findById(userId);
 
     if (!user) {
-
       return res.status(404).json({
         message: "User not found",
       });
-
     }
 
-    // ====================================
-    // UNLOCK LEVEL
-    // ====================================
+    // ===============================
+    // 🔥 NEW: STORE PER COURSE PAYMENT
+    // ===============================
 
-    if (
-      !user.unlockedLevels.includes(level)
-    ) {
+    const alreadyPaid = user.payments.find(
+      (p) => p.courseId === courseId
+    );
 
+    if (alreadyPaid) {
+      return res.status(400).json({
+        message: "Already paid for this course",
+      });
+    }
+
+    // ===============================
+    // SAVE PAYMENT
+    // ===============================
+
+    user.payments.push({
+      invoice: "INV-" + Date.now(),
+      level,
+      courseId, // 🔥 IMPORTANT ADDITION
+      amount,
+      paymentId: razorpay_payment_id,
+      orderId: razorpay_order_id,
+      status: "Paid",
+      createdAt: new Date(),
+    });
+
+    // ===============================
+    // OPTIONAL: AUTO UNLOCK LEVEL ONLY IF ALL COURSES PAID
+    // ===============================
+
+    const levelCourses = await User.aggregate([
+      { $match: { _id: user._id } }
+    ]);
+
+    if (!user.unlockedLevels.includes(level)) {
       user.unlockedLevels.push(level);
-
     }
 
     user.paymentStatus = "Paid";
-
     user.selectedLevel = level;
-
-    // ====================================
-    // SAVE PAYMENT
-    // ====================================
-
-    user.payments.push({
-
-      invoice:
-        "INV-" +
-        Date.now(),
-
-      level,
-
-      amount,
-
-      paymentId:
-        razorpay_payment_id,
-
-      orderId:
-        razorpay_order_id,
-
-      status: "Paid",
-
-      createdAt: new Date(),
-
-    });
 
     await user.save();
 
     res.json({
       success: true,
-      unlockedLevels:
-        user.unlockedLevels,
+      message: "Payment verified",
+      unlockedLevels: user.unlockedLevels,
     });
-
   } catch (err) {
-
     console.log(err);
-
     res.status(500).json({
       message: "Verification failed",
     });
-
   }
-
 });
-
 // ========================================
 // ADMIN ALL PAYMENTS
 // ========================================
