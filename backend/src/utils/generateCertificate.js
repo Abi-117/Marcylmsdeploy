@@ -117,14 +117,37 @@ async ({
     // CATEGORY
     // =========================
 
+    const categoryText =
+      category ||
+      "Performance Arts";
+
+    const categorySize =
+      40;
+
+    const categoryWidth =
+      boldFont.widthOfTextAtSize(
+        categoryText,
+        categorySize
+      );
+
     page.drawText(
-      category || "Performance Arts",
+      categoryText,
       {
-        x: 520,
+        x:
+          (width -
+            categoryWidth) /
+          2,
+
         y: 690,
-        size: 40,
-        font: boldFont,
-        color: black,
+
+        size:
+          categorySize,
+
+        font:
+          boldFont,
+
+        color:
+          black,
       }
     );
 
@@ -132,14 +155,36 @@ async ({
     // COURSE
     // =========================
 
+    const courseText =
+      course.toUpperCase();
+
+    const courseSize =
+      36;
+
+    const courseWidth =
+      boldFont.widthOfTextAtSize(
+        courseText,
+        courseSize
+      );
+
     page.drawText(
-      course.toUpperCase(),
+      courseText,
       {
-        x: 560,
+        x:
+          (width -
+            courseWidth) /
+          2,
+
         y: 620,
-        size: 36,
-        font: boldFont,
-        color: black,
+
+        size:
+          courseSize,
+
+        font:
+          boldFont,
+
+        color:
+          black,
       }
     );
 
@@ -147,46 +192,170 @@ async ({
     // STUDENT NAME
     // =========================
 
+    const nameSize =
+      42;
+
+    const nameWidth =
+      boldFont.widthOfTextAtSize(
+        studentName,
+        nameSize
+      );
+
     page.drawText(
       studentName,
       {
-        x: 520,
+        x:
+          (width -
+            nameWidth) /
+          2,
+
         y: 520,
-        size: 42,
-        font: boldFont,
-        color: gold,
+
+        size:
+          nameSize,
+
+        font:
+          boldFont,
+
+        color:
+          gold,
       }
     );
 
     // =========================
-    // DESCRIPTION
+    // DESCRIPTION TITLE
     // =========================
 
     const desc1 =
-      `In recognition of successful completion of ${level} in ${course} in ${category}.`;
+      `In recognition of successful completion of ${level} in ${course} under ${category}.`;
 
-    const desc2 =
-      `${description}`;
+    const desc1Size =
+      22;
+
+    const desc1Width =
+      normalFont.widthOfTextAtSize(
+        desc1,
+        desc1Size
+      );
 
     page.drawText(
       desc1,
       {
-        x: 420,
+        x:
+          (width -
+            desc1Width) /
+          2,
+
         y: 430,
-        size: 24,
-        font: normalFont,
-        color: black,
+
+        size:
+          desc1Size,
+
+        font:
+          normalFont,
+
+        color:
+          black,
       }
     );
 
-    page.drawText(
-      desc2,
-      {
-        x: 470,
-        y: 390,
-        size: 24,
-        font: normalFont,
-        color: black,
+    // =========================
+    // DESCRIPTION WRAP
+    // =========================
+
+    const desc2 =
+      description ||
+      "With dedication and excellence.";
+
+    const maxWidth =
+      800;
+
+    const fontSize =
+      22;
+
+    const words =
+      desc2.split(" ");
+
+    let lines = [];
+
+    let currentLine =
+      "";
+
+    words.forEach(
+      (word) => {
+
+        const testLine =
+          currentLine +
+          word +
+          " ";
+
+        const textWidth =
+          normalFont.widthOfTextAtSize(
+            testLine,
+            fontSize
+          );
+
+        if (
+          textWidth >
+          maxWidth
+        ) {
+
+          lines.push(
+            currentLine
+          );
+
+          currentLine =
+            word + " ";
+
+        } else {
+
+          currentLine =
+            testLine;
+
+        }
+
+      }
+    );
+
+    lines.push(
+      currentLine
+    );
+
+    lines.forEach(
+      (
+        line,
+        index
+      ) => {
+
+        const lineWidth =
+          normalFont.widthOfTextAtSize(
+            line,
+            fontSize
+          );
+
+        page.drawText(
+          line,
+          {
+            x:
+              (width -
+                lineWidth) /
+              2,
+
+            y:
+              380 -
+              index * 32,
+
+            size:
+              fontSize,
+
+            font:
+              normalFont,
+
+            color:
+              black,
+          }
+        );
+
       }
     );
 
@@ -194,14 +363,32 @@ async ({
     // DURATION
     // =========================
 
+    const durationText =
+      `Course Duration: ${duration}`;
+
+    const durationWidth =
+      normalFont.widthOfTextAtSize(
+        durationText,
+        22
+      );
+
     page.drawText(
-      `Course Duration: ${duration}`,
+      durationText,
       {
-        x: 500,
+        x:
+          (width -
+            durationWidth) /
+          2,
+
         y: 200,
+
         size: 22,
-        font: normalFont,
-        color: black,
+
+        font:
+          normalFont,
+
+        color:
+          black,
       }
     );
 
@@ -209,14 +396,32 @@ async ({
     // DATE
     // =========================
 
+    const dateText =
+      `Date of Completion: ${completionDate}`;
+
+    const dateWidth =
+      normalFont.widthOfTextAtSize(
+        dateText,
+        22
+      );
+
     page.drawText(
-      `Date of Completion: ${completionDate}`,
+      dateText,
       {
-        x: 460,
+        x:
+          (width -
+            dateWidth) /
+          2,
+
         y: 160,
+
         size: 22,
-        font: normalFont,
-        color: black,
+
+        font:
+          normalFont,
+
+        color:
+          black,
       }
     );
 
@@ -243,7 +448,6 @@ async ({
 
     // =========================
     // CLOUDINARY UPLOAD
-    // IMPORTANT
     // =========================
 
     const result =
@@ -274,7 +478,7 @@ async ({
     );
 
     // =========================
-    // RETURN WORKING URL
+    // RETURN URL
     // =========================
 
     const pdfUrl =
