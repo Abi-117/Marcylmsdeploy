@@ -261,122 +261,117 @@ async ({
     );
 
     // =========================
-    // SECOND DESCRIPTION
-    // AUTO NEXT LINE
-    // =========================
+// SECOND DESCRIPTION
+// =========================
 
-    const desc2 =
-      description?.trim() ||
-      "With dedication and excellence.";
+const desc2 =
+  description &&
+  description.trim() !== ""
+    ? description
+    : "With dedication and excellence.";
 
-    const maxWidth =
-      850;
+console.log("DESCRIPTION:", desc2);
 
-    const fontSize =
-      22;
+const maxWidth = 850;
+const fontSize = 22;
+const lineHeight = 30;
 
-    const lineHeight =
-      34;
+const words =
+  desc2.split(" ");
 
-    const words =
-      desc2.split(" ");
+let lines = [];
+let currentLine = "";
 
-    let lines = [];
+for (
+  let i = 0;
+  i < words.length;
+  i++
+) {
 
-    let currentLine =
-      "";
+  const word =
+    words[i];
 
-    for (
-      let i = 0;
-      i < words.length;
-      i++
-    ) {
+  const testLine =
+    currentLine +
+    word +
+    " ";
 
-      const word =
-        words[i];
+  const textWidth =
+    normalFont.widthOfTextAtSize(
+      testLine,
+      fontSize
+    );
 
-      const testLine =
-        currentLine +
-        word +
-        " ";
+  if (
+    textWidth >
+    maxWidth
+  ) {
 
-      const textWidth =
-        normalFont.widthOfTextAtSize(
-          testLine,
-          fontSize
-        );
+    lines.push(
+      currentLine.trim()
+    );
 
-      if (
-        textWidth >
-        maxWidth
-      ) {
+    currentLine =
+      word + " ";
 
-        lines.push(
-          currentLine.trim()
-        );
+  } else {
 
-        currentLine =
-          word + " ";
+    currentLine =
+      testLine;
+  }
+}
 
-      } else {
+if (
+  currentLine.trim() !== ""
+) {
 
-        currentLine =
-          testLine;
-      }
-    }
+  lines.push(
+    currentLine.trim()
+  );
+}
 
-    if (
-      currentLine.trim() !== ""
-    ) {
+// =========================
+// DRAW DESCRIPTION
+// =========================
 
-      lines.push(
-        currentLine.trim()
-      );
-    }
+let startY = 360;
 
-    // =========================
-    // DRAW DESCRIPTION
-    // =========================
+lines.forEach(
+  (
+    line,
+    index
+  ) => {
 
-    let startY =
-      380;
-
-    lines.forEach(
-      (
+    const lineWidth =
+      normalFont.widthOfTextAtSize(
         line,
-        index
-      ) => {
+        fontSize
+      );
 
-        const lineWidth =
-          normalFont.widthOfTextAtSize(
-            line,
-            fontSize
-          );
+    page.drawText(
+      line,
+      {
+        x:
+          (width -
+            lineWidth) / 2,
 
-        page.drawText(
-          line,
-          {
-            x:
-              (width -
-                lineWidth) / 2,
+        y:
+          startY -
+          index * 30,
 
-            y:
-              startY -
-              index *
-                lineHeight,
+        size:
+          fontSize,
 
-            size:
-              fontSize,
+        font:
+          normalFont,
 
-            font:
-              normalFont,
-
-            color:
-              black,
-          }
-        );
+        color:
+          black,
       }
     );
+  }
+);
+
 
     // =========================
     // DURATION
