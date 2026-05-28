@@ -1,21 +1,12 @@
-import { useEffect, useState } from "react";
+import {
+  useEffect,
+  useState,
+} from "react";
 
 import axios from "axios";
 
-import {
-  Card,
-  CardContent,
-} from "@/components/ui/card";
-
-import { Button } from "@/components/ui/button";
-
-import {
-  Award,
-  Download,
-} from "lucide-react";
-
 const API =
-  "https://your-api.com/api";
+  "https://marcylmsdeploy.onrender.com/api";
 
 export default function
 StudentCertificates() {
@@ -24,10 +15,6 @@ StudentCertificates() {
     certs,
     setCerts,
   ] = useState<any[]>([]);
-
-  // =========================
-  // GET USER
-  // =========================
 
   const user =
     JSON.parse(
@@ -40,12 +27,6 @@ StudentCertificates() {
   // FETCH CERTIFICATES
   // =========================
 
-  useEffect(() => {
-
-    fetchCertificates();
-
-  }, []);
-
   const fetchCertificates =
     async () => {
 
@@ -57,7 +38,7 @@ StudentCertificates() {
           );
 
         setCerts(
-          res.data
+          res.data.certs || []
         );
 
       } catch (err) {
@@ -67,87 +48,92 @@ StudentCertificates() {
       }
     };
 
+  useEffect(() => {
+
+    if (user?._id) {
+
+      fetchCertificates();
+
+    }
+
+  }, []);
+
   return (
 
-    <div className="p-6">
+    <div className="min-h-screen bg-slate-100 p-6">
 
-      <h1 className="text-2xl font-bold mb-6">
+      <h1 className="text-4xl font-black mb-8">
+
         My Certificates
+
       </h1>
 
-      <div className="grid gap-4">
+      {certs.length === 0 ? (
 
-        {certs.length === 0 && (
+        <div className="bg-white rounded-3xl p-10 text-center">
 
-          <Card>
+          <h2 className="text-2xl font-bold">
 
-            <CardContent className="p-10 text-center">
+            No Certificates Yet
 
-              <Award className="mx-auto mb-4 w-10 h-10" />
+          </h2>
 
-              <p>
-                No certificates yet
-              </p>
+        </div>
 
-            </CardContent>
+      ) : (
 
-          </Card>
+        <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-6">
 
-        )}
+          {certs.map(
+            (cert) => (
 
-        {certs.map(
-          (cert) => (
-
-            <Card
-              key={cert._id}
-            >
-
-              <CardContent
-                className="p-5 flex items-center justify-between"
+              <div
+                key={cert._id}
+                className="bg-white rounded-3xl p-6 shadow-lg"
               >
 
-                <div>
+                <h2 className="text-2xl font-black">
 
-                  <h2 className="font-semibold text-lg">
-                    {cert.course}
-                  </h2>
+                  {cert.course}
 
-                  <p className="text-sm text-muted-foreground">
-                    {cert.level}
-                  </p>
+                </h2>
 
-                  <p className="text-sm">
-                    {cert.completionDate}
-                  </p>
+                <p className="mt-2 text-slate-500">
 
-                </div>
+                  {cert.level}
+                </p>
+
+                <p className="mt-2 text-slate-500">
+
+                  {cert.completionDate}
+                </p>
 
                 <a
-                  href={
-                    cert.pdfUrl
-                  }
+                  href={cert.pdfUrl}
                   target="_blank"
                   rel="noreferrer"
+                  className="
+                    mt-6
+                    inline-block
+                    bg-indigo-600
+                    text-white
+                    px-5
+                    py-3
+                    rounded-xl
+                    font-bold
+                  "
                 >
-
-                  <Button>
-
-                    <Download className="w-4 h-4 mr-2" />
-
-                    Download
-
-                  </Button>
-
+                  View Certificate
                 </a>
 
-              </CardContent>
+              </div>
 
-            </Card>
+            )
+          )}
 
-          )
-        )}
+        </div>
 
-      </div>
+      )}
 
     </div>
   );

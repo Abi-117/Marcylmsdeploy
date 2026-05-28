@@ -316,27 +316,25 @@ router.get(
             "approved",
         })
         .sort({
-          updatedAt:
-            -1,
+          createdAt: -1,
         });
 
-      res.json(
-        certs
-      );
+      res.status(200).json({
+        success: true,
+        certs,
+      });
 
     } catch (err) {
 
       console.log(err);
 
       res.status(500).json({
-
         success: false,
-
         message:
           err.message,
       });
+
     }
   }
 );
-
 export default router;
