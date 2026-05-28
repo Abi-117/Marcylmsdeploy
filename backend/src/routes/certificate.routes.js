@@ -2,7 +2,6 @@ import express from "express";
 
 import CertificateRequest
 from "../models/CertificateRequest.js";
-import certificate from "../models/certificate.model.js";
 
 import {
   generateCertificate,
@@ -17,14 +16,13 @@ const router =
 
 router.post(
   "/create",
-  async (req, res) => {
+
+  async (
+    req,
+    res
+  ) => {
 
     try {
-
-      console.log(
-        "BODY:",
-        req.body
-      );
 
       const newRequest =
         await CertificateRequest.create({
@@ -34,6 +32,9 @@ router.post(
 
           studentName:
             req.body.studentName,
+
+          teacher:
+            req.body.teacher,
 
           course:
             req.body.course,
@@ -60,11 +61,6 @@ router.post(
             "pending",
         });
 
-      console.log(
-        "SAVED:",
-        newRequest
-      );
-
       return res.status(201).json({
 
         success: true,
@@ -72,19 +68,24 @@ router.post(
         message:
           "Certificate Request Created",
 
-        data:
+        certificate:
           newRequest,
       });
 
     } catch (err) {
 
-      console.log(err);
+      console.log(
+        "CREATE ERROR:",
+        err
+      );
 
       res.status(500).json({
-        message:
-          "Server Error",
-      });
 
+        success: false,
+
+        message:
+          err.message,
+      });
     }
   }
 );
@@ -105,8 +106,13 @@ router.get(
 
       const certs =
         await CertificateRequest.find({
+
           status:
             "pending",
+        })
+        .sort({
+          createdAt:
+            -1,
         });
 
       res.json(
@@ -115,17 +121,65 @@ router.get(
 
     } catch (err) {
 
+      console.log(err);
+
       res.status(500).json({
+
+        success: false,
+
         message:
           err.message,
       });
-
     }
   }
 );
 
 // =========================
-// APPROVE
+// GET APPROVED
+// =========================
+
+router.get(
+  "/approved",
+
+  async (
+    req,
+    res
+  ) => {
+
+    try {
+
+      const certs =
+        await CertificateRequest.find({
+
+          status:
+            "approved",
+        })
+        .sort({
+          updatedAt:
+            -1,
+        });
+
+      res.json(
+        certs
+      );
+
+    } catch (err) {
+
+      console.log(err);
+
+      res.status(500).json({
+
+        success: false,
+
+        message:
+          err.message,
+      });
+    }
+  }
+);
+
+// =========================
+// APPROVE CERTIFICATE
 // =========================
 
 router.put(
@@ -146,12 +200,17 @@ router.put(
       if (!cert) {
 
         return res.status(404).json({
+
+          success: false,
+
           message:
             "Certificate not found",
         });
       }
 
-      // GENERATE PDF
+      // =========================
+      // PDF GENERATE
+      // =========================
 
       const pdfUrl =
         await generateCertificate({
@@ -178,7 +237,9 @@ router.put(
             cert.completionDate,
         });
 
-      // UPDATE
+      // =========================
+      // SAVE
+      // =========================
 
       cert.status =
         "approved";
@@ -188,12 +249,19 @@ router.put(
 
       await cert.save();
 
-      // SEND UPDATED DATA
+      // =========================
+      // RESPONSE
+      // =========================
 
       res.json({
+
         success: true,
-        pdfUrl,
-        cert,
+
+        message:
+          "Certificate approved",
+
+        certificate:
+          cert,
       });
 
     } catch (err) {
@@ -204,6 +272,9 @@ router.put(
       );
 
       res.status(500).json({
+
+        success: false,
+
         message:
           err.message,
       });
@@ -212,7 +283,7 @@ router.put(
 );
 
 // =========================
-// STUDENT CERTIFICATES
+// GET STUDENT CERTIFICATES
 // =========================
 
 router.get(
@@ -233,6 +304,10 @@ router.get(
 
           status:
             "approved",
+        })
+        .sort({
+          updatedAt:
+            -1,
         });
 
       res.json(
@@ -241,11 +316,15 @@ router.get(
 
     } catch (err) {
 
+      console.log(err);
+
       res.status(500).json({
+
+        success: false,
+
         message:
           err.message,
       });
-
     }
   }
 );

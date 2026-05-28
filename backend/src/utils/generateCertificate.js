@@ -1,4 +1,5 @@
 import fs from "fs";
+
 import path from "path";
 
 import {
@@ -6,9 +7,6 @@ import {
   rgb,
   StandardFonts,
 } from "pdf-lib";
-
-import cloudinary
-from "../config/cloudinary.js";
 
 export const generateCertificate =
 async ({
@@ -21,519 +19,382 @@ async ({
   completionDate,
 }) => {
 
-  try {
+  // =========================
+  // CREATE PDF
+  // =========================
 
-    // =========================
-    // CREATE PDF
-    // =========================
+  const pdfDoc =
+    await PDFDocument.create();
 
-    const pdfDoc =
-      await PDFDocument.create();
+  const page =
+    pdfDoc.addPage([
+      1400,
+      1000,
+    ]);
 
-    const page =
-      pdfDoc.addPage([
-        1400,
-        1000,
-      ]);
+  const {
+    width,
+    height,
+  } = page.getSize();
 
-    const {
+  // =========================
+  // COLORS
+  // =========================
+
+  const black =
+    rgb(0, 0, 0);
+
+  const gold =
+    rgb(
+      0.70,
+      0.55,
+      0.18
+    );
+
+  // =========================
+  // FONTS
+  // =========================
+
+  const boldFont =
+    await pdfDoc.embedFont(
+      StandardFonts.HelveticaBold
+    );
+
+  const normalFont =
+    await pdfDoc.embedFont(
+      StandardFonts.Helvetica
+    );
+
+  // =========================
+  // BG IMAGE
+  // =========================
+
+  const bgPath =
+    path.join(
+      process.cwd(),
+      "uploads",
+      "certificate-bg.png"
+    );
+
+  const bgBytes =
+    fs.readFileSync(
+      bgPath
+    );
+
+  const bgImage =
+    await pdfDoc.embedPng(
+      bgBytes
+    );
+
+  page.drawImage(
+    bgImage,
+    {
+      x: 0,
+      y: 0,
       width,
       height,
-    } = page.getSize();
-
-    // =========================
-    // COLORS
-    // =========================
-
-    const black =
-      rgb(0, 0, 0);
-
-    const gold =
-      rgb(
-        0.76,
-        0.60,
-        0.20
-      );
-
-    const dark =
-      rgb(
-        0.15,
-        0.15,
-        0.15
-      );
-
-    const gray =
-      rgb(
-        0.35,
-        0.35,
-        0.35
-      );
-
-    // =========================
-    // FONTS
-    // =========================
-
-    const boldFont =
-      await pdfDoc.embedFont(
-        StandardFonts.HelveticaBold
-      );
-
-    const normalFont =
-      await pdfDoc.embedFont(
-        StandardFonts.Helvetica
-      );
-
-    // =========================
-    // BACKGROUND
-    // =========================
-
-    const bgPath =
-      path.join(
-        process.cwd(),
-        "uploads",
-        "certificate-bg.png"
-      );
-
-    if (
-      fs.existsSync(bgPath)
-    ) {
-
-      const bgBytes =
-        fs.readFileSync(
-          bgPath
-        );
-
-      const ext =
-        path.extname(
-          bgPath
-        ).toLowerCase();
-
-      let bgImage;
-
-      if (
-        ext === ".png"
-      ) {
-
-        bgImage =
-          await pdfDoc.embedPng(
-            bgBytes
-          );
-
-      } else {
-
-        bgImage =
-          await pdfDoc.embedJpg(
-            bgBytes
-          );
-      }
-
-      page.drawImage(
-        bgImage,
-        {
-          x: 0,
-          y: 0,
-          width,
-          height,
-        }
-      );
-
-    } else {
-
-      // fallback rich background
-
-      page.drawRectangle({
-        x: 0,
-        y: 0,
-        width,
-        height,
-        color: rgb(
-          0.97,
-          0.95,
-          0.90
-        ),
-      });
-
-      // top line
-
-      page.drawRectangle({
-        x: 0,
-        y: height - 18,
-        width,
-        height: 18,
-        color: gold,
-      });
-
-      // bottom line
-
-      page.drawRectangle({
-        x: 0,
-        y: 0,
-        width,
-        height: 18,
-        color: gold,
-      });
-
-      // border
-
-      page.drawRectangle({
-        x: 40,
-        y: 40,
-        width:
-          width - 80,
-        height:
-          height - 80,
-        borderWidth: 4,
-        borderColor: gold,
-      });
     }
+  );
 
-    // =========================
-    // TITLE
-    // =========================
+  // =========================
+  // CENTER HELPER
+  // =========================
 
-    const title =
-      "CERTIFICATE";
+  const centerText = (
+    text,
+    size,
+    font
+  ) => {
 
-    const title2 =
-      "OF ACHIEVEMENT";
-
-    const titleSize =
-      40;
-
-    const titleWidth =
-      boldFont.widthOfTextAtSize(
-        title,
-        titleSize
-      );
-
-    page.drawText(
-      title,
-      {
-        x:
-          (
-            width -
-            titleWidth
-          ) / 2,
-
-        y:
-          height - 150,
-
-        size:
-          titleSize,
-
-        font:
-          boldFont,
-
-        color:
-          dark,
-      }
-    );
-
-    const title2Width =
-      boldFont.widthOfTextAtSize(
-        title2,
-        28
-      );
-
-    page.drawText(
-      title2,
-      {
-        x:
-          (
-            width -
-            title2Width
-          ) / 2,
-
-        y:
-          height - 200,
-
-        size: 28,
-
-        font:
-          boldFont,
-
-        color:
-          gold,
-      }
-    );
-
-    // =========================
-    // STUDENT NAME
-    // =========================
-
-    const nameSize =
-      52;
-
-    const safeName =
-      studentName ||
-      "Student";
-
-    const nameWidth =
-      boldFont.widthOfTextAtSize(
-        safeName,
-        nameSize
-      );
-
-    page.drawText(
-      safeName,
-      {
-        x:
-          (
-            width -
-            nameWidth
-          ) / 2,
-
-        y:
-          height - 340,
-
-        size:
-          nameSize,
-
-        font:
-          boldFont,
-
-        color:
-          gold,
-      }
-    );
-
-    // =========================
-    // DESCRIPTION
-    // =========================
-
-    const desc1 =
-      "has successfully completed";
-
-    const desc2 =
-      `${course} (${level})`;
-
-    const desc3 =
-      `under ${category}`;
-
-    const descSize =
-      26;
-
-    [
-      desc1,
-      desc2,
-      desc3,
-    ].forEach(
-      (
+    const textWidth =
+      font.widthOfTextAtSize(
         text,
-        index
-      ) => {
-
-        const textWidth =
-          normalFont.widthOfTextAtSize(
-            text,
-            descSize
-          );
-
-        page.drawText(
-          text,
-          {
-            x:
-              (
-                width -
-                textWidth
-              ) / 2,
-
-            y:
-              height -
-              450 -
-              (
-                index *
-                45
-              ),
-
-            size:
-              descSize,
-
-            font:
-              normalFont,
-
-            color:
-              gray,
-          }
-        );
-      }
-    );
-
-    // =========================
-    // LONG DESCRIPTION
-    // =========================
-
-    const safeDescription =
-      description ||
-      "With dedication and excellence.";
-
-    page.drawText(
-      safeDescription,
-      {
-        x: 180,
-        y:
-          height - 650,
-
-        size: 20,
-
-        font:
-          normalFont,
-
-        color:
-          black,
-
-        maxWidth:
-          width - 360,
-
-        lineHeight:
-          30,
-      }
-    );
-
-    // =========================
-    // DURATION
-    // =========================
-
-    page.drawText(
-      `Duration: ${duration}`,
-      {
-        x: 170,
-        y: 160,
-
-        size: 22,
-
-        font:
-          boldFont,
-
-        color:
-          dark,
-      }
-    );
-
-    // =========================
-    // DATE
-    // =========================
-
-    page.drawText(
-      `Completion Date: ${completionDate}`,
-      {
-        x: 900,
-        y: 160,
-
-        size: 22,
-
-        font:
-          boldFont,
-
-        color:
-          dark,
-      }
-    );
-
-    // =========================
-    // SIGNATURE LINE
-    // =========================
-
-    page.drawLine({
-      start: {
-        x: 1050,
-        y: 110,
-      },
-
-      end: {
-        x: 1250,
-        y: 110,
-      },
-
-      thickness: 2,
-
-      color: black,
-    });
-
-    page.drawText(
-      "Authorized Signature",
-      {
-        x: 1060,
-        y: 80,
-
-        size: 16,
-
-        font:
-          normalFont,
-
-        color:
-          gray,
-      }
-    );
-
-    // =========================
-    // SAVE PDF
-    // =========================
-
-    const pdfBytes =
-      await pdfDoc.save();
-
-    const cleanedName =
-      safeName
-        .replace(
-          /\s+/g,
-          "-"
-        )
-        .toLowerCase();
-
-    const fileName =
-      `${cleanedName}-${Date.now()}.pdf`;
-
-    const tempPath =
-      path.join(
-        process.cwd(),
-        fileName
+        size
       );
 
-    fs.writeFileSync(
-      tempPath,
-      pdfBytes
+    return (
+      (width - textWidth) / 2
+    );
+  };
+
+  // =========================
+  // CATEGORY
+  // =========================
+
+  page.drawText(
+    category,
+    {
+      x:
+        centerText(
+          category,
+          42,
+          boldFont
+        ),
+
+      y:
+        height - 330,
+
+      size: 42,
+
+      font:
+        boldFont,
+
+      color:
+        black,
+    }
+  );
+
+  // =========================
+  // COURSE
+  // =========================
+
+  const courseText =
+    course.toUpperCase();
+
+  page.drawText(
+    courseText,
+    {
+      x:
+        centerText(
+          courseText,
+          38,
+          boldFont
+        ),
+
+      y:
+        height - 400,
+
+      size: 38,
+
+      font:
+        boldFont,
+
+      color:
+        black,
+    }
+  );
+
+  // =========================
+  // STUDENT NAME
+  // =========================
+
+  page.drawText(
+    studentName,
+    {
+      x:
+        centerText(
+          studentName,
+          48,
+          boldFont
+        ),
+
+      y:
+        height - 500,
+
+      size: 48,
+
+      font:
+        boldFont,
+
+      color:
+        gold,
+    }
+  );
+
+  // =========================
+  // DESCRIPTION
+  // =========================
+
+  const desc1 =
+    `In recognition of successful completion of ${level}`;
+
+  const desc2 =
+    `in ${course} under ${category}`;
+
+  const desc3 =
+    description;
+
+  page.drawText(
+    desc1,
+    {
+      x:
+        centerText(
+          desc1,
+          24,
+          normalFont
+        ),
+
+      y:
+        height - 590,
+
+      size: 24,
+
+      font:
+        normalFont,
+
+      color:
+        black,
+    }
+  );
+
+  page.drawText(
+    desc2,
+    {
+      x:
+        centerText(
+          desc2,
+          24,
+          normalFont
+        ),
+
+      y:
+        height - 625,
+
+      size: 24,
+
+      font:
+        normalFont,
+
+      color:
+        black,
+    }
+  );
+
+  page.drawText(
+    desc3,
+    {
+      x:
+        centerText(
+          desc3,
+          20,
+          normalFont
+        ),
+
+      y:
+        height - 680,
+
+      size: 20,
+
+      font:
+        normalFont,
+
+      color:
+        black,
+    }
+  );
+
+  // =========================
+  // DURATION
+  // =========================
+
+  const durationText =
+    `Course Duration: ${duration}`;
+
+  page.drawText(
+    durationText,
+    {
+      x:
+        centerText(
+          durationText,
+          22,
+          normalFont
+        ),
+
+      y: 180,
+
+      size: 22,
+
+      font:
+        normalFont,
+
+      color:
+        black,
+    }
+  );
+
+  // =========================
+  // DATE
+  // =========================
+
+  const dateText =
+    `Date of Completion: ${completionDate}`;
+
+  page.drawText(
+    dateText,
+    {
+      x:
+        centerText(
+          dateText,
+          22,
+          normalFont
+        ),
+
+      y: 145,
+
+      size: 22,
+
+      font:
+        normalFont,
+
+      color:
+        black,
+    }
+  );
+
+  // =========================
+  // SAVE PDF
+  // =========================
+
+  const pdfBytes =
+    await pdfDoc.save();
+
+  // CREATE FOLDER
+
+  const certDir =
+    path.join(
+      process.cwd(),
+      "uploads",
+      "certificates"
     );
 
-    // =========================
-    // CLOUDINARY UPLOAD
-    // =========================
+  if (
+    !fs.existsSync(
+      certDir
+    )
+  ) {
 
-    const result =
-      await cloudinary.uploader.upload(
-        tempPath,
-        {
-          resource_type:
-            "raw",
-
-          folder:
-            "certificates",
-
-          public_id:
-            fileName.replace(
-              ".pdf",
-              ""
-            ),
-        }
-      );
-
-    // =========================
-    // DELETE TEMP FILE
-    // =========================
-
-    fs.unlinkSync(
-      tempPath
+    fs.mkdirSync(
+      certDir,
+      {
+        recursive:
+          true,
+      }
     );
-
-    return result.secure_url;
-
-  } catch (err) {
-
-    console.log(
-      "PDF GENERATION ERROR:",
-      err
-    );
-
-    throw err;
   }
+
+  const safeName =
+    studentName.replace(
+      /\s+/g,
+      "-"
+    );
+
+  const fileName =
+    `${safeName}-${Date.now()}.pdf`;
+
+  const outputPath =
+    path.join(
+      certDir,
+      fileName
+    );
+
+  fs.writeFileSync(
+    outputPath,
+    pdfBytes
+  );
+
+  // =========================
+  // RETURN URL
+  // =========================
+
+  return `http://localhost:5000/uploads/certificates/${fileName}`;
 };

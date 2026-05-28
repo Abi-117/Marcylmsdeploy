@@ -125,7 +125,8 @@ export default function AdminCertificates() {
             `${API}/certificates/approve/${id}`
           );
 
-        // remove from pending
+        // REMOVE FROM PENDING
+
         setPendingCerts(
           (prev) =>
             prev.filter(
@@ -134,14 +135,15 @@ export default function AdminCertificates() {
             )
         );
 
-        // add to approved list
+        // ADD TO APPROVED
+
         if (
-          res.data?.certificate
+          res.data?.cert
         ) {
 
           setApprovedCerts(
             (prev) => [
-              res.data.certificate,
+              res.data.cert,
               ...prev,
             ]
           );
@@ -188,9 +190,7 @@ export default function AdminCertificates() {
 
     <div className="min-h-screen bg-[#eef2ff] p-5 md:p-10">
 
-      {/* ========================= */}
       {/* HEADER */}
-      {/* ========================= */}
 
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 mb-10">
 
@@ -284,9 +284,7 @@ export default function AdminCertificates() {
 
       </div>
 
-      {/* ========================= */}
       {/* SEARCH */}
-      {/* ========================= */}
 
       <div className="bg-white p-5 rounded-3xl shadow-xl border border-slate-200 flex items-center gap-4 mb-10">
 
@@ -313,9 +311,7 @@ export default function AdminCertificates() {
 
       </div>
 
-      {/* ========================= */}
-      {/* PENDING SECTION */}
-      {/* ========================= */}
+      {/* PENDING */}
 
       <div className="mb-14">
 
@@ -395,30 +391,11 @@ export default function AdminCertificates() {
 
                   </div>
 
-                  {/* DETAILS */}
+                  {/* BODY */}
 
                   <div className="p-6 space-y-5">
 
-                    <div className="bg-slate-50 p-5 rounded-2xl border border-slate-200">
-
-                      <div className="flex items-center gap-3 mb-3">
-
-                        <div className="bg-cyan-100 p-3 rounded-xl">
-
-                          <GraduationCap
-                            className="text-cyan-600"
-                            size={20}
-                          />
-
-                        </div>
-
-                        <p className="text-slate-500 font-semibold">
-
-                          Course
-
-                        </p>
-
-                      </div>
+                    <div className="bg-slate-50 p-5 rounded-2xl border">
 
                       <h3 className="text-2xl font-black text-slate-800">
 
@@ -426,66 +403,22 @@ export default function AdminCertificates() {
 
                       </h3>
 
-                    </div>
+                      <p className="text-slate-500 mt-2">
 
-                    <div className="grid grid-cols-2 gap-4">
-
-                      <div className="bg-slate-50 p-5 rounded-2xl border border-slate-200">
-
-                        <p className="text-slate-500 font-semibold mb-2">
-
-                          Level
-
-                        </p>
-
-                        <h3 className="text-xl font-black text-slate-800">
-
-                          {cert.level}
-
-                        </h3>
-
-                      </div>
-
-                      <div className="bg-slate-50 p-5 rounded-2xl border border-slate-200">
-
-                        <p className="text-slate-500 font-semibold mb-2">
-
-                          Duration
-
-                        </p>
-
-                        <h3 className="text-xl font-black text-slate-800">
-
-                          {cert.duration}
-
-                        </h3>
-
-                      </div>
+                        {cert.level}
+                      </p>
 
                     </div>
 
-                    <div className="bg-slate-50 p-5 rounded-2xl border border-slate-200">
+                    <div className="bg-slate-50 p-5 rounded-2xl border">
 
-                      <div className="flex items-center gap-3 mb-3">
+                      <p className="text-slate-500 mb-2">
 
-                        <div className="bg-green-100 p-3 rounded-xl">
+                        Completion Date
 
-                          <Calendar
-                            className="text-green-600"
-                            size={20}
-                          />
+                      </p>
 
-                        </div>
-
-                        <p className="text-slate-500 font-semibold">
-
-                          Completion Date
-
-                        </p>
-
-                      </div>
-
-                      <h3 className="text-xl font-black text-slate-800">
+                      <h3 className="font-bold text-slate-800">
 
                         {cert.completionDate}
 
@@ -493,23 +426,15 @@ export default function AdminCertificates() {
 
                     </div>
 
-                    {/* PREVIEW IMAGE */}
-
                     {cert.previewImage && (
 
                       <img
                         src={cert.previewImage}
                         alt=""
-                        className="w-full h-[240px] object-cover rounded-2xl border border-slate-200"
+                        className="w-full h-[240px] object-cover rounded-2xl border"
                       />
 
                     )}
-
-                  </div>
-
-                  {/* BUTTON */}
-
-                  <div className="p-6 pt-0">
 
                     <button
                       onClick={() =>
@@ -520,24 +445,12 @@ export default function AdminCertificates() {
                       disabled={
                         loadingId === cert._id
                       }
-                      className="w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white py-5 rounded-2xl text-xl font-black shadow-lg hover:scale-[1.02] transition-all duration-300 flex items-center justify-center gap-3"
+                      className="w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white py-5 rounded-2xl text-xl font-black shadow-lg"
                     >
 
-                      {loadingId === cert._id ? (
-
-                        <>
-                          Generating PDF...
-                        </>
-
-                      ) : (
-
-                        <>
-                          <CheckCircle2 size={26} />
-
-                          Approve Certificate
-                        </>
-
-                      )}
+                      {loadingId === cert._id
+                        ? "Generating PDF..."
+                        : "Approve Certificate"}
 
                     </button>
 
@@ -554,9 +467,7 @@ export default function AdminCertificates() {
 
       </div>
 
-      {/* ========================= */}
-      {/* APPROVED SECTION */}
-      {/* ========================= */}
+      {/* APPROVED */}
 
       <div>
 
@@ -575,122 +486,50 @@ export default function AdminCertificates() {
 
         </div>
 
-        {approvedCerts.length === 0 ? (
+        <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-6">
 
-          <div className="bg-white rounded-[35px] p-12 text-center shadow-xl border border-slate-200">
+          {approvedCerts.map(
+            (cert) => (
 
-            <FileText
-              size={60}
-              className="mx-auto text-slate-400 mb-4"
-            />
+              <div
+                key={cert._id}
+                className="bg-white rounded-3xl p-6 shadow-xl border"
+              >
 
-            <h2 className="text-3xl font-black text-slate-700">
+                <h3 className="text-2xl font-black text-slate-800">
 
-              No Approved Certificates
+                  {cert.studentName}
 
-            </h2>
+                </h3>
 
-          </div>
+                <p className="text-slate-500 mt-2">
 
-        ) : (
+                  {cert.course}
+                </p>
 
-          <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-6">
+                <div className="mt-5">
 
-            {approvedCerts.map(
-              (cert) => (
+                  <a
+                    href={cert.pdfUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-4 rounded-2xl font-black flex items-center justify-center gap-3 transition-all duration-300"
+                  >
 
-                <div
-                  key={cert._id}
-                  className="bg-white rounded-3xl p-6 shadow-xl border border-slate-200"
-                >
+                    <Eye size={22} />
 
-                  <div className="flex justify-between items-start mb-5">
+                    View PDF
 
-                    <div>
-
-                      <h3 className="text-2xl font-black text-slate-800">
-
-                        {cert.studentName}
-
-                      </h3>
-
-                      <p className="text-slate-500 mt-1">
-
-                        {cert.course}
-                      </p>
-
-                    </div>
-
-                    <div className="bg-green-100 p-3 rounded-2xl">
-
-                      <CheckCircle2
-                        className="text-green-600"
-                        size={24}
-                      />
-
-                    </div>
-
-                  </div>
-
-                  <div className="space-y-3 mb-6">
-
-                    <div className="flex justify-between">
-
-                      <span className="text-slate-500">
-
-                        Level
-
-                      </span>
-
-                      <span className="font-bold text-slate-800">
-
-                        {cert.level}
-                      </span>
-
-                    </div>
-
-                    <div className="flex justify-between">
-
-                      <span className="text-slate-500">
-
-                        Date
-
-                      </span>
-
-                      <span className="font-bold text-slate-800">
-
-                        {cert.completionDate}
-                      </span>
-
-                    </div>
-
-                  </div>
-
-                  {cert.pdfUrl && (
-
-                    <a
-                      href={cert.pdfUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-4 rounded-2xl font-black flex items-center justify-center gap-3 transition-all duration-300"
-                    >
-
-                      <Eye size={22} />
-
-                      View PDF
-
-                    </a>
-
-                  )}
+                  </a>
 
                 </div>
 
-              )
-            )}
+              </div>
 
-          </div>
+            )
+          )}
 
-        )}
+        </div>
 
       </div>
 
