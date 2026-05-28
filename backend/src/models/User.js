@@ -142,6 +142,26 @@ const userSchema = new mongoose.Schema(
       default: "",
     },
 
+    classTime: {
+  type: String,
+  default: "",
+},
+
+reminderEnabled: {
+  type: Boolean,
+  default: true,
+},
+
+lastReminderSent: {
+  type: Date,
+  default: null,
+},
+
+feesReminderSent: {
+  type: Boolean,
+  default: false,
+},
+
     // =========================
     // TEACHER
     // =========================

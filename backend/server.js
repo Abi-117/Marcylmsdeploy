@@ -3,6 +3,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 
 dotenv.config();
+import "./cron/classReminder.js";
 
 import connectDB from "./src/config/db.js";
 import authRoutes from "./src/routes/authRoutes.js";
@@ -23,6 +24,9 @@ from "./src/routes/teacherAttendance.js";
 import adminAttendanceRoutes from "./src/routes/adminAttendanceRoutes.js";
 import feedbackRouter from "./src/routes/feedback.js";
 import certificateRoutes from "./src/routes/certificate.routes.js";
+import reminderRoutes
+from "./src/routes/reminderRoutes.js";
+
 import path from "path";
 
 
@@ -66,6 +70,12 @@ app.use("/api/feedback", feedbackRouter);
 app.use(
   "/api/certificates",
   certificateRoutes
+);
+
+
+app.use(
+  "/api/reminders",
+  reminderRoutes
 );
 // serve uploaded videos
 app.use("/uploads", express.static("uploads"));
