@@ -24,8 +24,8 @@ from "./src/routes/teacherAttendance.js";
 import adminAttendanceRoutes from "./src/routes/adminAttendanceRoutes.js";
 import feedbackRouter from "./src/routes/feedback.js";
 import certificateRoutes from "./src/routes/certificate.routes.js";
-import reminderRoutes
-from "./src/routes/reminderRoutes.js";
+// import reminderRoutes
+// from "./src/routes/reminderRoutes.js";
 
 import path from "path";
 
@@ -73,10 +73,10 @@ app.use(
 );
 
 
-app.use(
-  "/api/reminders",
-  reminderRoutes
-);
+// app.use(
+//   "/api/reminders",
+//   reminderRoutes
+// );
 // serve uploaded videos
 app.use("/uploads", express.static("uploads"));
 app.use(
