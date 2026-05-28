@@ -1,5 +1,8 @@
-import fs from "fs";
+// =====================================
+// utils/generateCertificate.js
+// =====================================
 
+import fs from "fs";
 import path from "path";
 
 import {
@@ -7,6 +10,9 @@ import {
   rgb,
   StandardFonts,
 } from "pdf-lib";
+
+import cloudinary
+from "../config/cloudinary.js";
 
 export const generateCertificate =
 async ({
@@ -19,382 +25,273 @@ async ({
   completionDate,
 }) => {
 
-  // =========================
-  // CREATE PDF
-  // =========================
+  try {
 
-  const pdfDoc =
-    await PDFDocument.create();
+    // =========================
+    // CREATE PDF
+    // =========================
 
-  const page =
-    pdfDoc.addPage([
-      1400,
-      1000,
-    ]);
+    const pdfDoc =
+      await PDFDocument.create();
 
-  const {
-    width,
-    height,
-  } = page.getSize();
+    const page =
+      pdfDoc.addPage([
+        1400,
+        1000,
+      ]);
 
-  // =========================
-  // COLORS
-  // =========================
-
-  const black =
-    rgb(0, 0, 0);
-
-  const gold =
-    rgb(
-      0.70,
-      0.55,
-      0.18
-    );
-
-  // =========================
-  // FONTS
-  // =========================
-
-  const boldFont =
-    await pdfDoc.embedFont(
-      StandardFonts.HelveticaBold
-    );
-
-  const normalFont =
-    await pdfDoc.embedFont(
-      StandardFonts.Helvetica
-    );
-
-  // =========================
-  // BG IMAGE
-  // =========================
-
-  const bgPath =
-    path.join(
-      process.cwd(),
-      "uploads",
-      "certificate-bg.png"
-    );
-
-  const bgBytes =
-    fs.readFileSync(
-      bgPath
-    );
-
-  const bgImage =
-    await pdfDoc.embedPng(
-      bgBytes
-    );
-
-  page.drawImage(
-    bgImage,
-    {
-      x: 0,
-      y: 0,
+    const {
       width,
       height,
-    }
-  );
+    } = page.getSize();
 
-  // =========================
-  // CENTER HELPER
-  // =========================
+    // =========================
+    // COLORS
+    // =========================
 
-  const centerText = (
-    text,
-    size,
-    font
-  ) => {
+    const black =
+      rgb(0, 0, 0);
 
-    const textWidth =
-      font.widthOfTextAtSize(
-        text,
-        size
+    const gold =
+      rgb(
+        0.72,
+        0.56,
+        0.18
       );
 
-    return (
-      (width - textWidth) / 2
-    );
-  };
+    // =========================
+    // FONTS
+    // =========================
 
-  // =========================
-  // CATEGORY
-  // =========================
+    const boldFont =
+      await pdfDoc.embedFont(
+        StandardFonts.HelveticaBold
+      );
 
-  page.drawText(
-    category,
-    {
-      x:
-        centerText(
-          category,
-          42,
-          boldFont
-        ),
+    const normalFont =
+      await pdfDoc.embedFont(
+        StandardFonts.Helvetica
+      );
 
-      y:
-        height - 330,
+    // =========================
+    // BACKGROUND IMAGE
+    // =========================
 
-      size: 42,
+    const bgPath =
+      path.join(
+        process.cwd(),
+        "uploads",
+        "certificate-bg.png"
+      );
 
-      font:
-        boldFont,
+    if (
+      !fs.existsSync(bgPath)
+    ) {
 
-      color:
-        black,
+      throw new Error(
+        "certificate-bg.png not found"
+      );
     }
-  );
 
-  // =========================
-  // COURSE
-  // =========================
+    const bgBytes =
+      fs.readFileSync(
+        bgPath
+      );
 
-  const courseText =
-    course.toUpperCase();
+    const bgImage =
+      await pdfDoc.embedPng(
+        bgBytes
+      );
 
-  page.drawText(
-    courseText,
-    {
-      x:
-        centerText(
-          courseText,
-          38,
-          boldFont
-        ),
-
-      y:
-        height - 400,
-
-      size: 38,
-
-      font:
-        boldFont,
-
-      color:
-        black,
-    }
-  );
-
-  // =========================
-  // STUDENT NAME
-  // =========================
-
-  page.drawText(
-    studentName,
-    {
-      x:
-        centerText(
-          studentName,
-          48,
-          boldFont
-        ),
-
-      y:
-        height - 500,
-
-      size: 48,
-
-      font:
-        boldFont,
-
-      color:
-        gold,
-    }
-  );
-
-  // =========================
-  // DESCRIPTION
-  // =========================
-
-  const desc1 =
-    `In recognition of successful completion of ${level}`;
-
-  const desc2 =
-    `in ${course} under ${category}`;
-
-  const desc3 =
-    description;
-
-  page.drawText(
-    desc1,
-    {
-      x:
-        centerText(
-          desc1,
-          24,
-          normalFont
-        ),
-
-      y:
-        height - 590,
-
-      size: 24,
-
-      font:
-        normalFont,
-
-      color:
-        black,
-    }
-  );
-
-  page.drawText(
-    desc2,
-    {
-      x:
-        centerText(
-          desc2,
-          24,
-          normalFont
-        ),
-
-      y:
-        height - 625,
-
-      size: 24,
-
-      font:
-        normalFont,
-
-      color:
-        black,
-    }
-  );
-
-  page.drawText(
-    desc3,
-    {
-      x:
-        centerText(
-          desc3,
-          20,
-          normalFont
-        ),
-
-      y:
-        height - 680,
-
-      size: 20,
-
-      font:
-        normalFont,
-
-      color:
-        black,
-    }
-  );
-
-  // =========================
-  // DURATION
-  // =========================
-
-  const durationText =
-    `Course Duration: ${duration}`;
-
-  page.drawText(
-    durationText,
-    {
-      x:
-        centerText(
-          durationText,
-          22,
-          normalFont
-        ),
-
-      y: 180,
-
-      size: 22,
-
-      font:
-        normalFont,
-
-      color:
-        black,
-    }
-  );
-
-  // =========================
-  // DATE
-  // =========================
-
-  const dateText =
-    `Date of Completion: ${completionDate}`;
-
-  page.drawText(
-    dateText,
-    {
-      x:
-        centerText(
-          dateText,
-          22,
-          normalFont
-        ),
-
-      y: 145,
-
-      size: 22,
-
-      font:
-        normalFont,
-
-      color:
-        black,
-    }
-  );
-
-  // =========================
-  // SAVE PDF
-  // =========================
-
-  const pdfBytes =
-    await pdfDoc.save();
-
-  // CREATE FOLDER
-
-  const certDir =
-    path.join(
-      process.cwd(),
-      "uploads",
-      "certificates"
-    );
-
-  if (
-    !fs.existsSync(
-      certDir
-    )
-  ) {
-
-    fs.mkdirSync(
-      certDir,
+    page.drawImage(
+      bgImage,
       {
-        recursive:
-          true,
+        x: 0,
+        y: 0,
+        width,
+        height,
       }
     );
+
+    // =========================
+    // CATEGORY
+    // =========================
+
+    page.drawText(
+      category || "Performance Arts",
+      {
+        x: 520,
+        y: 690,
+        size: 40,
+        font: boldFont,
+        color: black,
+      }
+    );
+
+    // =========================
+    // COURSE
+    // =========================
+
+    page.drawText(
+      course.toUpperCase(),
+      {
+        x: 560,
+        y: 620,
+        size: 36,
+        font: boldFont,
+        color: black,
+      }
+    );
+
+    // =========================
+    // STUDENT NAME
+    // =========================
+
+    page.drawText(
+      studentName,
+      {
+        x: 520,
+        y: 520,
+        size: 42,
+        font: boldFont,
+        color: gold,
+      }
+    );
+
+    // =========================
+    // DESCRIPTION
+    // =========================
+
+    const desc1 =
+      `Successfully completed ${level}`;
+
+    const desc2 =
+      `${course} under ${category}`;
+
+    page.drawText(
+      desc1,
+      {
+        x: 420,
+        y: 430,
+        size: 24,
+        font: normalFont,
+        color: black,
+      }
+    );
+
+    page.drawText(
+      desc2,
+      {
+        x: 470,
+        y: 390,
+        size: 24,
+        font: normalFont,
+        color: black,
+      }
+    );
+
+    // =========================
+    // DURATION
+    // =========================
+
+    page.drawText(
+      `Course Duration: ${duration}`,
+      {
+        x: 500,
+        y: 200,
+        size: 22,
+        font: normalFont,
+        color: black,
+      }
+    );
+
+    // =========================
+    // DATE
+    // =========================
+
+    page.drawText(
+      `Date of Completion: ${completionDate}`,
+      {
+        x: 460,
+        y: 160,
+        size: 22,
+        font: normalFont,
+        color: black,
+      }
+    );
+
+    // =========================
+    // SAVE PDF TEMP
+    // =========================
+
+    const pdfBytes =
+      await pdfDoc.save();
+
+    const fileName =
+      `${studentName}-${Date.now()}.pdf`;
+
+    const tempPath =
+      path.join(
+        process.cwd(),
+        fileName
+      );
+
+    fs.writeFileSync(
+      tempPath,
+      pdfBytes
+    );
+
+    // =========================
+    // CLOUDINARY UPLOAD
+    // IMPORTANT
+    // =========================
+
+    const result =
+      await cloudinary.uploader.upload(
+        tempPath,
+        {
+          resource_type:
+            "raw",
+
+          folder:
+            "certificates",
+
+          public_id:
+            fileName.replace(
+              ".pdf",
+              ""
+            ),
+
+          format:
+            "pdf",
+        }
+      );
+
+    // DELETE TEMP FILE
+
+    fs.unlinkSync(
+      tempPath
+    );
+
+    // =========================
+    // RETURN WORKING URL
+    // =========================
+
+    const pdfUrl =
+      result.secure_url.replace(
+        "/upload/",
+        "/upload/fl_attachment/"
+      );
+
+    return pdfUrl;
+
+  } catch (err) {
+
+    console.log(
+      "PDF GENERATE ERROR:",
+      err
+    );
+
+    throw err;
   }
-
-  const safeName =
-    studentName.replace(
-      /\s+/g,
-      "-"
-    );
-
-  const fileName =
-    `${safeName}-${Date.now()}.pdf`;
-
-  const outputPath =
-    path.join(
-      certDir,
-      fileName
-    );
-
-  fs.writeFileSync(
-    outputPath,
-    pdfBytes
-  );
-
-  // =========================
-  // RETURN URL
-  // =========================
-
-  return `http://localhost:5000/uploads/certificates/${fileName}`;
 };
