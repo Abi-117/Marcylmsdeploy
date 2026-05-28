@@ -6,8 +6,12 @@ import {
 
 import axios from "axios";
 
+// IMPORTANT
+// INSTALL:
+// npm install html2canvas-pro
+
 import html2canvas
-from "html2canvas";
+from "html2canvas-pro";
 
 import preview
 from "../../assets/certificate-bg.png";
@@ -22,6 +26,9 @@ TeacherCertificateForm() {
   // STATES
   // =========================
 
+  const previewRef =
+    useRef<any>(null);
+
   const [
     students,
     setStudents,
@@ -31,9 +38,6 @@ TeacherCertificateForm() {
     loading,
     setLoading,
   ] = useState(false);
-
-  const previewRef =
-    useRef<any>(null);
 
   const [
     form,
@@ -63,6 +67,20 @@ TeacherCertificateForm() {
       new Date()
         .toDateString(),
   });
+
+  // =========================
+  // FIX OKLCH ERROR
+  // =========================
+
+  useEffect(() => {
+
+    document.body.style.backgroundColor =
+      "#f3f4f6";
+
+    document.body.style.color =
+      "#000000";
+
+  }, []);
 
   // =========================
   // FETCH STUDENTS
@@ -96,7 +114,7 @@ TeacherCertificateForm() {
     };
 
   // =========================
-  // HANDLE INPUT
+  // HANDLE CHANGE
   // =========================
 
   const handleChange =
@@ -146,28 +164,41 @@ TeacherCertificateForm() {
   // =========================
 
   const sendRequest =
-    async () => {
+  async () => {
 
-      try {
+    try {
 
-        setLoading(true);
+      setLoading(true);
 
-        const canvas =
-          await html2canvas(
-            previewRef.current,
-            {
-              scale: 2,
-              useCORS: true,
-              backgroundColor:
-                "#ffffff",
-            }
-          );
+      console.log(
+        "START"
+      );
 
-        const previewImage =
-          canvas.toDataURL(
-            "image/png"
-          );
+      const canvas =
+        await html2canvas(
+          previewRef.current,
+          {
+            scale: 2,
+            useCORS: true,
+            backgroundColor:
+              "#ffffff",
+          }
+        );
 
+      console.log(
+        "CANVAS DONE"
+      );
+
+      const previewImage =
+        canvas.toDataURL(
+          "image/png"
+        );
+
+      console.log(
+        "IMAGE DONE"
+      );
+
+      const res =
         await axios.post(
           `${API}/certificates/create`,
           {
@@ -176,27 +207,40 @@ TeacherCertificateForm() {
           }
         );
 
-        alert(
-          "Certificate Request Sent"
-        );
+      console.log(
+        res.data
+      );
 
-      } catch (err) {
+      alert(
+        "Certificate Request Sent"
+      );
 
-        console.log(err);
+    } catch (err) {
 
-      } finally {
+      console.log(
+        err
+      );
 
-        setLoading(false);
+      alert(
+        "Request Failed"
+      );
 
-      }
-    };
+    } finally {
+
+      setLoading(false);
+
+    }
+  };
 
   return (
 
     <div
+      style={{
+        backgroundColor:
+          "#f3f4f6",
+      }}
       className="
         min-h-screen
-        bg-gray-100
         p-3
         md:p-6
         lg:p-10
@@ -217,10 +261,13 @@ TeacherCertificateForm() {
         {/* ========================= */}
 
         <div
+          style={{
+            backgroundColor:
+              "#ffffff",
+          }}
           className="
             w-full
             xl:w-[420px]
-            bg-white
             rounded-2xl
             shadow-lg
             p-5
@@ -257,20 +304,25 @@ TeacherCertificateForm() {
               </label>
 
               <select
-                className="
-                  w-full
-                  border
-                  border-gray-300
-                  rounded-lg
-                  p-3
-                  bg-white
-                "
-                onChange={
-                  handleStudent
-                }
                 value={
                   form.student
                 }
+                onChange={
+                  handleStudent
+                }
+                className="
+                  w-full
+                  border
+                  rounded-lg
+                  p-3
+                "
+                style={{
+                  backgroundColor:
+                    "#ffffff",
+
+                  borderColor:
+                    "#d1d5db",
+                }}
               >
 
                 <option value="">
@@ -302,18 +354,12 @@ TeacherCertificateForm() {
 
             <div>
 
-              <label
-                className="
-                  text-sm
-                  font-medium
-                  mb-2
-                  block
-                "
-              >
+              <label className="block mb-2 text-sm font-medium">
                 Course
               </label>
 
               <input
+                type="text"
                 name="course"
                 value={
                   form.course
@@ -324,7 +370,6 @@ TeacherCertificateForm() {
                 className="
                   w-full
                   border
-                  border-gray-300
                   rounded-lg
                   p-3
                 "
@@ -336,18 +381,12 @@ TeacherCertificateForm() {
 
             <div>
 
-              <label
-                className="
-                  text-sm
-                  font-medium
-                  mb-2
-                  block
-                "
-              >
+              <label className="block mb-2 text-sm font-medium">
                 Category
               </label>
 
               <input
+                type="text"
                 name="category"
                 value={
                   form.category
@@ -358,7 +397,6 @@ TeacherCertificateForm() {
                 className="
                   w-full
                   border
-                  border-gray-300
                   rounded-lg
                   p-3
                 "
@@ -370,18 +408,12 @@ TeacherCertificateForm() {
 
             <div>
 
-              <label
-                className="
-                  text-sm
-                  font-medium
-                  mb-2
-                  block
-                "
-              >
+              <label className="block mb-2 text-sm font-medium">
                 Level
               </label>
 
               <input
+                type="text"
                 name="level"
                 value={
                   form.level
@@ -392,7 +424,6 @@ TeacherCertificateForm() {
                 className="
                   w-full
                   border
-                  border-gray-300
                   rounded-lg
                   p-3
                 "
@@ -404,14 +435,7 @@ TeacherCertificateForm() {
 
             <div>
 
-              <label
-                className="
-                  text-sm
-                  font-medium
-                  mb-2
-                  block
-                "
-              >
+              <label className="block mb-2 text-sm font-medium">
                 Description
               </label>
 
@@ -426,7 +450,6 @@ TeacherCertificateForm() {
                 className="
                   w-full
                   border
-                  border-gray-300
                   rounded-lg
                   p-3
                   h-40
@@ -439,18 +462,12 @@ TeacherCertificateForm() {
 
             <div>
 
-              <label
-                className="
-                  text-sm
-                  font-medium
-                  mb-2
-                  block
-                "
-              >
+              <label className="block mb-2 text-sm font-medium">
                 Duration
               </label>
 
               <input
+                type="text"
                 name="duration"
                 value={
                   form.duration
@@ -461,7 +478,6 @@ TeacherCertificateForm() {
                 className="
                   w-full
                   border
-                  border-gray-300
                   rounded-lg
                   p-3
                 "
@@ -473,18 +489,12 @@ TeacherCertificateForm() {
 
             <div>
 
-              <label
-                className="
-                  text-sm
-                  font-medium
-                  mb-2
-                  block
-                "
-              >
+              <label className="block mb-2 text-sm font-medium">
                 Completion Date
               </label>
 
               <input
+                type="text"
                 name="completionDate"
                 value={
                   form.completionDate
@@ -495,7 +505,6 @@ TeacherCertificateForm() {
                 className="
                   w-full
                   border
-                  border-gray-300
                   rounded-lg
                   p-3
                 "
@@ -512,10 +521,15 @@ TeacherCertificateForm() {
               disabled={
                 loading
               }
+              style={{
+                backgroundColor:
+                  "#000000",
+
+                color:
+                  "#ffffff",
+              }}
               className="
                 w-full
-                bg-black
-                text-white
                 rounded-lg
                 py-3
                 font-semibold
@@ -541,22 +555,20 @@ TeacherCertificateForm() {
           className="
             flex-1
             overflow-auto
-            bg-white
             rounded-2xl
             shadow-lg
             p-3
             md:p-5
           "
+          style={{
+            backgroundColor:
+              "#ffffff",
+          }}
         >
 
-          {/* RESPONSIVE WRAPPER */}
+          {/* MOBILE RESPONSIVE */}
 
-          <div
-            className="
-              w-full
-              overflow-auto
-            "
-          >
+          <div className="overflow-auto w-full">
 
             {/* CERTIFICATE */}
 
@@ -568,25 +580,21 @@ TeacherCertificateForm() {
                 h-[1000px]
                 overflow-hidden
                 rounded-lg
-                bg-white
                 origin-top-left
 
-                scale-[0.18]
+                scale-[0.16]
 
-                sm:scale-[0.24]
+                sm:scale-[0.22]
 
-                md:scale-[0.32]
+                md:scale-[0.30]
 
-                lg:scale-[0.40]
+                lg:scale-[0.38]
 
-                xl:scale-[0.48]
+                xl:scale-[0.45]
               "
               style={{
                 backgroundColor:
                   "#ffffff",
-
-                color:
-                  "#000000",
               }}
             >
 
@@ -606,14 +614,7 @@ TeacherCertificateForm() {
 
               {/* CONTENT */}
 
-              <div
-                className="
-                  relative
-                  z-10
-                  w-full
-                  h-full
-                "
-              >
+              <div className="relative z-10 w-full h-full">
 
                 {/* CATEGORY */}
 
@@ -626,6 +627,10 @@ TeacherCertificateForm() {
                     font-bold
                     whitespace-nowrap
                   "
+                  style={{
+                    color:
+                      "#000000",
+                  }}
                 >
                   {form.category}
                 </h1>
@@ -642,11 +647,15 @@ TeacherCertificateForm() {
                     uppercase
                     whitespace-nowrap
                   "
+                  style={{
+                    color:
+                      "#000000",
+                  }}
                 >
                   {form.course}
                 </h2>
 
-                {/* STUDENT NAME */}
+                {/* STUDENT */}
 
                 <h3
                   className="
@@ -655,9 +664,12 @@ TeacherCertificateForm() {
                     left-[710px]
                     text-[48px]
                     font-bold
-                    text-yellow-700
                     whitespace-nowrap
                   "
+                  style={{
+                    color:
+                      "#b68b2d",
+                  }}
                 >
                   {form.studentName}
                 </h3>
@@ -674,6 +686,10 @@ TeacherCertificateForm() {
                     text-[24px]
                     leading-[42px]
                   "
+                  style={{
+                    color:
+                      "#000000",
+                  }}
                 >
 
                   <p>
@@ -709,6 +725,10 @@ TeacherCertificateForm() {
                     left-[680px]
                     text-[24px]
                   "
+                  style={{
+                    color:
+                      "#000000",
+                  }}
                 >
 
                   Course Duration:
@@ -726,6 +746,10 @@ TeacherCertificateForm() {
                     left-[620px]
                     text-[24px]
                   "
+                  style={{
+                    color:
+                      "#000000",
+                  }}
                 >
 
                   Date of Completion:

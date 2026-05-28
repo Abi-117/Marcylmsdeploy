@@ -16,31 +16,25 @@ const router =
 
 router.post(
   "/create",
-
-  async (
-    req,
-    res
-  ) => {
+  async (req, res) => {
 
     try {
 
-      const cert =
-        await CertificateRequest.create(
-          req.body
-        );
+      console.log(req.body);
 
-      res.json({
-        success:
-          true,
-
-        cert,
+      return res.status(200).json({
+        success: true,
+        message:
+          "Certificate Request Created",
       });
 
     } catch (err) {
 
+      console.log(err);
+
       res.status(500).json({
         message:
-          err.message,
+          "Server Error",
       });
 
     }
