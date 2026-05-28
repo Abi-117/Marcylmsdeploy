@@ -1,57 +1,55 @@
-// =====================================
-// models/certificate.model.js
-// =====================================
-
 import mongoose from "mongoose";
 
-const certificateSchema = new mongoose.Schema(
-  {
-    studentId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+const certificateSchema =
+  new mongoose.Schema(
+    {
+      student: {
+        type:
+          mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+
+      teacher: {
+        type:
+          mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+
+      studentName: String,
+
+      course: String,
+
+      level: String,
+
+      completionDate: String,
+
+      status: {
+        type: String,
+
+        enum: [
+          "pending",
+          "approved",
+          "rejected",
+        ],
+
+        default: "pending",
+      },
+
+      pdfUrl: String,
+
+      approvedBy: {
+        type:
+          mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
     },
 
-    title: {
-      type: String,
-      default: "Certificate of Completion",
-    },
+    {
+      timestamps: true,
+    }
+  );
 
-    course: {
-      type: String,
-      required: true,
-    },
-
-    level: {
-      type: String,
-      required: true,
-    },
-
-    studentName: {
-      type: String,
-      required: true,
-    },
-
-    date: {
-      type: String,
-    },
-
-    earned: {
-      type: Boolean,
-      default: true,
-    },
-
-    fileUrl: {
-      type: String,
-    },
-  },
-  {
-    timestamps: true,
-  }
-);
-
-const Certificate = mongoose.model(
+export default mongoose.model(
   "Certificate",
   certificateSchema
 );
-
-export default Certificate;

@@ -1,97 +1,174 @@
-// =====================================
-// routes/certificate.routes.js
-// =====================================
-
 import express from "express";
 
-import Certificate from "../models/certificate.model.js";
+import Certificate from
+"../models/certificate.model.js";
 
-import {
-  generateCertificate,
-} from "../utils/generateCertificate.js";
-
-const router = express.Router();
-
-// =====================================
-// GENERATE CERTIFICATE
-// =====================================
+const router =
+  express.Router();
 
 router.post(
-  "/generate",
-  async (req, res) => {
+  "/create",
+  async (
+    req,
+    res
+  ) => {
+
     try {
+
       const {
-        studentId,
+        student,
+        teacher,
         studentName,
         course,
         level,
+        completionDate,
       } = req.body;
-
-      // ========================
-      // GENERATE PDF
-      // ========================
-
-      const fileUrl =
-        await generateCertificate({
-          studentName,
-          course,
-          level,
-          completionDate:
-            new Date().toDateString(),
-        });
-
-      // ========================
-      // SAVE DB
-      // ========================
 
       const cert =
         await Certificate.create({
-          studentId,
+          student,
+          teacher,
           studentName,
           course,
           level,
-          earned: true,
-          date:
-            new Date().toDateString(),
-          fileUrl,
+          completionDate,
         });
 
-      res.status(200).json(cert);
+      res.json({
+        success: true,
+        cert,
+      });
+
     } catch (err) {
-      console.log(err);
 
       res.status(500).json({
         message:
-          "Certificate generation failed",
+          err.message,
       });
+
     }
   }
 );
 
-// =====================================
-// GET CERTIFICATES
-// =====================================
+router.put(
+  "/approve/:id",
+  async (
+    req,
+    res
+  ) => {
 
-router.get(
-  "/:studentId",
-  async (req, res) => {
     try {
-      const data =
-        await Certificate.find({
-          studentId:
-            req.params.studentId,
-        }).sort({
-          createdAt: -1,
+
+      const cert =
+        await Certificate.findById(
+          req.params.id
+        );
+
+      if (!cert) {
+
+        return res
+          .status(404)
+          .json({
+            message:
+              "Certificate not found",
+          });
+      }
+
+      // PDF GENERATE
+
+      const pdfUrl =
+        await generateCertificate({
+          studentName:
+            cert.studentName,
+
+          course:
+            cert.course,
+
+          level:
+            cert.level,
+
+          completionDate:
+            cert.completionDate,
         });
 
-      res.json(data);
+      cert.status =
+        "approved";
+
+      cert.pdfUrl =
+        pdfUrl;
+
+      await cert.save();
+
+      res.json({
+        success: true,
+        cert,
+      });
+
     } catch (err) {
+
       res.status(500).json({
         message:
-          "Failed to fetch certificates",
+          err.message,
       });
+
     }
   }
 );
+router.get(
+  "/student/:id",
+  async (
+    req,
+    res
+  ) => {
 
+    try {
+
+      const certs =
+        await Certificate.find({
+          student:
+            req.params.id,
+
+          status:
+            "approved",
+        });
+
+      res.json(certs);
+
+    } catch (err) {
+
+      res.status(500).json({
+        message:
+          err.message,
+      });
+
+    }
+  }
+);
+router.get(
+  "/pending",
+  async (
+    req,
+    res
+  ) => {
+
+    try {
+
+      const certs =
+        await Certificate.find({
+          status:
+            "pending",
+        });
+
+      res.json(certs);
+
+    } catch (err) {
+
+      res.status(500).json({
+        message:
+          err.message,
+      });
+
+    }
+  }
+);
 export default router;

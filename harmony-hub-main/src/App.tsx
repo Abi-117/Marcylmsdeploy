@@ -25,6 +25,7 @@ import AdminClasses from "./pages/admin/Classes";
 import AdminPayments from "./pages/admin/Payments";
 import AdminCourses from "./pages/admin/Courses";
 import AdminFeedback from "./pages/admin/AdminFeedback";
+import AdminCertificates from "./pages/admin/AdminCertificates";
 import AdminEvents from "./pages/admin/Events";
 import AdminReports from "./pages/admin/Reports";
 
@@ -35,6 +36,7 @@ import TeacherAttendance from "./pages/teacher/TeacherAttendance";
 import TeacherGrades from "./pages/teacher/TeacherAttendanceDashboard";
 import TeacherAssignments from "./pages/teacher/Assignments";
 import TeacherFeedback from "./pages/teacher/TeacherFeedback";
+import TeacherCertificates from "./pages/teacher/TeacherCertificates";
 import TeacherAssignmentReviews from "./pages/teacher/AssignmentReviewPanel";
 import TeacherSchedule from "./pages/teacher/Schedule";
 
@@ -101,6 +103,7 @@ export default function App() {
         <Route path="events" element={<AdminEvents />} />
         <Route path="reports" element={<AdminReports />} />
         <Route path="feedback" element={<AdminFeedback />} />
+        <Route path="certificates" element={<AdminCertificates />} />
       </Route>
 
       {/* Teacher */}
@@ -114,6 +117,7 @@ export default function App() {
         <Route path="assignmentreviews" element={<TeacherAssignmentReviews />} />
         <Route path="schedule" element={<TeacherSchedule />} />
         <Route path="feedback" element={<TeacherFeedback />} />
+        <Route path="certificates" element={<TeacherCertificates />} />
       </Route>
 
       {/* Student */}

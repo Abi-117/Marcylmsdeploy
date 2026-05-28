@@ -3,7 +3,6 @@
 // =====================================
 
 import fs from "fs";
-
 import path from "path";
 
 import {
@@ -13,225 +12,450 @@ import {
 } from "pdf-lib";
 
 export const generateCertificate =
-  async ({
-    studentName,
-    course,
-    level,
-    completionDate,
-  }) => {
-    // ==========================
-    // CREATE PDF
-    // ==========================
+async ({
+  studentName,
+  course,
+  level,
+  completionDate,
+}) => {
 
-    const pdfDoc =
-      await PDFDocument.create();
+  // ==========================
+  // CREATE PDF
+  // ==========================
 
-    const page = pdfDoc.addPage([
+  const pdfDoc =
+    await PDFDocument.create();
+
+  const page =
+    pdfDoc.addPage([
       1200,
       850,
     ]);
 
-    const { width, height } =
-      page.getSize();
+  const {
+    width,
+    height,
+  } = page.getSize();
 
-    // ==========================
-    // COLORS
-    // ==========================
+  // ==========================
+  // COLORS
+  // ==========================
 
-    const gold = rgb(
-      0.75,
-      0.58,
-      0.15
+  const black =
+    rgb(0, 0, 0);
+
+  const gold =
+    rgb(
+      0.68,
+      0.52,
+      0.18
     );
 
-    const black = rgb(0, 0, 0);
+  // ==========================
+  // FONTS
+  // ==========================
 
-    // ==========================
-    // FONTS
-    // ==========================
+  // BEST BUILT-IN FONT
+  // similar "g" style
 
-    const boldFont =
-      await pdfDoc.embedFont(
-        StandardFonts.HelveticaBold
-      );
+  const boldFont =
+    await pdfDoc.embedFont(
+      StandardFonts.HelveticaBold
+    );
 
-    const normalFont =
-      await pdfDoc.embedFont(
-        StandardFonts.Helvetica
-      );
+  const normalFont =
+    await pdfDoc.embedFont(
+      StandardFonts.Helvetica
+    );
 
-    // ==========================
-    // BORDER
-    // ==========================
+  // ==========================
+  // BACKGROUND IMAGE
+  // ==========================
 
-    page.drawRectangle({
-      x: 20,
-      y: 20,
-      width: width - 40,
-      height: height - 40,
-      borderWidth: 8,
-      borderColor: gold,
-    });
-
-    // ==========================
-    // LOGO
-    // ==========================
-
-    const logoPath = path.join(
+  const bgPath =
+    path.join(
       process.cwd(),
-      "uploads/logo.png"
+      "uploads/certificate-bg.png"
     );
 
-    const logoBytes =
-      fs.readFileSync(logoPath);
-
-    const logoImage =
-      await pdfDoc.embedPng(
-        logoBytes
-      );
-
-    page.drawImage(logoImage, {
-      x: width / 2 - 70,
-      y: height - 170,
-      width: 140,
-      height: 140,
-    });
-
-    // ==========================
-    // TITLE
-    // ==========================
-
-    page.drawText(
-      "CERTIFICATE OF COMPLETION",
-      {
-        x: 220,
-        y: height - 220,
-        size: 34,
-        font: boldFont,
-        color: black,
-      }
+  const bgBytes =
+    fs.readFileSync(
+      bgPath
     );
 
-    // ==========================
-    // TAGLINE
-    // ==========================
-
-    page.drawText(
-      "Empowering Confidence | Creativity | Communication",
-      {
-        x: 240,
-        y: height - 260,
-        size: 18,
-        font: normalFont,
-      }
+  const bgImage =
+    await pdfDoc.embedPng(
+      bgBytes
     );
 
-    // ==========================
-    // STUDENT NAME
-    // ==========================
+  page.drawImage(
+    bgImage,
+    {
+      x: 0,
+      y: 0,
+      width,
+      height,
+    }
+  );
 
-    page.drawText(studentName, {
-      x: 350,
-      y: height - 360,
-      size: 40,
-      font: boldFont,
-      color: gold,
-    });
+  // ==========================
+  // CENTER SHIFT
+  // ==========================
 
-    // ==========================
-    // COURSE
-    // ==========================
+  const CENTER_SHIFT_X =
+    70;
 
-    page.drawText(course, {
-      x: 430,
-      y: height - 430,
-      size: 28,
-      font: boldFont,
-    });
+  // ==========================
+  // LETTER SPACING FUNCTION
+  // ==========================
 
-    // ==========================
-    // LEVEL
-    // ==========================
+  const drawSpacedText = ({
+    text,
+    x,
+    y,
+    size = 22,
+    font = normalFont,
+    color = black,
+    spacing = 0.5,
+  }) => {
 
-    page.drawText(level, {
-      x: 500,
-      y: height - 470,
-      size: 24,
-      font: boldFont,
-      color: gold,
-    });
+    let currentX = x;
 
-    // ==========================
-    // DESCRIPTION
-    // ==========================
+    text
+      .split("")
+      .forEach((char) => {
 
-    page.drawText(
-      `Successfully completed ${level} in ${course}`,
-      {
-        x: 260,
-        y: height - 550,
-        size: 22,
-        font: normalFont,
-      }
-    );
+        page.drawText(
+          char,
+          {
+            x: currentX,
+            y,
+            size,
+            font,
+            color,
+          }
+        );
 
-    // ==========================
-    // DATE
-    // ==========================
+        currentX +=
+          font.widthOfTextAtSize(
+            char,
+            size
+          ) + spacing;
 
-    page.drawText(
-      `Date : ${completionDate}`,
-      {
-        x: 430,
-        y: height - 620,
-        size: 20,
-        font: normalFont,
-      }
-    );
-
-    // ==========================
-    // SIGNATURE
-    // ==========================
-
-    page.drawText(
-      "Msrceline Samuel | Founder & Director",
-      {
-        x: 320,
-        y: 100,
-        size: 22,
-        font: boldFont,
-      }
-    );
-
-    page.drawText(
-      "Marcys Academy of Music & Speech",
-      {
-        x: 350,
-        y: 70,
-        size: 18,
-        font: boldFont,
-      }
-    );
-
-    // ==========================
-    // SAVE PDF
-    // ==========================
-
-    const pdfBytes =
-      await pdfDoc.save();
-
-    const fileName = `${studentName}-${Date.now()}.pdf`;
-
-    const outputPath = path.join(
-      process.cwd(),
-      "uploads/certificates",
-      fileName
-    );
-
-    fs.writeFileSync(
-      outputPath,
-      pdfBytes
-    );
-
-    return `/uploads/certificates/${fileName}`;
+      });
   };
+
+  // ==========================
+  // CATEGORY
+  // ==========================
+
+  const category =
+    "Performance Arts";
+
+  const categorySize =
+    40;
+
+  const categoryWidth =
+    boldFont.widthOfTextAtSize(
+      category,
+      categorySize
+    );
+
+  page.drawText(
+    category,
+    {
+      x:
+        (
+          width -
+          categoryWidth
+        ) / 2
+        +
+        CENTER_SHIFT_X,
+
+      y:
+        height - 285,
+
+      size:
+        categorySize,
+
+      font:
+        boldFont,
+
+      color:
+        black,
+    }
+  );
+
+  // ==========================
+  // COURSE
+  // ==========================
+
+  const courseText =
+    course.toUpperCase();
+
+  const courseSize =
+    40;
+
+  const courseWidth =
+    boldFont.widthOfTextAtSize(
+      courseText,
+      courseSize
+    );
+
+  page.drawText(
+    courseText,
+    {
+      x:
+        (
+          width -
+          courseWidth
+        ) / 2
+        +
+        CENTER_SHIFT_X,
+
+      y:
+        height - 345,
+
+      size:
+        courseSize,
+
+      font:
+        boldFont,
+
+      color:
+        black,
+    }
+  );
+
+  // ==========================
+  // STUDENT NAME
+  // ==========================
+
+  const nameSize =
+    40;
+
+  const nameWidth =
+    boldFont.widthOfTextAtSize(
+      studentName,
+      nameSize
+    );
+
+  page.drawText(
+    studentName,
+    {
+      x:
+        (
+          width -
+          nameWidth
+        ) / 2
+        +
+        CENTER_SHIFT_X,
+
+      y:
+        height - 435,
+
+      size:
+        nameSize,
+
+      font:
+        boldFont,
+
+      color:
+        gold,
+    }
+  );
+
+  // ==========================
+  // DESCRIPTION
+  // ==========================
+
+  const lines = [
+
+    `In recognition of successful completion of ${level} in`,
+
+    `${course} in ${category}.`,
+
+    "",
+
+    "With dedication, enthusiasm, and excellence in",
+
+    "communication, confidence-building, stage presence,",
+
+    "voice modulation, expression, and presentation skills.",
+  ];
+
+  lines.forEach(
+    (
+      text,
+      i
+    ) => {
+
+      const totalWidth =
+        text
+          .split("")
+          .reduce(
+            (
+              acc,
+              char
+            ) => {
+
+              return (
+                acc +
+                normalFont.widthOfTextAtSize(
+                  char,
+                  22
+                ) -
+                0.5
+              );
+
+            },
+            0
+          );
+
+      const x =
+        (
+          width -
+          totalWidth
+        ) / 2
+        +
+        30;
+
+      const y =
+        height -
+        485 -
+        (
+          i * 28
+        );
+
+      drawSpacedText({
+        text,
+        x,
+        y,
+        size: 22,
+        font: normalFont,
+        color: black,
+        spacing: 0.5,
+      });
+
+    }
+  );
+
+  // ==========================
+  // COURSE DURATION
+  // ==========================
+
+  const duration =
+    "Course Duration: 1 Year";
+
+  const durationWidth =
+    normalFont.widthOfTextAtSize(
+      duration,
+      22
+    );
+
+  page.drawText(
+    duration,
+    {
+      x:
+        (
+          width -
+          durationWidth
+        ) / 2
+        +
+        55,
+
+      y:
+        height - 660,
+
+      size:
+        22,
+
+      font:
+        normalFont,
+
+      color:
+        black,
+    }
+  );
+
+  // ==========================
+  // DATE
+  // ==========================
+
+  const dateText =
+    `Date of Completion: ${completionDate}`;
+
+  const dateWidth =
+    normalFont.widthOfTextAtSize(
+      dateText,
+      22
+    );
+
+  page.drawText(
+    dateText,
+    {
+      x:
+        (
+          width -
+          dateWidth
+        ) / 2
+        +
+        45,
+
+      y:
+        height - 680,
+
+      size:
+        22,
+
+      font:
+        normalFont,
+
+      color:
+        black,
+    }
+  );
+
+  // ==========================
+  // SAVE PDF
+  // ==========================
+
+const pdfBytes =
+  await pdfDoc.save();
+
+const fileName =
+  `${studentName}-${Date.now()}.pdf`;
+
+const tempPath =
+  path.join(
+    process.cwd(),
+    fileName
+  );
+
+fs.writeFileSync(
+  tempPath,
+  pdfBytes
+);
+
+const result =
+  await cloudinary.uploader.upload(
+    tempPath,
+    {
+      resource_type:
+        "raw",
+
+      folder:
+        "certificates",
+
+      public_id:
+        fileName.replace(
+          ".pdf",
+          ""
+        ),
+    }
+  );
+
+fs.unlinkSync(tempPath);
+
+return result.secure_url;
+};

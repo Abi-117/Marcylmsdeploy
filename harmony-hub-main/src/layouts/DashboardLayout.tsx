@@ -30,6 +30,7 @@ const navByRole: Record<Role, { to: string; label: string; icon: React.Component
     { to: "/admin/payments", label: "Payments", icon: Wallet },
     // { to: "/admin/events", label: "Events", icon: Trophy },
     { to: "/admin/courses", label: "Courses", icon: BookOpen },
+    { to: "/admin/certificates", label: "Certificates", icon: Award },
     { to: "/admin/feedback", label: "Feedback", icon: BarChart3 },
     { to: "/admin/reports", label: "Reports", icon: BarChart3 },
   ],
@@ -40,6 +41,7 @@ const navByRole: Record<Role, { to: string; label: string; icon: React.Component
     { to: "/teacher/attendance", label: "Attendance", icon: CalendarDays },
     { to: "/teacher/grades", label: "Teacher Attendance", icon: Award },
     { to: "/teacher/assignments", label: "Assignments", icon: ClipboardList },
+    { to: "/teacher/certificates", label: "Certificates", icon: Award },
     // { to: "/teacher/assignmentreviews", label: "Assignment Reviews", icon: BarChart3 },
     { to: "/teacher/feedback", label: "Feedback", icon: BarChart3 },
     { to: "/teacher/schedule", label: "Schedule", icon: CalendarDays },
@@ -54,7 +56,7 @@ const navByRole: Record<Role, { to: string; label: string; icon: React.Component
     { to: "/student/payments", label: "Payments", icon: Wallet },
     { to: '/student/attendance', label: "Attendance", icon: CalendarDays },
     // { to: "/student/feedback", label: "Feedback", icon: BarChart3 },
-    { to: "/student/certificates", label: "Certificates", icon: Trophy },
+    { to: "/student/certificates", label: "Certificates", icon: Award },
   ],
 };
 
