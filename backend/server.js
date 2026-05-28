@@ -64,7 +64,7 @@ app.use(
 );
 app.use("/api/feedback", feedbackRouter);
 app.use(
-  "/api/student/certificates",
+  "/api/certificates",
   certificateRoutes
 );
 // serve uploaded videos

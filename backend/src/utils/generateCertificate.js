@@ -1,8 +1,5 @@
-// =====================================
-// utils/generateCertificate.js
-// =====================================
-
 import fs from "fs";
+
 import path from "path";
 
 import {
@@ -11,25 +8,31 @@ import {
   StandardFonts,
 } from "pdf-lib";
 
+import cloudinary
+from "../config/cloudinary.js";
+
 export const generateCertificate =
 async ({
   studentName,
   course,
+  category,
   level,
+  description,
+  duration,
   completionDate,
 }) => {
 
-  // ==========================
+  // =========================
   // CREATE PDF
-  // ==========================
+  // =========================
 
   const pdfDoc =
     await PDFDocument.create();
 
   const page =
     pdfDoc.addPage([
-      1200,
-      850,
+      1400,
+      1000,
     ]);
 
   const {
@@ -37,26 +40,23 @@ async ({
     height,
   } = page.getSize();
 
-  // ==========================
+  // =========================
   // COLORS
-  // ==========================
+  // =========================
 
   const black =
     rgb(0, 0, 0);
 
   const gold =
     rgb(
-      0.68,
-      0.52,
+      0.73,
+      0.58,
       0.18
     );
 
-  // ==========================
+  // =========================
   // FONTS
-  // ==========================
-
-  // BEST BUILT-IN FONT
-  // similar "g" style
+  // =========================
 
   const boldFont =
     await pdfDoc.embedFont(
@@ -68,9 +68,9 @@ async ({
       StandardFonts.Helvetica
     );
 
-  // ==========================
+  // =========================
   // BACKGROUND IMAGE
-  // ==========================
+  // =========================
 
   const bgPath =
     path.join(
@@ -98,62 +98,12 @@ async ({
     }
   );
 
-  // ==========================
-  // CENTER SHIFT
-  // ==========================
-
-  const CENTER_SHIFT_X =
-    70;
-
-  // ==========================
-  // LETTER SPACING FUNCTION
-  // ==========================
-
-  const drawSpacedText = ({
-    text,
-    x,
-    y,
-    size = 22,
-    font = normalFont,
-    color = black,
-    spacing = 0.5,
-  }) => {
-
-    let currentX = x;
-
-    text
-      .split("")
-      .forEach((char) => {
-
-        page.drawText(
-          char,
-          {
-            x: currentX,
-            y,
-            size,
-            font,
-            color,
-          }
-        );
-
-        currentX +=
-          font.widthOfTextAtSize(
-            char,
-            size
-          ) + spacing;
-
-      });
-  };
-
-  // ==========================
+  // =========================
   // CATEGORY
-  // ==========================
-
-  const category =
-    "Performance Arts";
+  // =========================
 
   const categorySize =
-    40;
+    38;
 
   const categoryWidth =
     boldFont.widthOfTextAtSize(
@@ -168,12 +118,10 @@ async ({
         (
           width -
           categoryWidth
-        ) / 2
-        +
-        CENTER_SHIFT_X,
+        ) / 2,
 
       y:
-        height - 285,
+        height - 430,
 
       size:
         categorySize,
@@ -186,15 +134,15 @@ async ({
     }
   );
 
-  // ==========================
+  // =========================
   // COURSE
-  // ==========================
+  // =========================
 
   const courseText =
     course.toUpperCase();
 
   const courseSize =
-    40;
+    38;
 
   const courseWidth =
     boldFont.widthOfTextAtSize(
@@ -209,12 +157,10 @@ async ({
         (
           width -
           courseWidth
-        ) / 2
-        +
-        CENTER_SHIFT_X,
+        ) / 2,
 
       y:
-        height - 345,
+        height - 500,
 
       size:
         courseSize,
@@ -227,12 +173,12 @@ async ({
     }
   );
 
-  // ==========================
+  // =========================
   // STUDENT NAME
-  // ==========================
+  // =========================
 
   const nameSize =
-    40;
+    42;
 
   const nameWidth =
     boldFont.widthOfTextAtSize(
@@ -247,12 +193,10 @@ async ({
         (
           width -
           nameWidth
-        ) / 2
-        +
-        CENTER_SHIFT_X,
+        ) / 2,
 
       y:
-        height - 435,
+        height - 610,
 
       size:
         nameSize,
@@ -265,23 +209,19 @@ async ({
     }
   );
 
-  // ==========================
+  // =========================
   // DESCRIPTION
-  // ==========================
+  // =========================
 
   const lines = [
 
     `In recognition of successful completion of ${level} in`,
 
-    `${course} in ${category}.`,
+    `${course} under ${category}.`,
 
     "",
 
-    "With dedication, enthusiasm, and excellence in",
-
-    "communication, confidence-building, stage presence,",
-
-    "voice modulation, expression, and presentation skills.",
+    description,
   ];
 
   lines.forEach(
@@ -290,85 +230,57 @@ async ({
       i
     ) => {
 
-      const totalWidth =
-        text
-          .split("")
-          .reduce(
-            (
-              acc,
-              char
-            ) => {
+      const size =
+        22;
 
-              return (
-                acc +
-                normalFont.widthOfTextAtSize(
-                  char,
-                  22
-                ) -
-                0.5
-              );
-
-            },
-            0
-          );
-
-      const x =
-        (
-          width -
-          totalWidth
-        ) / 2
-        +
-        30;
-
-      const y =
-        height -
-        485 -
-        (
-          i * 28
+      const textWidth =
+        normalFont.widthOfTextAtSize(
+          text,
+          size
         );
 
-      drawSpacedText({
+      page.drawText(
         text,
-        x,
-        y,
-        size: 22,
-        font: normalFont,
-        color: black,
-        spacing: 0.5,
-      });
+        {
+          x:
+            (
+              width -
+              textWidth
+            ) / 2,
 
+          y:
+            height -
+            690 -
+            (
+              i * 35
+            ),
+
+          size,
+
+          font:
+            normalFont,
+
+          color:
+            black,
+        }
+      );
     }
   );
 
-  // ==========================
-  // COURSE DURATION
-  // ==========================
+  // =========================
+  // DURATION
+  // =========================
 
-  const duration =
-    "Course Duration: 1 Year";
-
-  const durationWidth =
-    normalFont.widthOfTextAtSize(
-      duration,
-      22
-    );
+  const durationText =
+    `Course Duration: ${duration}`;
 
   page.drawText(
-    duration,
+    durationText,
     {
-      x:
-        (
-          width -
-          durationWidth
-        ) / 2
-        +
-        55,
+      x: 470,
+      y: 180,
 
-      y:
-        height - 660,
-
-      size:
-        22,
+      size: 22,
 
       font:
         normalFont,
@@ -378,35 +290,20 @@ async ({
     }
   );
 
-  // ==========================
+  // =========================
   // DATE
-  // ==========================
+  // =========================
 
   const dateText =
     `Date of Completion: ${completionDate}`;
 
-  const dateWidth =
-    normalFont.widthOfTextAtSize(
-      dateText,
-      22
-    );
-
   page.drawText(
     dateText,
     {
-      x:
-        (
-          width -
-          dateWidth
-        ) / 2
-        +
-        45,
+      x: 470,
+      y: 145,
 
-      y:
-        height - 680,
-
-      size:
-        22,
+      size: 22,
 
       font:
         normalFont,
@@ -416,46 +313,52 @@ async ({
     }
   );
 
-  // ==========================
+  // =========================
   // SAVE PDF
-  // ==========================
+  // =========================
 
-const pdfBytes =
-  await pdfDoc.save();
+  const pdfBytes =
+    await pdfDoc.save();
 
-const fileName =
-  `${studentName}-${Date.now()}.pdf`;
+  const fileName =
+    `${studentName}-${Date.now()}.pdf`;
 
-const tempPath =
-  path.join(
-    process.cwd(),
-    fileName
-  );
+  const tempPath =
+    path.join(
+      process.cwd(),
+      fileName
+    );
 
-fs.writeFileSync(
-  tempPath,
-  pdfBytes
-);
-
-const result =
-  await cloudinary.uploader.upload(
+  fs.writeFileSync(
     tempPath,
-    {
-      resource_type:
-        "raw",
-
-      folder:
-        "certificates",
-
-      public_id:
-        fileName.replace(
-          ".pdf",
-          ""
-        ),
-    }
+    pdfBytes
   );
 
-fs.unlinkSync(tempPath);
+  // =========================
+  // CLOUDINARY UPLOAD
+  // =========================
 
-return result.secure_url;
+  const result =
+    await cloudinary.uploader.upload(
+      tempPath,
+      {
+        resource_type:
+          "raw",
+
+        folder:
+          "certificates",
+
+        public_id:
+          fileName.replace(
+            ".pdf",
+            ""
+          ),
+      }
+    );
+
+  fs.unlinkSync(
+    tempPath
+  );
+
+  return result.secure_url;
 };

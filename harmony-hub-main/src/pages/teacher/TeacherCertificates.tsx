@@ -1,217 +1,447 @@
-import { useEffect, useState } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 
 import axios from "axios";
 
-import {
-  Card,
-  CardContent,
-} from "@/components/ui/card";
+import html2canvas
+from "html2canvas";
+import preview from "../../assets/certificate-bg.png";
 
-import { Button } from "@/components/ui/button";
-
-import { Badge } from "@/components/ui/badge";
-
-import {
-  Loader2,
-  Send,
-} from "lucide-react";
 
 const API =
   "http://localhost:5000/api";
 
-export default function TeacherCertificates() {
+// =========================
+// SAMPLE STUDENTS
+// =========================
 
-  const [
-    students,
-    setStudents,
-  ] = useState<any[]>([]);
 
-  const [
-    loadingId,
-    setLoadingId,
-  ] = useState("");
 
-  // =========================
-  // FETCH STUDENTS
-  // =========================
+export default function
+TeacherCertificateForm() {
+    const [
+  students,
+  setStudents,
+] = useState<any[]>([]);
+useEffect(() => {
 
-  useEffect(() => {
+  fetchStudents();
 
-    fetchStudents();
+}, []);
 
-  }, []);
+const fetchStudents =
+  async () => {
 
-  const fetchStudents =
-    async () => {
+    try {
 
-      try {
-
-        const res =
-          await axios.get(
-            `${API}/teacher/completed-students`
-          );
-
-        console.log(
-          "API DATA:",
-          res.data
+      const res =
+        await axios.get(
+          `${API}/teacher/students`
         );
 
-        setStudents(
-          res.data
+      setStudents(
+        res.data
+      );
+
+    } catch (err) {
+
+      console.log(err);
+
+    }
+  };
+
+  const previewRef =
+    useRef<any>();
+
+  const [
+    form,
+    setForm,
+  ] = useState({
+
+    student: "",
+
+    studentName: "",
+
+    course:
+      "Guitar",
+
+    category:
+      "Western Music",
+
+    level:
+      "Basic",
+
+    description:
+      "With dedication, enthusiasm, and excellence in communication, confidence-building, stage presence, voice modulation, expression, and presentation skills.",
+
+    duration:
+      "1 Year",
+
+    completionDate:
+      new Date()
+        .toDateString(),
+  });
+
+  // =========================
+  // CHANGE
+  // =========================
+
+  const handleChange =
+    (
+      e: any
+    ) => {
+
+      setForm({
+
+        ...form,
+
+        [e.target.name]:
+          e.target.value,
+      });
+    };
+
+  // =========================
+  // STUDENT SELECT
+  // =========================
+
+  const handleStudent =
+    (
+      e: any
+    ) => {
+
+      const selected =
+        students.find(
+          (s) =>
+            s._id ===
+            e.target.value
         );
 
-      } catch (err) {
+      setForm({
 
-        console.log(err);
+        ...form,
 
-      }
+        student:
+          selected?._id || "",
+
+        studentName:
+          selected?.name || "",
+      });
     };
 
   // =========================
   // SEND REQUEST
   // =========================
 
-  const sendCertificate =
-    async (
-      student: any
-    ) => {
+  const sendRequest =
+    async () => {
 
-      try {
-
-        setLoadingId(
-          student._id
+      const canvas =
+        await html2canvas(
+          previewRef.current
         );
 
-        await axios.post(
-          `${API}/certificates/create`,
-          {
-            student:
-              student._id,
-
-            teacher:
-              student.teacherId,
-
-            studentName:
-              student.name,
-
-            course:
-              student.course,
-
-            level:
-              student.level,
-
-            completionDate:
-              new Date()
-                .toLocaleDateString(),
-          }
+      const previewImage =
+        canvas.toDataURL(
+          "image/png"
         );
 
-        alert(
-          "Certificate request sent"
-        );
+      await axios.post(
+        `${API}/certificates/create`,
+        {
+          ...form,
 
-      } catch (err) {
+          previewImage,
+        }
+      );
 
-        console.log(err);
-
-      } finally {
-
-        setLoadingId("");
-
-      }
+      alert(
+        "Certificate Request Sent"
+      );
     };
 
   return (
 
-    <div className="p-6">
+    <div className="grid md:grid-cols-2 gap-10 p-10">
 
-      <h1 className="text-2xl font-bold mb-6">
-        Teacher Certificates
-      </h1>
+      {/* FORM */}
 
-      {/* EMPTY */}
+      <div className="space-y-4">
 
-      {students.length === 0 && (
+        {/* STUDENT */}
 
-        <Card>
+        <select
+          className="border p-3 w-full"
+          onChange={
+            handleStudent
+          }
+        >
 
-          <CardContent className="p-10 text-center">
+          <option>
+            Select Student
+          </option>
 
-            <p>
-              No completed students found
-            </p>
+          {students.map(
+            (student) => (
 
-          </CardContent>
+              <option
+                key={
+                  student._id
+                }
+                value={
+                  student._id
+                }
+              >
+                {student.name}
+              </option>
 
-        </Card>
+            )
+          )}
 
-      )}
+        </select>
 
-      {/* LIST */}
+        {/* COURSE */}
 
-      <div className="grid gap-4">
+        <input
+          name="course"
+          value={
+            form.course
+          }
+          onChange={
+            handleChange
+          }
+          className="border p-3 w-full"
+        />
 
-        {students.map(
-          (student) => (
+        {/* CATEGORY */}
 
-            <Card
-              key={
-                student._id
-              }
-            >
+        <input
+          name="category"
+          value={
+            form.category
+          }
+          onChange={
+            handleChange
+          }
+          className="border p-3 w-full"
+        />
 
-              <CardContent className="p-5 flex items-center justify-between">
+        {/* LEVEL */}
 
-                <div>
+        <input
+          name="level"
+          value={
+            form.level
+          }
+          onChange={
+            handleChange
+          }
+          className="border p-3 w-full"
+        />
 
-                  <h2 className="text-lg font-semibold">
-                    {student.name}
-                  </h2>
+        {/* DESCRIPTION */}
 
-                  <p className="text-sm text-muted-foreground">
-                    {student.course}
-                  </p>
+        <textarea
+          name="description"
+          value={
+            form.description
+          }
+          onChange={
+            handleChange
+          }
+          className="border p-3 w-full h-40"
+        />
 
-                  <div className="mt-2">
+        {/* DURATION */}
 
-                    <Badge>
-                      {student.level}
-                    </Badge>
+        <input
+          name="duration"
+          value={
+            form.duration
+          }
+          onChange={
+            handleChange
+          }
+          className="border p-3 w-full"
+        />
 
-                  </div>
+        {/* DATE */}
 
-                </div>
+        <input
+          name="completionDate"
+          value={
+            form.completionDate
+          }
+          onChange={
+            handleChange
+          }
+          className="border p-3 w-full"
+        />
 
-                <Button
-                  onClick={() =>
-                    sendCertificate(
-                      student
-                    )
-                  }
-                >
+        {/* BUTTON */}
 
-                  {loadingId ===
-                  student._id ? (
+        <button
+          onClick={
+            sendRequest
+          }
+          className="bg-black text-white px-5 py-3 rounded-lg"
+        >
+          Send Request
+        </button>
 
-                    <Loader2 className="w-4 h-4 animate-spin" />
+      </div>
 
-                  ) : (
+      {/* PREVIEW */}
 
-                    <>
-                      <Send className="w-4 h-4 mr-2" />
-                      Send Request
-                    </>
+      <div
+    ref={previewRef}
+    className="
+      relative
+      w-[1400px]
+      h-[1000px]
+      overflow-hidden
+      rounded-lg
+      bg-white
+      scale-[0.45]
+      origin-top-left
+    "
+  >
 
-                  )}
+        {/* BG IMAGE */}
 
-                </Button>
+        <img
+          src={preview}
+          alt=""
+          className="absolute inset-0 w-full h-full object-cover"
+        />
 
-              </CardContent>
+        {/* CONTENT */}
+        <div className="relative z-10 w-full h-full">
 
-            </Card>
+  {/* CATEGORY */}
 
-          )
-        )}
+  <h1
+    className="
+      absolute
+      top-[280px]
+      left-[600px]
+     
+      text-[52px]
+      font-bold
+    "
+  >
+    {form.category}
+  </h1>
+
+  {/* COURSE */}
+
+  <h2
+    className="
+      absolute
+      top-[350px]
+      left-[700px]
+      text-[42px]
+      font-bold
+      uppercase
+    "
+  >
+    {form.course}
+  </h2>
+
+  {/* STUDENT NAME */}
+
+  <h3
+    className="
+      absolute
+      top-[460px]
+      left-[710px]
+      text-[48px]
+      font-bold
+      text-yellow-700
+      whitespace-nowrap
+    "
+  >
+    {form.studentName}
+  </h3>
+
+  {/* DESCRIPTION */}
+
+  <div
+    className="
+      absolute
+      top-[540px]
+      left-[350px]
+      w-[900px]
+      text-center
+      text-[24px]
+      leading-[42px]
+    "
+  >
+
+    <p>
+
+      In recognition of successful completion of{" "}
+
+      
+        {form.level}
+      
+
+      {" "}in{" "}
+
+      
+        {form.course}
+     
+
+      {" "}under{" "}
+
+      
+        {form.category}
+    
+
+    </p>
+
+    <p className="mt-6">
+
+      {form.description}
+
+    </p>
+
+  </div>
+
+  {/* DURATION */}
+
+  <p
+    className="
+      absolute
+      bottom-[250px]
+      left-[680px]
+      text-[24px]
+    "
+  >
+    Course Duration:
+    {" "}
+    {form.duration}
+  </p>
+
+  {/* DATE */}
+
+  <p
+    className="
+      absolute
+      bottom-[220px]
+      left-[620px]
+      text-[24px]
+    "
+  >
+    Date of Completion:
+    {" "}
+    {form.completionDate}
+  </p>
+
+</div>
+
 
       </div>
 

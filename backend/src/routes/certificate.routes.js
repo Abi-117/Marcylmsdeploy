@@ -1,13 +1,22 @@
 import express from "express";
 
-import Certificate from
-"../models/certificate.model.js";
+import CertificateRequest
+from "../models/CertificateRequest.js";
+
+import {
+  generateCertificate,
+} from "../utils/generateCertificate.js";
 
 const router =
   express.Router();
 
+// =========================
+// CREATE REQUEST
+// =========================
+
 router.post(
   "/create",
+
   async (
     req,
     res
@@ -15,27 +24,15 @@ router.post(
 
     try {
 
-      const {
-        student,
-        teacher,
-        studentName,
-        course,
-        level,
-        completionDate,
-      } = req.body;
-
       const cert =
-        await Certificate.create({
-          student,
-          teacher,
-          studentName,
-          course,
-          level,
-          completionDate,
-        });
+        await CertificateRequest.create(
+          req.body
+        );
 
       res.json({
-        success: true,
+        success:
+          true,
+
         cert,
       });
 
@@ -50,8 +47,48 @@ router.post(
   }
 );
 
+// =========================
+// GET PENDING
+// =========================
+
+router.get(
+  "/pending",
+
+  async (
+    req,
+    res
+  ) => {
+
+    try {
+
+      const certs =
+        await CertificateRequest.find({
+          status:
+            "pending",
+        });
+
+      res.json(
+        certs
+      );
+
+    } catch (err) {
+
+      res.status(500).json({
+        message:
+          err.message,
+      });
+
+    }
+  }
+);
+
+// =========================
+// APPROVE
+// =========================
+
 router.put(
   "/approve/:id",
+
   async (
     req,
     res
@@ -60,24 +97,13 @@ router.put(
     try {
 
       const cert =
-        await Certificate.findById(
+        await CertificateRequest.findById(
           req.params.id
         );
 
-      if (!cert) {
-
-        return res
-          .status(404)
-          .json({
-            message:
-              "Certificate not found",
-          });
-      }
-
-      // PDF GENERATE
-
       const pdfUrl =
         await generateCertificate({
+
           studentName:
             cert.studentName,
 
@@ -100,8 +126,8 @@ router.put(
       await cert.save();
 
       res.json({
-        success: true,
-        cert,
+        success:
+          true,
       });
 
     } catch (err) {
@@ -114,8 +140,14 @@ router.put(
     }
   }
 );
+
+// =========================
+// STUDENT CERTIFICATES
+// =========================
+
 router.get(
   "/student/:id",
+
   async (
     req,
     res
@@ -124,7 +156,8 @@ router.get(
     try {
 
       const certs =
-        await Certificate.find({
+        await CertificateRequest.find({
+
           student:
             req.params.id,
 
@@ -132,7 +165,9 @@ router.get(
             "approved",
         });
 
-      res.json(certs);
+      res.json(
+        certs
+      );
 
     } catch (err) {
 
@@ -144,31 +179,5 @@ router.get(
     }
   }
 );
-router.get(
-  "/pending",
-  async (
-    req,
-    res
-  ) => {
 
-    try {
-
-      const certs =
-        await Certificate.find({
-          status:
-            "pending",
-        });
-
-      res.json(certs);
-
-    } catch (err) {
-
-      res.status(500).json({
-        message:
-          err.message,
-      });
-
-    }
-  }
-);
 export default router;

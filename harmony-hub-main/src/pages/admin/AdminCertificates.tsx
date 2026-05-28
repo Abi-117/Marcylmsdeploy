@@ -1,38 +1,20 @@
-import { useEffect, useState } from "react";
+import {
+  useEffect,
+  useState,
+} from "react";
 
 import axios from "axios";
 
-import {
-  Card,
-  CardContent,
-} from "@/components/ui/card";
-
-import { Button } from "@/components/ui/button";
-
-import {
-  CheckCircle2,
-  Loader2,
-} from "lucide-react";
-
 const API =
-  "https://your-api.com/api";
+  "http://localhost:5000/api";
 
 export default function
-AdminCertificates() {
+AdminCertificatePreview() {
 
   const [
     certs,
     setCerts,
   ] = useState<any[]>([]);
-
-  const [
-    loadingId,
-    setLoadingId,
-  ] = useState("");
-
-  // =========================
-  // FETCH PENDING
-  // =========================
 
   useEffect(() => {
 
@@ -43,127 +25,67 @@ AdminCertificates() {
   const fetchPending =
     async () => {
 
-      try {
-
-        const res =
-          await axios.get(
-            `${API}/certificates/pending`
-          );
-
-        setCerts(
-          res.data
+      const res =
+        await axios.get(
+          `${API}/certificates/pending`
         );
 
-      } catch (err) {
-
-        console.log(err);
-
-      }
+      setCerts(
+        res.data
+      );
     };
 
-  // =========================
-  // APPROVE
-  // =========================
-
-  const approveCertificate =
+  const approve =
     async (
       id: string
     ) => {
 
-      try {
+      await axios.put(
+        `${API}/certificates/approve/${id}`
+      );
 
-        setLoadingId(id);
+      alert(
+        "Approved"
+      );
 
-        await axios.put(
-          `${API}/certificates/approve/${id}`
-        );
-
-        alert(
-          "Certificate Approved"
-        );
-
-        fetchPending();
-
-      } catch (err) {
-
-        console.log(err);
-
-      } finally {
-
-        setLoadingId("");
-
-      }
+      fetchPending();
     };
 
   return (
 
-    <div className="p-6">
+    <div className="p-10 grid gap-10">
 
-      <h1 className="text-2xl font-bold mb-6">
-        Pending Certificates
-      </h1>
+      {certs.map(
+        (cert) => (
 
-      <div className="grid gap-4">
+          <div
+            key={cert._id}
+            className="border rounded-lg p-5"
+          >
 
-        {certs.map(
-          (cert) => (
+            <img
+              src={
+                cert.previewImage
+              }
+              alt=""
+              className="w-full rounded-lg border"
+            />
 
-            <Card
-              key={cert._id}
+            <button
+              onClick={() =>
+                approve(
+                  cert._id
+                )
+              }
+              className="bg-green-600 text-white px-5 py-3 mt-5"
             >
+              Approve
+            </button>
 
-              <CardContent
-                className="p-5 flex items-center justify-between"
-              >
+          </div>
 
-                <div>
-
-                  <h2 className="font-semibold text-lg">
-                    {cert.studentName}
-                  </h2>
-
-                  <p className="text-sm">
-                    {cert.course}
-                  </p>
-
-                  <p className="text-sm text-muted-foreground">
-                    {cert.level}
-                  </p>
-
-                </div>
-
-                <Button
-                  onClick={() =>
-                    approveCertificate(
-                      cert._id
-                    )
-                  }
-                >
-
-                  {loadingId ===
-                  cert._id ? (
-
-                    <Loader2 className="w-4 h-4 animate-spin" />
-
-                  ) : (
-
-                    <>
-                      <CheckCircle2 className="w-4 h-4 mr-2" />
-                      Approve
-                    </>
-
-                  )}
-
-                </Button>
-
-              </CardContent>
-
-            </Card>
-
-          )
-        )}
-
-      </div>
+        )
+      )}
 
     </div>
   );

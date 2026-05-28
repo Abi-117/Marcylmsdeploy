@@ -212,5 +212,38 @@ router.get(
     }
   }
 );
+router.get(
+  "/students",
 
+  async (
+    req,
+    res
+  ) => {
+
+    try {
+
+      const students =
+        await User.find({
+          role:
+            "student",
+        })
+
+        .select(
+          "name"
+        );
+
+      res.json(
+        students
+      );
+
+    } catch (err) {
+
+      res.status(500).json({
+        message:
+          err.message,
+      });
+
+    }
+  }
+);
 export default router;
