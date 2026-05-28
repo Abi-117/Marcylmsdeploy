@@ -12,16 +12,14 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
 import {
-  CheckCircle2,
-  Send,
   Loader2,
+  Send,
 } from "lucide-react";
 
 const API =
-  "https://your-api.com/api";
+  "http://localhost:5000/api";
 
-export default function
-TeacherCertificates() {
+export default function TeacherCertificates() {
 
   const [
     students,
@@ -34,7 +32,7 @@ TeacherCertificates() {
   ] = useState("");
 
   // =========================
-  // FETCH COMPLETED STUDENTS
+  // FETCH STUDENTS
   // =========================
 
   useEffect(() => {
@@ -53,6 +51,11 @@ TeacherCertificates() {
             `${API}/teacher/completed-students`
           );
 
+        console.log(
+          "API DATA:",
+          res.data
+        );
+
         setStudents(
           res.data
         );
@@ -65,7 +68,7 @@ TeacherCertificates() {
     };
 
   // =========================
-  // SEND CERTIFICATE REQUEST
+  // SEND REQUEST
   // =========================
 
   const sendCertificate =
@@ -123,8 +126,28 @@ TeacherCertificates() {
     <div className="p-6">
 
       <h1 className="text-2xl font-bold mb-6">
-        Certificate Requests
+        Teacher Certificates
       </h1>
+
+      {/* EMPTY */}
+
+      {students.length === 0 && (
+
+        <Card>
+
+          <CardContent className="p-10 text-center">
+
+            <p>
+              No completed students found
+            </p>
+
+          </CardContent>
+
+        </Card>
+
+      )}
+
+      {/* LIST */}
 
       <div className="grid gap-4">
 
@@ -137,13 +160,11 @@ TeacherCertificates() {
               }
             >
 
-              <CardContent
-                className="p-5 flex items-center justify-between"
-              >
+              <CardContent className="p-5 flex items-center justify-between">
 
                 <div>
 
-                  <h2 className="font-semibold text-lg">
+                  <h2 className="text-lg font-semibold">
                     {student.name}
                   </h2>
 

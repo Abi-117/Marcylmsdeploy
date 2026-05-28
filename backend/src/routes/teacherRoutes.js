@@ -152,5 +152,65 @@ router.post("/complete-course", async (req, res) => {
     certificates: user.certificates,
   });
 });
+router.get(
+  "/completed-students",
+  async (
+    req,
+    res
+  ) => {
+
+    try {
+
+      const students =
+        await Enrollment.find({
+          completed: true,
+        })
+
+        .populate(
+          "student",
+          "name"
+        )
+
+        .populate(
+          "course",
+          "title level"
+        );
+
+      // FORMAT
+
+      const formatted =
+        students.map(
+          (item) => ({
+            _id:
+              item.student._id,
+
+            name:
+              item.student.name,
+
+            course:
+              item.course.title,
+
+            level:
+              item.course.level,
+
+            teacherId:
+              item.teacher,
+          })
+        );
+
+      res.json(
+        formatted
+      );
+
+    } catch (err) {
+
+      res.status(500).json({
+        message:
+          err.message,
+      });
+
+    }
+  }
+);
 
 export default router;
