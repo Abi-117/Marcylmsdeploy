@@ -8,53 +8,32 @@ import axios from "axios";
 
 import html2canvas
 from "html2canvas";
-import preview from "../../assets/certificate-bg.png";
 
+import preview
+from "../../assets/certificate-bg.png";
 
 const API =
   "http://localhost:5000/api";
 
-// =========================
-// SAMPLE STUDENTS
-// =========================
-
-
-
 export default function
 TeacherCertificateForm() {
-    const [
-  students,
-  setStudents,
-] = useState<any[]>([]);
-useEffect(() => {
 
-  fetchStudents();
+  // =========================
+  // STATES
+  // =========================
 
-}, []);
+  const [
+    students,
+    setStudents,
+  ] = useState<any[]>([]);
 
-const fetchStudents =
-  async () => {
-
-    try {
-
-      const res =
-        await axios.get(
-          `${API}/teacher/students`
-        );
-
-      setStudents(
-        res.data
-      );
-
-    } catch (err) {
-
-      console.log(err);
-
-    }
-  };
+  const [
+    loading,
+    setLoading,
+  ] = useState(false);
 
   const previewRef =
-    useRef<any>();
+    useRef<any>(null);
 
   const [
     form,
@@ -86,7 +65,38 @@ const fetchStudents =
   });
 
   // =========================
-  // CHANGE
+  // FETCH STUDENTS
+  // =========================
+
+  useEffect(() => {
+
+    fetchStudents();
+
+  }, []);
+
+  const fetchStudents =
+    async () => {
+
+      try {
+
+        const res =
+          await axios.get(
+            `${API}/teacher/students`
+          );
+
+        setStudents(
+          res.data
+        );
+
+      } catch (err) {
+
+        console.log(err);
+
+      }
+    };
+
+  // =========================
+  // HANDLE INPUT
   // =========================
 
   const handleChange =
@@ -104,7 +114,7 @@ const fetchStudents =
     };
 
   // =========================
-  // STUDENT SELECT
+  // HANDLE STUDENT
   // =========================
 
   const handleStudent =
@@ -138,310 +148,599 @@ const fetchStudents =
   const sendRequest =
     async () => {
 
-      const canvas =
-        await html2canvas(
-          previewRef.current
+      try {
+
+        setLoading(true);
+
+        const canvas =
+          await html2canvas(
+            previewRef.current,
+            {
+              scale: 2,
+              useCORS: true,
+              backgroundColor:
+                "#ffffff",
+            }
+          );
+
+        const previewImage =
+          canvas.toDataURL(
+            "image/png"
+          );
+
+        await axios.post(
+          `${API}/certificates/create`,
+          {
+            ...form,
+            previewImage,
+          }
         );
 
-      const previewImage =
-        canvas.toDataURL(
-          "image/png"
+        alert(
+          "Certificate Request Sent"
         );
 
-      await axios.post(
-        `${API}/certificates/create`,
-        {
-          ...form,
+      } catch (err) {
 
-          previewImage,
-        }
-      );
+        console.log(err);
 
-      alert(
-        "Certificate Request Sent"
-      );
+      } finally {
+
+        setLoading(false);
+
+      }
     };
 
   return (
 
-    <div className="grid md:grid-cols-2 gap-10 p-10">
-
-      {/* FORM */}
-
-      <div className="space-y-4">
-
-        {/* STUDENT */}
-
-        <select
-          className="border p-3 w-full"
-          onChange={
-            handleStudent
-          }
-        >
-
-          <option>
-            Select Student
-          </option>
-
-          {students.map(
-            (student) => (
-
-              <option
-                key={
-                  student._id
-                }
-                value={
-                  student._id
-                }
-              >
-                {student.name}
-              </option>
-
-            )
-          )}
-
-        </select>
-
-        {/* COURSE */}
-
-        <input
-          name="course"
-          value={
-            form.course
-          }
-          onChange={
-            handleChange
-          }
-          className="border p-3 w-full"
-        />
-
-        {/* CATEGORY */}
-
-        <input
-          name="category"
-          value={
-            form.category
-          }
-          onChange={
-            handleChange
-          }
-          className="border p-3 w-full"
-        />
-
-        {/* LEVEL */}
-
-        <input
-          name="level"
-          value={
-            form.level
-          }
-          onChange={
-            handleChange
-          }
-          className="border p-3 w-full"
-        />
-
-        {/* DESCRIPTION */}
-
-        <textarea
-          name="description"
-          value={
-            form.description
-          }
-          onChange={
-            handleChange
-          }
-          className="border p-3 w-full h-40"
-        />
-
-        {/* DURATION */}
-
-        <input
-          name="duration"
-          value={
-            form.duration
-          }
-          onChange={
-            handleChange
-          }
-          className="border p-3 w-full"
-        />
-
-        {/* DATE */}
-
-        <input
-          name="completionDate"
-          value={
-            form.completionDate
-          }
-          onChange={
-            handleChange
-          }
-          className="border p-3 w-full"
-        />
-
-        {/* BUTTON */}
-
-        <button
-          onClick={
-            sendRequest
-          }
-          className="bg-black text-white px-5 py-3 rounded-lg"
-        >
-          Send Request
-        </button>
-
-      </div>
-
-      {/* PREVIEW */}
+    <div
+      className="
+        min-h-screen
+        bg-gray-100
+        p-3
+        md:p-6
+        lg:p-10
+      "
+    >
 
       <div
-    ref={previewRef}
-    className="
-      relative
-      w-[1400px]
-      h-[1000px]
-      overflow-hidden
-      rounded-lg
-      bg-white
-      scale-[0.45]
-      origin-top-left
-    "
-  >
+        className="
+          flex
+          flex-col
+          xl:flex-row
+          gap-8
+        "
+      >
 
-        {/* BG IMAGE */}
+        {/* ========================= */}
+        {/* FORM */}
+        {/* ========================= */}
 
-        <img
-          src={preview}
-          alt=""
-          className="absolute inset-0 w-full h-full object-cover"
-        />
+        <div
+          className="
+            w-full
+            xl:w-[420px]
+            bg-white
+            rounded-2xl
+            shadow-lg
+            p-5
+            md:p-6
+            h-fit
+          "
+        >
 
-        {/* CONTENT */}
-        <div className="relative z-10 w-full h-full">
+          <h1
+            className="
+              text-2xl
+              font-bold
+              mb-6
+            "
+          >
+            Create Certificate
+          </h1>
 
-  {/* CATEGORY */}
+          <div className="space-y-4">
 
-  <h1
-    className="
-      absolute
-      top-[280px]
-      left-[600px]
-     
-      text-[52px]
-      font-bold
-    "
-  >
-    {form.category}
-  </h1>
+            {/* STUDENT */}
 
-  {/* COURSE */}
+            <div>
 
-  <h2
-    className="
-      absolute
-      top-[350px]
-      left-[700px]
-      text-[42px]
-      font-bold
-      uppercase
-    "
-  >
-    {form.course}
-  </h2>
+              <label
+                className="
+                  text-sm
+                  font-medium
+                  mb-2
+                  block
+                "
+              >
+                Student
+              </label>
 
-  {/* STUDENT NAME */}
+              <select
+                className="
+                  w-full
+                  border
+                  border-gray-300
+                  rounded-lg
+                  p-3
+                  bg-white
+                "
+                onChange={
+                  handleStudent
+                }
+                value={
+                  form.student
+                }
+              >
 
-  <h3
-    className="
-      absolute
-      top-[460px]
-      left-[710px]
-      text-[48px]
-      font-bold
-      text-yellow-700
-      whitespace-nowrap
-    "
-  >
-    {form.studentName}
-  </h3>
+                <option value="">
+                  Select Student
+                </option>
 
-  {/* DESCRIPTION */}
+                {students.map(
+                  (student) => (
 
-  <div
-    className="
-      absolute
-      top-[540px]
-      left-[350px]
-      w-[900px]
-      text-center
-      text-[24px]
-      leading-[42px]
-    "
-  >
+                    <option
+                      key={
+                        student._id
+                      }
+                      value={
+                        student._id
+                      }
+                    >
+                      {student.name}
+                    </option>
 
-    <p>
+                  )
+                )}
 
-      In recognition of successful completion of{" "}
+              </select>
 
-      
-        {form.level}
-      
+            </div>
 
-      {" "}in{" "}
+            {/* COURSE */}
 
-      
-        {form.course}
-     
+            <div>
 
-      {" "}under{" "}
+              <label
+                className="
+                  text-sm
+                  font-medium
+                  mb-2
+                  block
+                "
+              >
+                Course
+              </label>
 
-      
-        {form.category}
-    
+              <input
+                name="course"
+                value={
+                  form.course
+                }
+                onChange={
+                  handleChange
+                }
+                className="
+                  w-full
+                  border
+                  border-gray-300
+                  rounded-lg
+                  p-3
+                "
+              />
 
-    </p>
+            </div>
 
-    <p className="mt-6">
+            {/* CATEGORY */}
 
-      {form.description}
+            <div>
 
-    </p>
+              <label
+                className="
+                  text-sm
+                  font-medium
+                  mb-2
+                  block
+                "
+              >
+                Category
+              </label>
 
-  </div>
+              <input
+                name="category"
+                value={
+                  form.category
+                }
+                onChange={
+                  handleChange
+                }
+                className="
+                  w-full
+                  border
+                  border-gray-300
+                  rounded-lg
+                  p-3
+                "
+              />
 
-  {/* DURATION */}
+            </div>
 
-  <p
-    className="
-      absolute
-      bottom-[250px]
-      left-[680px]
-      text-[24px]
-    "
-  >
-    Course Duration:
-    {" "}
-    {form.duration}
-  </p>
+            {/* LEVEL */}
 
-  {/* DATE */}
+            <div>
 
-  <p
-    className="
-      absolute
-      bottom-[220px]
-      left-[620px]
-      text-[24px]
-    "
-  >
-    Date of Completion:
-    {" "}
-    {form.completionDate}
-  </p>
+              <label
+                className="
+                  text-sm
+                  font-medium
+                  mb-2
+                  block
+                "
+              >
+                Level
+              </label>
 
-</div>
+              <input
+                name="level"
+                value={
+                  form.level
+                }
+                onChange={
+                  handleChange
+                }
+                className="
+                  w-full
+                  border
+                  border-gray-300
+                  rounded-lg
+                  p-3
+                "
+              />
 
+            </div>
+
+            {/* DESCRIPTION */}
+
+            <div>
+
+              <label
+                className="
+                  text-sm
+                  font-medium
+                  mb-2
+                  block
+                "
+              >
+                Description
+              </label>
+
+              <textarea
+                name="description"
+                value={
+                  form.description
+                }
+                onChange={
+                  handleChange
+                }
+                className="
+                  w-full
+                  border
+                  border-gray-300
+                  rounded-lg
+                  p-3
+                  h-40
+                "
+              />
+
+            </div>
+
+            {/* DURATION */}
+
+            <div>
+
+              <label
+                className="
+                  text-sm
+                  font-medium
+                  mb-2
+                  block
+                "
+              >
+                Duration
+              </label>
+
+              <input
+                name="duration"
+                value={
+                  form.duration
+                }
+                onChange={
+                  handleChange
+                }
+                className="
+                  w-full
+                  border
+                  border-gray-300
+                  rounded-lg
+                  p-3
+                "
+              />
+
+            </div>
+
+            {/* DATE */}
+
+            <div>
+
+              <label
+                className="
+                  text-sm
+                  font-medium
+                  mb-2
+                  block
+                "
+              >
+                Completion Date
+              </label>
+
+              <input
+                name="completionDate"
+                value={
+                  form.completionDate
+                }
+                onChange={
+                  handleChange
+                }
+                className="
+                  w-full
+                  border
+                  border-gray-300
+                  rounded-lg
+                  p-3
+                "
+              />
+
+            </div>
+
+            {/* BUTTON */}
+
+            <button
+              onClick={
+                sendRequest
+              }
+              disabled={
+                loading
+              }
+              className="
+                w-full
+                bg-black
+                text-white
+                rounded-lg
+                py-3
+                font-semibold
+                mt-4
+              "
+            >
+
+              {loading
+                ? "Sending..."
+                : "Send Request"}
+
+            </button>
+
+          </div>
+
+        </div>
+
+        {/* ========================= */}
+        {/* PREVIEW */}
+        {/* ========================= */}
+
+        <div
+          className="
+            flex-1
+            overflow-auto
+            bg-white
+            rounded-2xl
+            shadow-lg
+            p-3
+            md:p-5
+          "
+        >
+
+          {/* RESPONSIVE WRAPPER */}
+
+          <div
+            className="
+              w-full
+              overflow-auto
+            "
+          >
+
+            {/* CERTIFICATE */}
+
+            <div
+              ref={previewRef}
+              className="
+                relative
+                w-[1400px]
+                h-[1000px]
+                overflow-hidden
+                rounded-lg
+                bg-white
+                origin-top-left
+
+                scale-[0.18]
+
+                sm:scale-[0.24]
+
+                md:scale-[0.32]
+
+                lg:scale-[0.40]
+
+                xl:scale-[0.48]
+              "
+              style={{
+                backgroundColor:
+                  "#ffffff",
+
+                color:
+                  "#000000",
+              }}
+            >
+
+              {/* BG IMAGE */}
+
+              <img
+                src={preview}
+                alt=""
+                className="
+                  absolute
+                  inset-0
+                  w-full
+                  h-full
+                  object-cover
+                "
+              />
+
+              {/* CONTENT */}
+
+              <div
+                className="
+                  relative
+                  z-10
+                  w-full
+                  h-full
+                "
+              >
+
+                {/* CATEGORY */}
+
+                <h1
+                  className="
+                    absolute
+                    top-[280px]
+                    left-[600px]
+                    text-[52px]
+                    font-bold
+                    whitespace-nowrap
+                  "
+                >
+                  {form.category}
+                </h1>
+
+                {/* COURSE */}
+
+                <h2
+                  className="
+                    absolute
+                    top-[350px]
+                    left-[700px]
+                    text-[42px]
+                    font-bold
+                    uppercase
+                    whitespace-nowrap
+                  "
+                >
+                  {form.course}
+                </h2>
+
+                {/* STUDENT NAME */}
+
+                <h3
+                  className="
+                    absolute
+                    top-[460px]
+                    left-[710px]
+                    text-[48px]
+                    font-bold
+                    text-yellow-700
+                    whitespace-nowrap
+                  "
+                >
+                  {form.studentName}
+                </h3>
+
+                {/* DESCRIPTION */}
+
+                <div
+                  className="
+                    absolute
+                    top-[540px]
+                    left-[350px]
+                    w-[900px]
+                    text-center
+                    text-[24px]
+                    leading-[42px]
+                  "
+                >
+
+                  <p>
+
+                    In recognition of successful completion of{" "}
+
+                    {form.level}
+
+                    {" "}in{" "}
+
+                    {form.course}
+
+                    {" "}under{" "}
+
+                    {form.category}
+
+                  </p>
+
+                  <p className="mt-6">
+
+                    {form.description}
+
+                  </p>
+
+                </div>
+
+                {/* DURATION */}
+
+                <p
+                  className="
+                    absolute
+                    bottom-[250px]
+                    left-[680px]
+                    text-[24px]
+                  "
+                >
+
+                  Course Duration:
+                  {" "}
+                  {form.duration}
+
+                </p>
+
+                {/* DATE */}
+
+                <p
+                  className="
+                    absolute
+                    bottom-[220px]
+                    left-[620px]
+                    text-[24px]
+                  "
+                >
+
+                  Date of Completion:
+                  {" "}
+                  {form.completionDate}
+
+                </p>
+
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
 
       </div>
 
