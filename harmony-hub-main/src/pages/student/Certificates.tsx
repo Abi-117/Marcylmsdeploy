@@ -19,34 +19,52 @@ StudentCertificates() {
     setCerts,
   ] = useState<any[]>([]);
 
-  // ZUSTAND USER
-  const { user } =
+  const auth =
     useAuth();
 
-  // =========================
-  // FETCH CERTIFICATES
-  // =========================
+  console.log(
+    "AUTH:",
+    auth
+  );
+
+  const user =
+    auth.user;
+
+  console.log(
+    "USER:",
+    user
+  );
 
   const fetchCertificates =
     async () => {
 
       try {
 
-        if (!user?._id)
-          return;
+        // IMPORTANT
+        const studentId =
+          user?._id || user?.id;
 
         console.log(
-          "USER ID:",
-          user._id
+          "STUDENT ID:",
+          studentId
         );
+
+        if (!studentId) {
+
+          console.log(
+            "NO STUDENT ID"
+          );
+
+          return;
+        }
 
         const res =
           await axios.get(
-            `${API}/certificates/student/${user._id}`
+            `${API}/certificates/student/${studentId}`
           );
 
         console.log(
-          "CERT RESPONSE:",
+          "API RESPONSE:",
           res.data
         );
 
@@ -68,7 +86,7 @@ StudentCertificates() {
 
     fetchCertificates();
 
-  }, [user?._id]);
+  }, [user]);
 
   return (
 
@@ -96,56 +114,54 @@ StudentCertificates() {
 
         <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-6">
 
-          {certs.map(
-            (cert) => (
+          {certs.map((cert) => (
 
-              <div
-                key={cert._id}
-                className="bg-white rounded-3xl p-6 shadow-lg"
+            <div
+              key={cert._id}
+              className="bg-white rounded-3xl p-6 shadow-lg"
+            >
+
+              <h2 className="text-2xl font-black">
+
+                {cert.course}
+
+              </h2>
+
+              <p className="mt-2 text-slate-500">
+
+                {cert.level}
+
+              </p>
+
+              <p className="mt-2 text-slate-500">
+
+                {cert.completionDate}
+
+              </p>
+
+              <a
+                href={cert.pdfUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="
+                  mt-6
+                  inline-block
+                  bg-indigo-600
+                  text-white
+                  px-5
+                  py-3
+                  rounded-xl
+                  font-bold
+                "
               >
 
-                <h2 className="text-2xl font-black">
+                View Certificate
 
-                  {cert.course}
+              </a>
 
-                </h2>
+            </div>
 
-                <p className="mt-2 text-slate-500">
-
-                  {cert.level}
-
-                </p>
-
-                <p className="mt-2 text-slate-500">
-
-                  {cert.completionDate}
-
-                </p>
-
-                <a
-                  href={cert.pdfUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="
-                    mt-6
-                    inline-block
-                    bg-indigo-600
-                    text-white
-                    px-5
-                    py-3
-                    rounded-xl
-                    font-bold
-                  "
-                >
-
-                  View Certificate
-
-                </a>
-
-              </div>
-
-            )
-          )}
+          ))}
 
         </div>
 

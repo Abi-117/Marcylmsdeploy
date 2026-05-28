@@ -163,10 +163,10 @@ async ({
     // =========================
 
     const desc1 =
-      `Successfully completed ${level}`;
+      `In recognition of successful completion of ${level} in ${course} in ${category}.`;
 
     const desc2 =
-      `${course} under ${category}`;
+      `${description}`;
 
     page.drawText(
       desc1,
