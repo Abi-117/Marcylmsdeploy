@@ -3,7 +3,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 
 dotenv.config();
-import "./cron/classReminder.js";
+
 
 import connectDB from "./src/config/db.js";
 import authRoutes from "./src/routes/authRoutes.js";
