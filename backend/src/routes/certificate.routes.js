@@ -2,6 +2,7 @@ import express from "express";
 
 import CertificateRequest
 from "../models/CertificateRequest.js";
+import certificate from "../models/certificate.model.js";
 
 import {
   generateCertificate,
@@ -20,12 +21,59 @@ router.post(
 
     try {
 
-      console.log(req.body);
+      console.log(
+        "BODY:",
+        req.body
+      );
 
-      return res.status(200).json({
+      const newRequest =
+        await CertificateRequest.create({
+
+          student:
+            req.body.student,
+
+          studentName:
+            req.body.studentName,
+
+          course:
+            req.body.course,
+
+          category:
+            req.body.category,
+
+          level:
+            req.body.level,
+
+          description:
+            req.body.description,
+
+          duration:
+            req.body.duration,
+
+          completionDate:
+            req.body.completionDate,
+
+          previewImage:
+            req.body.previewImage,
+
+          status:
+            "pending",
+        });
+
+      console.log(
+        "SAVED:",
+        newRequest
+      );
+
+      return res.status(201).json({
+
         success: true,
+
         message:
           "Certificate Request Created",
+
+        data:
+          newRequest,
       });
 
     } catch (err) {

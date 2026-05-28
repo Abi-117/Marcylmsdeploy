@@ -9,41 +9,27 @@ const certificateSchema =
         ref: "User",
       },
 
-      teacher: {
-        type:
-          mongoose.Schema.Types.ObjectId,
-        ref: "User",
-      },
-
       studentName: String,
 
       course: String,
 
+      category: String,
+
       level: String,
+
+      description: String,
+
+      duration: String,
 
       completionDate: String,
 
+      previewImage: String,
+
       status: {
         type: String,
-
-        enum: [
-          "pending",
-          "approved",
-          "rejected",
-        ],
-
         default: "pending",
       },
-
-      pdfUrl: String,
-
-      approvedBy: {
-        type:
-          mongoose.Schema.Types.ObjectId,
-        ref: "User",
-      },
     },
-
     {
       timestamps: true,
     }
