@@ -135,8 +135,7 @@ async ({
       {
         x:
           (width -
-            categoryWidth) /
-          2,
+            categoryWidth) / 2,
 
         y: 690,
 
@@ -156,7 +155,8 @@ async ({
     // =========================
 
     const courseText =
-      course.toUpperCase();
+      (course || "")
+      .toUpperCase();
 
     const courseSize =
       36;
@@ -172,8 +172,7 @@ async ({
       {
         x:
           (width -
-            courseWidth) /
-          2,
+            courseWidth) / 2,
 
         y: 620,
 
@@ -192,22 +191,25 @@ async ({
     // STUDENT NAME
     // =========================
 
+    const studentText =
+      studentName ||
+      "Student Name";
+
     const nameSize =
       42;
 
     const nameWidth =
       boldFont.widthOfTextAtSize(
-        studentName,
+        studentText,
         nameSize
       );
 
     page.drawText(
-      studentName,
+      studentText,
       {
         x:
           (width -
-            nameWidth) /
-          2,
+            nameWidth) / 2,
 
         y: 520,
 
@@ -223,7 +225,7 @@ async ({
     );
 
     // =========================
-    // DESCRIPTION TITLE
+    // FIRST DESCRIPTION
     // =========================
 
     const desc1 =
@@ -243,8 +245,7 @@ async ({
       {
         x:
           (width -
-            desc1Width) /
-          2,
+            desc1Width) / 2,
 
         y: 430,
 
@@ -260,18 +261,22 @@ async ({
     );
 
     // =========================
-    // DESCRIPTION WRAP
+    // SECOND DESCRIPTION
+    // AUTO NEXT LINE
     // =========================
 
     const desc2 =
-      description ||
+      description?.trim() ||
       "With dedication and excellence.";
 
     const maxWidth =
-      800;
+      850;
 
     const fontSize =
       22;
+
+    const lineHeight =
+      34;
 
     const words =
       desc2.split(" ");
@@ -281,45 +286,60 @@ async ({
     let currentLine =
       "";
 
-    words.forEach(
-      (word) => {
+    for (
+      let i = 0;
+      i < words.length;
+      i++
+    ) {
 
-        const testLine =
-          currentLine +
-          word +
-          " ";
+      const word =
+        words[i];
 
-        const textWidth =
-          normalFont.widthOfTextAtSize(
-            testLine,
-            fontSize
-          );
+      const testLine =
+        currentLine +
+        word +
+        " ";
 
-        if (
-          textWidth >
-          maxWidth
-        ) {
+      const textWidth =
+        normalFont.widthOfTextAtSize(
+          testLine,
+          fontSize
+        );
 
-          lines.push(
-            currentLine
-          );
+      if (
+        textWidth >
+        maxWidth
+      ) {
 
-          currentLine =
-            word + " ";
+        lines.push(
+          currentLine.trim()
+        );
 
-        } else {
+        currentLine =
+          word + " ";
 
-          currentLine =
-            testLine;
+      } else {
 
-        }
-
+        currentLine =
+          testLine;
       }
-    );
+    }
 
-    lines.push(
-      currentLine
-    );
+    if (
+      currentLine.trim() !== ""
+    ) {
+
+      lines.push(
+        currentLine.trim()
+      );
+    }
+
+    // =========================
+    // DRAW DESCRIPTION
+    // =========================
+
+    let startY =
+      380;
 
     lines.forEach(
       (
@@ -338,12 +358,12 @@ async ({
           {
             x:
               (width -
-                lineWidth) /
-              2,
+                lineWidth) / 2,
 
             y:
-              380 -
-              index * 32,
+              startY -
+              index *
+                lineHeight,
 
             size:
               fontSize,
@@ -355,7 +375,6 @@ async ({
               black,
           }
         );
-
       }
     );
 
@@ -377,8 +396,7 @@ async ({
       {
         x:
           (width -
-            durationWidth) /
-          2,
+            durationWidth) / 2,
 
         y: 200,
 
@@ -410,8 +428,7 @@ async ({
       {
         x:
           (width -
-            dateWidth) /
-          2,
+            dateWidth) / 2,
 
         y: 160,
 
@@ -426,7 +443,7 @@ async ({
     );
 
     // =========================
-    // SAVE PDF TEMP
+    // SAVE PDF
     // =========================
 
     const pdfBytes =
@@ -447,7 +464,7 @@ async ({
     );
 
     // =========================
-    // CLOUDINARY UPLOAD
+    // UPLOAD CLOUDINARY
     // =========================
 
     const result =
@@ -471,14 +488,14 @@ async ({
         }
       );
 
-    // DELETE TEMP FILE
+    // DELETE TEMP
 
     fs.unlinkSync(
       tempPath
     );
 
     // =========================
-    // RETURN URL
+    // PDF URL
     // =========================
 
     const pdfUrl =
