@@ -10,7 +10,7 @@ import path from "path";
 
 import User from "../models/User.js";
 import Payment from "../models/Payment.js";
-
+import Course from "../models/Course.js";
 
 const router = express.Router();
 
@@ -22,16 +22,22 @@ const razorpay = new Razorpay({
   key_id: process.env.RAZORPAY_KEY,
   key_secret: process.env.RAZORPAY_SECRET,
 });
+
 console.log("🔥 Payment Routes Loaded");
+
 // ========================================
 // CREATE ORDER
 // ========================================
+
 router.post("/create-order", async (req, res) => {
   try {
     const { amount } = req.body;
 
-    if (!amount || amount <= 0) {
-      return res.status(400).json({ message: "Invalid amount" });
+    if (!amount || Number(amount) <= 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid amount",
+      });
     }
 
     const order = await razorpay.orders.create({
@@ -40,193 +46,251 @@ router.post("/create-order", async (req, res) => {
       receipt: "rcpt_" + Date.now(),
     });
 
-    res.json({
+    return res.json({
       success: true,
       order,
     });
 
   } catch (err) {
-    console.log("ORDER ERROR:", err);
-    res.status(500).json({ message: "Order creation failed" });
+
+    console.log("CREATE ORDER ERROR:", err);
+
+    return res.status(500).json({
+      success: false,
+      message: "Order creation failed",
+    });
+
   }
 });
-
 
 // ========================================
 // VERIFY PAYMENT
 // ========================================
 
 router.post("/verify", async (req, res) => {
+
   try {
+
     const {
       razorpay_order_id,
       razorpay_payment_id,
       razorpay_signature,
       userId,
-      level,
       courseId,
       amount,
     } = req.body;
 
-    // 1. VERIFY SIGNATURE
-    const body = `${razorpay_order_id}|${razorpay_payment_id}`;
+    // ====================================
+    // VALIDATION
+    // ====================================
+
+    if (
+      !razorpay_order_id ||
+      !razorpay_payment_id ||
+      !razorpay_signature ||
+      !userId ||
+      !courseId
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Missing required fields",
+      });
+    }
+
+    // ====================================
+    // VERIFY SIGNATURE
+    // ====================================
+
+    const body =
+      razorpay_order_id +
+      "|" +
+      razorpay_payment_id;
 
     const expectedSignature = crypto
-      .createHmac("sha256", process.env.RAZORPAY_SECRET)
-      .update(body)
+      .createHmac(
+        "sha256",
+        process.env.RAZORPAY_SECRET
+      )
+      .update(body.toString())
       .digest("hex");
 
-    if (expectedSignature !== razorpay_signature) {
+    if (
+      expectedSignature !==
+      razorpay_signature
+    ) {
+
       return res.status(400).json({
         success: false,
         message: "Invalid signature",
       });
+
     }
 
-    // 2. FIND USER
-    const user = await User.findById(userId);
+    // ====================================
+    // FIND USER
+    // ====================================
+
+    const user =
+      await User.findById(userId);
 
     if (!user) {
-      return res.status(404).json({ message: "User not found" });
+
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+
     }
 
-    // 3. CHECK IF PAYMENT ALREADY EXISTS (SAFE IDENTITY CHECK)
-    const existingPayment = await Payment.findOne({
-      student: userId,
-      course: courseId,
-      amount,
-    });
+    // ====================================
+    // FIND COURSE
+    // ====================================
+
+    const course =
+      await Course.findById(courseId);
+
+    if (!course) {
+
+      return res.status(404).json({
+        success: false,
+        message: "Course not found",
+      });
+
+    }
+
+    // ====================================
+    // CHECK DUPLICATE PAYMENT
+    // ====================================
+
+    const existingPayment =
+      await Payment.findOne({
+        student: userId,
+        course: courseId,
+      });
 
     if (existingPayment) {
+
       return res.json({
         success: true,
-        message: "Payment already processed",
+        alreadyPaid: true,
+        message:
+          "Already paid for this course",
         payment: existingPayment,
       });
+
     }
 
-    // 4. CREATE PAYMENT RECORD
-    const payment = await Payment.create({
-      student: userId,
-      course: courseId,
-      amount,
-      status: "Paid",
-      paidAt: new Date(),
-      paymentId: razorpay_payment_id,
-      orderId: razorpay_order_id,
-    });
+    // ====================================
+    // CREATE PAYMENT
+    // ====================================
 
-    // 5. UNLOCK LEVEL SAFELY
+    const payment =
+      await Payment.create({
+        student: userId,
+        course: courseId,
+        amount: Number(amount),
+        status: "Paid",
+        paidAt: new Date(),
+        paymentId:
+          razorpay_payment_id,
+        orderId:
+          razorpay_order_id,
+      });
+
+    // ====================================
+    // UPDATE USER
+    // ====================================
+
+    user.paymentStatus = "Paid";
+
+    // CURRENT ACTIVE GRADE
+    user.selectedLevel =
+      course.grade;
+
+    // STORE PAID COURSES
     if (!user.unlockedLevels) {
       user.unlockedLevels = [];
     }
 
-    if (!user.unlockedLevels.includes(level)) {
-      user.unlockedLevels.push(level);
-    }
+    // grade unlock
+    if (
+      !user.unlockedLevels.includes(
+        course.grade
+      )
+    ) {
 
-    user.paymentStatus = "Paid";
-    user.selectedLevel = level;
+      user.unlockedLevels.push(
+        course.grade
+      );
+
+    }
 
     await user.save();
 
-    // 6. RESPONSE
+    // ====================================
+    // RESPONSE
+    // ====================================
+
     return res.json({
       success: true,
-      message: "Payment verified successfully",
+      message:
+        "Payment verified successfully",
       payment,
     });
 
   } catch (err) {
-    console.log("VERIFY ERROR:", err);
+
+    console.log(
+      "VERIFY PAYMENT ERROR:",
+      err
+    );
 
     return res.status(500).json({
       success: false,
       message: "Verification failed",
       error: err.message,
     });
+
   }
+
 });
+
 // ========================================
-// ADMIN ALL PAYMENTS
+// ADMIN - ALL PAYMENTS
 // ========================================
 
 router.get("/", async (req, res) => {
 
   try {
 
-    const users = await User.find();
+    const payments =
+      await Payment.find()
 
-    let allPayments = [];
+        .populate(
+          "student",
+          "name email"
+        )
 
-    users.forEach((user) => {
+        .populate(
+          "course",
+          "name grade mainLevel fee"
+        )
 
-      if (
-        user.payments &&
-        user.payments.length > 0
-      ) {
-
-        user.payments.forEach((payment) => {
-
-          allPayments.push({
-
-            _id:
-              payment._id,
-
-            invoice:
-              payment.invoice ||
-              "INV-" +
-                payment.paymentId
-                  ?.slice(-5),
-
-            studentName:
-              user.name,
-
-            studentEmail:
-              user.email,
-
-            level:
-              payment.level,
-
-            amount:
-              Number(payment.amount),
-
-            paymentId:
-              payment.paymentId,
-
-            orderId:
-              payment.orderId,
-
-            status:
-              payment.status,
-
-            date:
-              new Date(
-                payment.createdAt
-              ).toLocaleDateString(),
-
-          });
-
+        .sort({
+          createdAt: -1,
         });
 
-      }
-
-    });
-
-    // LATEST FIRST
-    allPayments.sort(
-      (a, b) =>
-        new Date(b.date) -
-        new Date(a.date)
-    );
-
-    res.json(allPayments);
+    return res.json(payments);
 
   } catch (err) {
 
-    console.log(err);
+    console.log(
+      "GET PAYMENTS ERROR:",
+      err
+    );
 
-    res.status(500).json({
+    return res.status(500).json({
+      success: false,
       message:
         "Failed to fetch payments",
     });
@@ -236,7 +300,52 @@ router.get("/", async (req, res) => {
 });
 
 // ========================================
-// USER PAYMENT HISTORY
+// SINGLE STUDENT PAYMENTS
+// ========================================
+
+router.get(
+  "/student/:userId",
+  async (req, res) => {
+
+    try {
+
+      const payments =
+        await Payment.find({
+          student:
+            req.params.userId,
+        })
+
+          .populate(
+            "course",
+            "name grade mainLevel fee"
+          )
+
+          .sort({
+            createdAt: -1,
+          });
+
+      return res.json(payments);
+
+    } catch (err) {
+
+      console.log(
+        "STUDENT PAYMENT ERROR:",
+        err
+      );
+
+      return res.status(500).json({
+        success: false,
+        message:
+          "Failed to fetch student payments",
+      });
+
+    }
+
+  }
+);
+
+// ========================================
+// PAYMENT HISTORY
 // ========================================
 
 router.get(
@@ -245,31 +354,34 @@ router.get(
 
     try {
 
-      const user =
-        await User.findById(
-          req.params.userId
-        );
+      const payments =
+        await Payment.find({
+          student:
+            req.params.userId,
+        })
 
-      if (!user) {
+          .populate(
+            "course",
+            "name grade mainLevel fee"
+          )
 
-        return res.status(404).json({
-          message:
-            "User not found",
-        });
+          .sort({
+            createdAt: -1,
+          });
 
-      }
-
-      res.json(
-        user.payments || []
-      );
+      return res.json(payments);
 
     } catch (err) {
 
-      console.log(err);
+      console.log(
+        "PAYMENT HISTORY ERROR:",
+        err
+      );
 
-      res.status(500).json({
+      return res.status(500).json({
+        success: false,
         message:
-          "Server error",
+          "Failed to fetch history",
       });
 
     }
@@ -287,40 +399,38 @@ router.get(
 
     try {
 
-      const users =
-        await User.find();
+      // ====================================
+      // FIND PAYMENT
+      // ====================================
 
-      let payment = null;
-      let paymentUser = null;
+      const payment =
+        await Payment.findById(
+          req.params.paymentId
+        )
 
-      for (const user of users) {
+          .populate(
+            "student",
+            "name email"
+          )
 
-        const found =
-          user.payments.find(
-            (p) =>
-              p.paymentId ===
-              req.params.paymentId
+          .populate(
+            "course",
+            "name grade mainLevel"
           );
-
-        if (found) {
-
-          payment = found;
-          paymentUser = user;
-
-          break;
-
-        }
-
-      }
 
       if (!payment) {
 
         return res.status(404).json({
+          success: false,
           message:
             "Payment not found",
         });
 
       }
+
+      // ====================================
+      // PDF START
+      // ====================================
 
       const doc =
         new PDFDocument({
@@ -334,7 +444,7 @@ router.get(
 
       res.setHeader(
         "Content-Disposition",
-        `attachment; filename=invoice-${payment.paymentId}.pdf`
+        `attachment; filename=invoice-${payment._id}.pdf`
       );
 
       doc.pipe(res);
@@ -369,7 +479,7 @@ router.get(
       // ====================================
 
       doc
-        .fontSize(20)
+        .fontSize(22)
         .font(
           "Helvetica-Bold"
         )
@@ -380,12 +490,12 @@ router.get(
         );
 
       doc
-        .fontSize(10)
+        .fontSize(11)
         .font("Helvetica")
         .text(
           "Official Payment Invoice",
           150,
-          70
+          72
         );
 
       doc
@@ -394,123 +504,152 @@ router.get(
         .stroke();
 
       // ====================================
-      // DETAILS
+      // INVOICE DETAILS
       // ====================================
 
       doc
-        .fontSize(12)
+        .fontSize(13)
         .font(
           "Helvetica-Bold"
         )
         .text(
           "Invoice Details",
           50,
-          130
+          140
         );
 
       doc
         .font("Helvetica")
+        .fontSize(11)
+
         .text(
-          `Invoice ID: ${payment.invoice}`,
+          `Invoice ID: INV-${payment._id
+            .toString()
+            .slice(-6)}`,
           50,
-          155
+          170
         )
+
         .text(
-          `Payment ID: ${payment.paymentId}`,
+          `Payment ID: ${payment.paymentId || "-"}`,
           50,
-          175
+          190
         )
+
+        .text(
+          `Order ID: ${payment.orderId || "-"}`,
+          50,
+          210
+        )
+
         .text(
           `Date: ${new Date(
             payment.createdAt
           ).toLocaleString()}`,
           50,
-          195
+          230
         );
 
       // ====================================
-      // CUSTOMER
+      // CUSTOMER DETAILS
       // ====================================
 
       doc
         .font(
           "Helvetica-Bold"
         )
+        .fontSize(13)
         .text(
           "Customer Details",
-          300,
-          130
+          320,
+          140
         );
 
       doc
         .font("Helvetica")
+        .fontSize(11)
+
         .text(
-          `Name: ${paymentUser?.name}`,
-          300,
-          155
+          `Name: ${payment.student?.name || "-"}`,
+          320,
+          170
         )
+
         .text(
-          `Email: ${paymentUser?.email}`,
-          300,
-          175
+          `Email: ${payment.student?.email || "-"}`,
+          320,
+          190
         );
 
       // ====================================
-      // TABLE
+      // TABLE HEADER
       // ====================================
 
       doc
-        .fontSize(12)
         .font(
           "Helvetica-Bold"
         )
+        .fontSize(12)
+
         .text(
-          "Description",
+          "Course",
           50,
-          260
+          300
         )
+
         .text(
-          "Level",
+          "Grade",
           220,
-          260
+          300
         )
+
         .text(
           "Amount",
-          320,
-          260
+          340,
+          300
         )
+
         .text(
           "Status",
-          430,
-          260
+          450,
+          300
         );
 
       doc
-        .moveTo(50, 280)
-        .lineTo(550, 280)
+        .moveTo(50, 320)
+        .lineTo(550, 320)
         .stroke();
+
+      // ====================================
+      // TABLE DATA
+      // ====================================
 
       doc
         .font("Helvetica")
+        .fontSize(11)
+
         .text(
-          "Course Payment",
+          payment.course?.name || "-",
           50,
-          300
+          340
         )
+
         .text(
-          payment.level,
+          payment.course?.grade || "-",
           220,
-          300
+          340
         )
+
         .text(
           `₹${payment.amount}`,
-          320,
-          300
+          340,
+          340
         )
+
         .text(
           payment.status,
-          430,
-          300
+          450,
+          340
         );
 
       // ====================================
@@ -519,6 +658,8 @@ router.get(
 
       doc
         .fontSize(10)
+        .font("Helvetica")
+
         .text(
           "Thank you for learning with Marcys Academy",
           50,
@@ -537,9 +678,10 @@ router.get(
         err
       );
 
-      res.status(500).json({
+      return res.status(500).json({
+        success: false,
         message:
-          "Invoice failed",
+          "Invoice generation failed",
       });
 
     }

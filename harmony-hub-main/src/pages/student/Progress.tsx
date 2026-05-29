@@ -1,256 +1,620 @@
+
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Lock, CheckCircle2, Award } from "lucide-react";
+import {
+  Lock,
+  BookOpen,
+  CheckCircle2,
+  PlayCircle,
+} from "lucide-react";
+
 import axios from "axios";
 
-import { Card, CardContent } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+} from "@/components/ui/card";
+
 import { Button } from "@/components/ui/button";
+
 import { Badge } from "@/components/ui/badge";
-import { PageHeader, LevelBadge } from "@/components/dashboard/Primitives";
+
+import {
+  PageHeader,
+} from "@/components/dashboard/Primitives";
+
 import { useAuth } from "@/store/auth";
 
-const levelOrder = ["Basic", "Intermediate", "Advanced"];
+const API =
+  "https://marcylmsdeploy-2.onrender.com/api";
 
 function StudentProgress() {
-  const user = useAuth((s) => s.user);
 
-  const [courses, setCourses] = useState<any[]>([]);
-  const [openPayment, setOpenPayment] = useState(false);
-  const [selectedLevel, setSelectedLevel] = useState("");
-  const [selectedCourse, setSelectedCourse] = useState<any>(null);
+  const user =
+    useAuth((s) => s.user);
 
-  // ================= FETCH COURSES =================
+  const [courses, setCourses] =
+    useState<any[]>([]);
+
+  const [payments, setPayments] =
+    useState<any[]>([]);
+
+  const [openPayment, setOpenPayment] =
+    useState(false);
+
+  const [selectedCourse, setSelectedCourse] =
+    useState<any>(null);
+
+  // =====================================
+  // FETCH COURSES + PAYMENTS
+  // =====================================
+
   useEffect(() => {
-    const fetchCourses = async () => {
-      try {
-        const res = await axios.get(
-          "https://marcylmsdeploy-2.onrender.com/api/courses"
-        );
-        setCourses(res.data || []);
-      } catch (err) {
-        console.log(err);
-      }
-    };
 
-    fetchCourses();
+    fetchData();
+
   }, []);
 
-  // ================= RAZORPAY SCRIPT =================
-  useEffect(() => {
-    const script = document.createElement("script");
-    script.src = "https://checkout.razorpay.com/v1/checkout.js";
-    script.async = true;
-    document.body.appendChild(script);
-  }, []);
+  const fetchData = async () => {
 
-  // ================= CURRENT COURSE =================
-  const currentCourse = courses.find(
-    (c: any) => c._id === user?.course
-  );
-
-  // ================= LEVELS (NO TOTAL SUM) =================
-  const levels = levelOrder.map((level) => {
-    const levelCourses = courses.filter(
-      (c: any) =>
-        c.name === currentCourse?.name &&
-        c.mainLevel === level
-    );
-
-    return {
-      l: level,
-      courses: levelCourses,
-      unlocked: user?.unlockedLevels?.includes(level),
-      completed: user?.completedLevels?.includes(level),
-    };
-  });
-
-  // ================= OPEN PAYMENT =================
-  const handlePay = (level: string, course: any) => {
-    setSelectedLevel(level);
-    setSelectedCourse(course);
-    setOpenPayment(true);
-  };
-
-  // ================= RAZORPAY PAYMENT =================
-  const handleRazorpayPayment = async () => {
     try {
-      if (!selectedCourse?.fee) {
-        alert("Invalid payment data");
-        return;
-      }
 
-      const { data } = await axios.post(
-        "https://marcylmsdeploy-2.onrender.com/api/payments/create-order",
-        {
-          amount: selectedCourse.fee,
-        }
+      // COURSES
+      const courseRes =
+        await axios.get(
+          `${API}/courses`
+        );
+
+      setCourses(
+        courseRes.data || []
       );
 
-      const order = data.order;
+      // PAYMENTS
+      if (user?._id) {
 
-      const options = {
-        key: import.meta.env.VITE_RAZORPAY_KEY,
-        amount: order.amount,
-        currency: order.currency,
-        name: "Marcy LMS",
-        description: `${selectedCourse.grade} Payment`,
-        order_id: order.id,
+        const paymentRes =
+          await axios.get(
+            `${API}/payments/student/${user._id}`
+          );
 
-        handler: async function (response: any) {
-          try {
-            await axios.post(
-              "https://marcylmsdeploy-2.onrender.com/api/payments/verify",
-              {
-                razorpay_order_id: response.razorpay_order_id,
-                razorpay_payment_id: response.razorpay_payment_id,
-                razorpay_signature: response.razorpay_signature,
-                userId: user?._id,
-                level: selectedLevel,
-                courseId: selectedCourse._id,
-                amount: selectedCourse.fee,
-              }
-            );
+        setPayments(
+          paymentRes.data || []
+        );
 
-            alert("Payment successful");
-            setOpenPayment(false);
-            window.location.href = "/student/classes";
-          } catch (err) {
-            console.log(err);
-            alert("Verification failed");
-          }
-        },
+      }
 
-        prefill: {
-          name: user?.name,
-          email: user?.email,
-          contact: user?.phone,
-        },
-
-        theme: {
-          color: "#C8A45D",
-        },
-      };
-
-      const razorpay = new (window as any).Razorpay(options);
-      razorpay.open();
     } catch (err) {
+
       console.log(err);
-      alert("Payment failed");
+
     }
+
   };
 
-  return (
-    <div>
-      <PageHeader title="My Progress" subtitle="Track your learning journey" />
+  // =====================================
+  // LOAD RAZORPAY
+  // =====================================
 
-      {/* CURRENT COURSE */}
-      <div className="mb-6 rounded-2xl border bg-card p-5">
+  useEffect(() => {
+
+    const script =
+      document.createElement(
+        "script"
+      );
+
+    script.src =
+      "https://checkout.razorpay.com/v1/checkout.js";
+
+    script.async = true;
+
+    document.body.appendChild(
+      script
+    );
+
+  }, []);
+
+  // =====================================
+  // CURRENT COURSE
+  // =====================================
+
+  const currentCourse =
+    courses.find(
+      (c: any) =>
+        c._id === user?.course
+    );
+
+  // =====================================
+  // ALL GRADES
+  // =====================================
+
+  const gradeCourses =
+    courses.filter(
+      (c: any) =>
+        c.name ===
+        currentCourse?.name
+    );
+
+  // =====================================
+  // CHECK PAYMENT
+  // =====================================
+
+  const isPaid =
+    (courseId: string) => {
+
+      return payments.some(
+        (p: any) =>
+          String(
+            p.course?._id ||
+            p.course
+          ) === String(courseId)
+      );
+
+    };
+
+  // =====================================
+  // FIND ACTIVE COURSE
+  // =====================================
+
+  const latestPaid =
+    payments.length > 0
+      ? payments[
+          payments.length - 1
+        ]
+      : null;
+
+  // =====================================
+  // OPEN PAYMENT
+  // =====================================
+
+  const handlePay =
+    (course: any) => {
+
+      setSelectedCourse(
+        course
+      );
+
+      setOpenPayment(
+        true
+      );
+
+    };
+
+  // =====================================
+  // PAYMENT
+  // =====================================
+
+  const handleRazorpayPayment =
+    async () => {
+
+      try {
+
+        if (
+          !selectedCourse
+        ) return;
+
+        // CREATE ORDER
+        const { data } =
+          await axios.post(
+            `${API}/payments/create-order`,
+            {
+              amount:
+                selectedCourse.fee,
+            }
+          );
+
+        const order =
+          data.order;
+
+        const options = {
+
+          key:
+            import.meta.env
+              .VITE_RAZORPAY_KEY,
+
+          amount:
+            order.amount,
+
+          currency:
+            order.currency,
+
+          name:
+            "Marcys Academy",
+
+          description:
+            `${selectedCourse.grade} Payment`,
+
+          order_id:
+            order.id,
+
+          handler:
+            async function (
+              response: any
+            ) {
+
+              try {
+
+                await axios.post(
+                  `${API}/payments/verify`,
+                  {
+
+                    razorpay_order_id:
+                      response.razorpay_order_id,
+
+                    razorpay_payment_id:
+                      response.razorpay_payment_id,
+
+                    razorpay_signature:
+                      response.razorpay_signature,
+
+                    userId:
+                      user?._id,
+
+                    courseId:
+                      selectedCourse._id,
+
+                    amount:
+                      selectedCourse.fee,
+
+                    level:
+                      selectedCourse.mainLevel,
+
+                  }
+                );
+
+                alert(
+                  "Payment Successful"
+                );
+
+                setOpenPayment(
+                  false
+                );
+
+                fetchData();
+
+              } catch (err: any) {
+
+                console.log(err);
+
+                alert(
+                  err?.response?.data
+                    ?.message ||
+                    "Verification failed"
+                );
+
+              }
+
+            },
+
+          prefill: {
+
+            name:
+              user?.name,
+
+            email:
+              user?.email,
+
+          },
+
+          theme: {
+
+            color:
+              "#C8A45D",
+
+          },
+
+        };
+
+        const razorpay =
+          new (
+            window as any
+          ).Razorpay(options);
+
+        razorpay.open();
+
+      } catch (err) {
+
+        console.log(err);
+
+        alert(
+          "Payment failed"
+        );
+
+      }
+
+    };
+
+  return (
+
+    <div>
+
+      <PageHeader
+        title="My Progress"
+        subtitle="Track your learning journey"
+      />
+
+      {/* COURSE HEADER */}
+
+      <div className="mb-8 rounded-2xl border bg-card p-6">
+
         <div className="flex items-center justify-between">
+
           <div>
+
             <div className="text-sm text-muted-foreground">
+
               Current Course
+
             </div>
-            <div className="mt-1 text-2xl font-bold">
+
+            <div className="mt-1 text-3xl font-bold">
+
               {currentCourse?.name || "-"}
+
             </div>
+
           </div>
 
-          <Badge className="bg-gold text-gold-foreground">
-            {user?.selectedLevel || "Locked"}
-          </Badge>
+          <BookOpen className="h-8 w-8 text-gold" />
+
         </div>
+
       </div>
 
-      {/* LEVELS */}
-      <div className="grid gap-6 lg:grid-cols-3">
-        {levels.map((m) => (
-          <motion.div
-            key={m.l}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-          >
-            <Card
-              className={`h-full ${
-                m.completed
-                  ? "border-green-500 bg-green-50"
-                  : m.unlocked
-                  ? "border-gold bg-gold-soft/20"
-                  : "opacity-70"
-              }`}
-            >
-              <CardContent className="p-6">
-                <div className="flex justify-between">
-                  <div>
-                    {m.completed ? (
-                      <CheckCircle2 />
-                    ) : m.unlocked ? (
-                      <Award />
-                    ) : (
-                      <Lock />
-                    )}
-                  </div>
+      {/* COURSES */}
 
-                  <LevelBadge level={m.l} />
-                </div>
+      <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
 
-                <div className="mt-4 font-bold text-xl">{m.l}</div>
+        {gradeCourses.map(
+          (course: any) => {
 
-                {/* GRADES LIST */}
-                <div className="mt-5 space-y-3">
-                  {m.courses?.map((c: any) => (
-                    <div
-                      key={c._id}
-                      className="border p-3 rounded-xl flex justify-between items-center"
-                    >
+            const paid =
+              isPaid(
+                course._id
+              );
+
+            const active =
+              latestPaid &&
+              String(
+                latestPaid.course?._id ||
+                latestPaid.course
+              ) ===
+                String(
+                  course._id
+                );
+
+            return (
+
+              <motion.div
+                key={course._id}
+                initial={{
+                  opacity: 0,
+                  y: 20,
+                }}
+                animate={{
+                  opacity: 1,
+                  y: 0,
+                }}
+              >
+
+                <Card
+                  className={`h-full transition-all ${
+                    paid
+                      ? "border-green-500 bg-green-50"
+                      : active
+                      ? "border-gold bg-gold-soft/20"
+                      : ""
+                  }`}
+                >
+
+                  <CardContent className="p-6">
+
+                    {/* ICON */}
+
+                    <div className="flex items-center justify-between">
+
                       <div>
-                        <div className="font-medium">{c.grade}</div>
-                        <div className="text-sm text-gray-500">
-                          ₹{c.fee}
-                        </div>
+
+                        {paid ? (
+
+                          <CheckCircle2 className="h-7 w-7 text-green-600" />
+
+                        ) : active ? (
+
+                          <PlayCircle className="h-7 w-7 text-gold" />
+
+                        ) : (
+
+                          <Lock className="h-7 w-7 text-muted-foreground" />
+
+                        )}
+
                       </div>
 
-                      <Button
-                        onClick={() => handlePay(m.l, c)}
-                      >
-                        Pay
-                      </Button>
+                      <Badge variant="outline">
+
+                        {
+                          course.mainLevel
+                        }
+
+                      </Badge>
+
                     </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-        ))}
+
+                    {/* TITLE */}
+
+                    <div className="mt-5">
+
+                      <div className="text-2xl font-bold">
+
+                        {
+                          course.grade
+                        }
+
+                      </div>
+
+                      <div className="mt-1 text-sm text-muted-foreground">
+
+                        {
+                          course.name
+                        }
+
+                      </div>
+
+                    </div>
+
+                    {/* PRICE */}
+
+                    <div className="mt-6 text-3xl font-bold">
+
+                      ₹
+                      {
+                        course.fee
+                      }
+
+                    </div>
+
+                    {/* STATUS */}
+
+                    <div className="mt-2 text-sm text-muted-foreground">
+
+                      {paid
+                        ? "Payment completed"
+
+                        : "Purchase to unlock"}
+
+                    </div>
+
+                    {/* BUTTON */}
+
+                    <div className="mt-6">
+
+                      {paid ? (
+
+                        <Button
+                          disabled
+                          className="w-full bg-green-600 text-white"
+                        >
+
+                          Paid
+
+                        </Button>
+
+                      ) : (
+
+                        <Button
+                          onClick={() =>
+                            handlePay(
+                              course
+                            )
+                          }
+                          className="w-full bg-black text-white"
+                        >
+
+                          Pay Now
+
+                        </Button>
+
+                      )}
+
+                    </div>
+
+                  </CardContent>
+
+                </Card>
+
+              </motion.div>
+
+            );
+
+          }
+        )}
+
       </div>
 
       {/* PAYMENT MODAL */}
-      {openPayment && selectedCourse && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center">
-          <div className="bg-white p-6 rounded-xl w-[400px]">
-            <h2 className="text-xl font-bold">
-              Pay {selectedCourse.grade}
-            </h2>
 
-            <div className="mt-4 flex justify-between">
-              <span>{selectedCourse.grade}</span>
-              <span>₹{selectedCourse.fee}</span>
+      {openPayment &&
+        selectedCourse && (
+
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+
+            <div className="w-full max-w-md rounded-2xl bg-white p-6">
+
+              <div className="text-2xl font-bold">
+
+                Pay {
+                  selectedCourse.grade
+                }
+
+              </div>
+
+              <div className="mt-2 text-sm text-muted-foreground">
+
+                Complete payment to unlock this course
+
+              </div>
+
+              <div className="mt-6 rounded-xl border p-4">
+
+                <div className="flex items-center justify-between">
+
+                  <span className="font-medium">
+
+                    {
+                      selectedCourse.grade
+                    }
+
+                  </span>
+
+                  <span className="font-bold">
+
+                    ₹
+                    {
+                      selectedCourse.fee
+                    }
+
+                  </span>
+
+                </div>
+
+              </div>
+
+              <Button
+                onClick={
+                  handleRazorpayPayment
+                }
+                className="mt-6 w-full bg-gold text-black"
+              >
+
+                Pay with Razorpay
+
+              </Button>
+
+              <Button
+                variant="outline"
+                onClick={() =>
+                  setOpenPayment(
+                    false
+                  )
+                }
+                className="mt-3 w-full"
+              >
+
+                Cancel
+
+              </Button>
+
             </div>
 
-            <div className="mt-5 font-bold text-xl">
-              ₹{selectedCourse.fee}
-            </div>
-
-            <Button
-              className="w-full mt-4"
-              onClick={handleRazorpayPayment}
-            >
-              Pay with Razorpay
-            </Button>
           </div>
-        </div>
-      )}
+
+        )}
+
     </div>
+
   );
+
 }
 
 export default StudentProgress;
+

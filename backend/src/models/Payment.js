@@ -1,5 +1,7 @@
 import mongoose from "mongoose";
 
+// Payment model
+
 const paymentSchema = new mongoose.Schema(
   {
     student: {
@@ -12,6 +14,21 @@ const paymentSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Course",
       required: true,
+    },
+
+    level: {
+      type: String,
+      default: "",
+    },
+
+    paymentId: {
+      type: String,
+      default: "",
+    },
+
+    orderId: {
+      type: String,
+      default: "",
     },
 
     amount: {
@@ -30,8 +47,12 @@ const paymentSchema = new mongoose.Schema(
       default: Date.now,
     },
   },
-  { timestamps: true }
+  {
+    timestamps: true,
+  }
 );
+
+
 
 const Payment = mongoose.model("Payment", paymentSchema);
 

@@ -6,23 +6,29 @@ export type Role =
   | "teacher"
   | "admin";
 
+
 export interface User {
-
   _id?: string;
-
   id?: string;
 
   name: string;
-
   email: string;
-
   role: Role;
 
-  courseName?: string;
+  course?: string;
+
+  phone?: string;
 
   unlockedLevels?: string[];
 
+  completedLevels?: string[];
+
+  paymentStatus?: string;
+
+  selectedLevel?: string;
 }
+
+
 
 interface AuthState {
 
