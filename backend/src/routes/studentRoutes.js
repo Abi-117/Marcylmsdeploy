@@ -2,6 +2,7 @@ import express from "express";
 import User from "../models/User.js";
 import Course from "../models/Course.js";
 import Class from "../models/Class.js";
+import Payment from "../models/Payment.js";
 
 const router = express.Router();
 
@@ -10,65 +11,73 @@ const router = express.Router();
 // GET TEACHER STUDENTS
 // match by teacher.subject -> course name -> student.course id
 // ======================================
+router.get("/teacher/:teacherId", async (req, res) => {
+  try {
+    const teacher = await User.findById(req.params.teacherId);
 
-router.get(
-  "/teacher/:teacherId",
-  async (req, res) => {
-
-    try {
-
-      const teacher = await User.findById(
-        req.params.teacherId
-      );
-
-      if (!teacher || teacher.role !== "teacher") {
-        return res.status(404).json({
-          message: "Teacher not found",
-        });
-      }
-
-      const matchingCourses = await Course.find({
-        name: teacher.subject,
-      }).select("_id");
-
-      const courseIds = matchingCourses.map(
-        (c) => String(c._id)
-      );
-
-      // status filter: "paid" | "pending" | "all" (default: all)
-      const status = (req.query.status || "all").toLowerCase();
-
-      const query = {
-        role: "student",
-        course: { $in: courseIds },
-      };
-
-      if (status === "paid") {
-        query.paymentStatus = "Paid";
-      } else if (status === "pending" || status === "unpaid") {
-        query.paymentStatus = "Pending";
-      }
-
-      const students = await User.find(query)
-
-  .populate("course")
-
-  .select("-password");
-
-      res.json(students);
-
-    } catch (err) {
-
-      console.log(err);
-
-      res.status(500).json({
-        message: "Server Error",
+    if (!teacher || teacher.role !== "teacher") {
+      return res.status(404).json({
+        message: "Teacher not found",
       });
-
     }
 
+    const matchingCourses = await Course.find({
+      name: teacher.subject,
+    }).select("_id");
+
+    const courseIds = matchingCourses.map((c) => String(c._id));
+
+    const status = (req.query.status || "all").toLowerCase();
+
+    const query = {
+      role: "student",
+      course: { $in: courseIds },
+    };
+
+    if (status === "paid") {
+      query.paymentStatus = "Paid";
+    } else if (status === "pending") {
+      query.paymentStatus = "Pending";
+    }
+
+    const students = await User.find(query)
+      .populate("course")
+      .select("-password");
+
+    // 🔥 ADD PAYMENT HISTORY (THIS IS THE FIX)
+    const enrichedStudents = await Promise.all(
+      students.map(async (s) => {
+
+        const payments = await Payment.find({
+          student: s._id,
+        })
+          .populate("course")
+          .sort({ createdAt: 1 });
+
+        return {
+          ...s.toObject(),
+
+          // FULL LEVEL HISTORY
+          payments,
+
+          // CURRENT ACTIVE LEVEL
+          activeLevel: payments[payments.length - 1]?.course || null,
+
+          // COMPLETED COUNT
+          completedLevels: payments.length,
+        };
+      })
+    );
+
+    res.json(enrichedStudents);
+
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({
+      message: "Server Error",
+    });
   }
-);
+});
 
 
 // ======================================
