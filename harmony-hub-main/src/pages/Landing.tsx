@@ -7,7 +7,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { courses } from "@/mock-data";
 import { useEffect, useState } from "react";
 
-
+const API =
+  "https://marcylmsdeploy-2.onrender.com/api";
 function Landing() {
   const [courses, setCourses] = useState([]);
   useEffect(() => {
@@ -42,7 +43,7 @@ function Hero() {
       <div className="relative mx-auto max-w-7xl px-4 pb-24 pt-20 sm:px-6 lg:px-8 lg:pt-28">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7 }} className="mx-auto max-w-3xl text-center">
           <div className="inline-flex items-center gap-2 rounded-full border border-gold/30 bg-gold-soft/40 px-3 py-1 text-xs font-medium text-gold-foreground">
-            <Sparkles className="h-3.5 w-3.5 text-gold" /> Trinity College London certified pathway
+            <Sparkles className="h-3.5 w-3.5 text-gold" /> Trinity College London & RockSchool UK Syllabus
           </div>
           <h1 className="mt-6 font-display text-5xl font-semibold leading-[1.05] tracking-tight sm:text-6xl lg:text-7xl">
             Where every note &<br />
@@ -53,10 +54,12 @@ function Hero() {
           </p>
           <div className="mt-9 flex flex-wrap items-center justify-center gap-3">
             <Button asChild size="lg" className="bg-gold text-gold-foreground hover:bg-gold/90 shadow-gold">
-              <Link to="/signup">Book a free trial <ArrowRight className="ml-1 h-4 w-4" /></Link>
+              <Link to="/signup">Book Now <ArrowRight className="ml-1 h-4 w-4" /></Link>
             </Button>
             <Button asChild size="lg" variant="outline">
-              <Link to="/courses">Explore programs</Link>
+              <Link to="https://marcysacademy.com/services" className="text-gold">
+                Explore programs
+              </Link>
             </Button>
           </div>
           <div className="mt-10 flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-xs text-muted-foreground">
@@ -93,7 +96,7 @@ function Hero() {
 }
 
 function Marquee() {
-  const items = ["Trinity College London", "Royal Schools", "ABRSM", "Toastmasters", "Berklee Online", "Rockschool"];
+  const items = ["Trinity College London", "RockSchool Awards",];
   return (
     <div className="border-y border-border bg-muted/30">
       <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-center gap-x-10 gap-y-3 px-4 py-6 text-sm text-muted-foreground">
@@ -105,73 +108,240 @@ function Marquee() {
 }
 
 function Programs() {
-  return (
-    <section className="mx-auto max-w-7xl px-4 py-24 sm:px-6 lg:px-8">
-      <div className="mb-12 flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <div className="text-xs font-semibold uppercase tracking-wider text-gold">Programs</div>
-          <h2 className="mt-2 font-display text-4xl font-semibold tracking-tight">Curated for every artist within.</h2>
-        </div>
-        <Button asChild variant="outline"><Link to="/courses">View all <ArrowRight className="ml-1 h-4 w-4" /></Link></Button>
-      </div>
-      <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-        {courses.slice(0, 6).map((c, i) => (
-          <motion.div key={c.id} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.05 }}>
-            <Card className="group h-full overflow-hidden border-border/60 transition-all hover:shadow-luxe hover:border-gold/40">
-              <CardContent className="p-6">
-                <div className="flex items-start justify-between">
-                  <div className="text-4xl">{c.icon}</div>
-                  <span className="rounded-full border border-border bg-muted px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">{c.category}</span>
-                </div>
-                <div className="mt-5 font-display text-xl font-semibold">{c.name}</div>
-                <p className="mt-1.5 text-sm text-muted-foreground line-clamp-2">{c.description}</p>
-                <div className="mt-5 flex items-center justify-between border-t border-border pt-4 text-xs text-muted-foreground">
-                  <span className="inline-flex items-center gap-1"><Users className="h-3.5 w-3.5" /> {c.students} learners</span>
-                  <span className="font-medium text-foreground">₹{c.fee.toLocaleString()}/mo</span>
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-        ))}
-      </div>
-    </section>
-  );
-}
 
+  const [courses, setCourses] =
+    useState<any[]>([]);
+
+  // =========================
+  // FETCH COURSES
+  // =========================
+
+  useEffect(() => {
+
+    fetchCourses();
+
+  }, []);
+
+  const fetchCourses =
+    async () => {
+
+      try {
+
+        const res =
+          await axios.get(
+            `${API}/courses`
+          );
+
+        setCourses(
+          res.data || []
+        );
+
+      } catch (err) {
+
+        console.log(err);
+
+      }
+
+    };
+
+  // =========================
+  // ICON HELPER
+  // =========================
+
+  const getIcon =
+    (category: string) => {
+
+      switch (category) {
+
+        case "Western Music":
+          return "🎸";
+
+        case "Performance Arts":
+          return "🎭";
+
+        default:
+          return "🎵";
+
+      }
+
+    };
+
+  return (
+
+    <section className="mx-auto max-w-7xl px-4 py-24 sm:px-6 lg:px-8">
+
+      {/* HEADER */}
+
+      <div className="mb-12 flex flex-wrap items-end justify-between gap-4">
+
+        <div>
+
+          <div className="text-xs font-semibold uppercase tracking-wider text-gold">
+
+            Programs
+
+          </div>
+
+          <h2 className="mt-2 font-display text-4xl font-semibold tracking-tight">
+
+            Curated for every artist within.
+
+          </h2>
+
+        </div>
+
+      </div>
+
+      {/* COURSES */}
+
+      <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+
+        {courses
+          .slice(0, 6)
+          .map((c, i) => (
+
+            <motion.div
+              key={c._id}
+              initial={{
+                opacity: 0,
+                y: 20,
+              }}
+              whileInView={{
+                opacity: 1,
+                y: 0,
+              }}
+              viewport={{
+                once: true,
+              }}
+              transition={{
+                delay: i * 0.05,
+              }}
+            >
+
+              <Card className="group h-full overflow-hidden border-border/60 transition-all hover:border-gold/40 hover:shadow-xl">
+
+                <CardContent className="p-6">
+
+                  {/* TOP */}
+
+                  <div className="flex items-start justify-between">
+
+                    <div className="text-4xl">
+
+                      {getIcon(c.category)}
+
+                    </div>
+
+                    <span className="rounded-full border border-border bg-muted px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+
+                      {c.category}
+
+                    </span>
+
+                  </div>
+
+                  {/* TITLE */}
+
+                  <div className="mt-5 font-display text-xl font-semibold">
+
+                    {c.name}
+
+                  </div>
+
+                  {/* DESCRIPTION */}
+
+                  <p className="mt-1.5 line-clamp-2 text-sm text-muted-foreground">
+
+                    {c.description}
+
+                  </p>
+
+                  {/* DETAILS */}
+
+                  <div className="mt-5 border-t border-border pt-4">
+
+                    <div className="flex items-center justify-between text-xs text-muted-foreground">
+
+                      <span className="inline-flex items-center gap-1">
+
+                        <Users className="h-3.5 w-3.5" />
+
+                        {c.grade}
+
+                      </span>
+
+                      <span className="font-medium text-foreground">
+
+                        {c.mainLevel}
+
+                      </span>
+
+                    </div>
+
+                    <div className="mt-3 text-2xl font-bold">
+
+                      ₹{Number(c.fee).toLocaleString()}
+
+                    </div>
+
+                    <div className="text-xs text-muted-foreground">
+
+                      Monthly Fee
+
+                    </div>
+
+                  </div>
+
+                </CardContent>
+
+              </Card>
+
+            </motion.div>
+
+          ))}
+
+      </div>
+
+    </section>
+
+  );
+
+}
 function Pathway() {
   const steps = [
-    { t: "Foundation", d: "Build technique, theory, and confidence. 3–6 month structured curriculum." },
+    { t: "Beginner", d: "Build technique, theory, and confidence. 3–6 month structured curriculum." },
     { t: "Intermediate", d: "Refine artistry, ear training, and stage performance. Unlocks after Foundation." },
     { t: "Advanced", d: "Trinity-grade repertoire, public recitals, and audition preparation." },
   ];
-  return (
-    <section className="bg-foreground text-background">
-      <div className="mx-auto max-w-7xl px-4 py-24 sm:px-6 lg:px-8">
-        <div className="mb-14 max-w-2xl">
-          <div className="text-xs font-semibold uppercase tracking-wider text-gold">Pathway</div>
-          <h2 className="mt-2 font-display text-4xl font-semibold tracking-tight">A progression worth earning.</h2>
-          <p className="mt-4 text-base text-background/70">Every learner begins in Foundation. Each next stage unlocks only when your mentor verifies your readiness — no shortcuts, just craft.</p>
-        </div>
-        <div className="grid gap-6 md:grid-cols-3">
-          {steps.map((s, i) => (
-            <div key={s.t} className="relative rounded-2xl border border-gold/20 bg-background/5 p-7">
-              <div className="font-display text-6xl text-gold/40">0{i + 1}</div>
-              <div className="mt-3 font-display text-2xl">{s.t}</div>
-              <p className="mt-2 text-sm text-background/70">{s.d}</p>
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
+  // return (
+  //   // <section className="bg-foreground text-background">
+  //   //   <div className="mx-auto max-w-7xl px-4 py-24 sm:px-6 lg:px-8">
+  //   //     <div className="mb-14 max-w-2xl">
+  //   //       <div className="text-xs font-semibold uppercase tracking-wider text-gold">Pathway</div>
+  //   //       <h2 className="mt-2 font-display text-4xl font-semibold tracking-tight">A progression worth earning.</h2>
+  //   //       <p className="mt-4 text-base text-background/70">Every learner begins in Foundation. Each next stage unlocks only when your mentor verifies your readiness — no shortcuts, just craft.</p>
+  //   //     </div>
+  //   //     <div className="grid gap-6 md:grid-cols-3">
+  //   //       {steps.map((s, i) => (
+  //   //         <div key={s.t} className="relative rounded-2xl border border-gold/20 bg-background/5 p-7">
+  //   //           <div className="font-display text-6xl text-gold/40">0{i + 1}</div>
+  //   //           <div className="mt-3 font-display text-2xl">{s.t}</div>
+  //   //           <p className="mt-2 text-sm text-background/70">{s.d}</p>
+  //   //         </div>
+  //   //       ))}
+  //   //     </div>
+  //   //   </div>
+  //   // </section>
+  
 }
 
 function Stats() {
   const stats = [
-    { v: "12K+", l: "Active learners" },
-    { v: "98%", l: "Trinity pass rate" },
-    { v: "85+", l: "Certified mentors" },
+    { v: "100+", l: "Students Trained" },
     { v: "4.9★", l: "Average rating" },
+    { v: "100%", l: "Success Rate" },
+    { v: "20+", l: "Years Experience" },
+    
   ];
   return (
     <section className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
@@ -230,15 +400,13 @@ function CTA() {
           <div>
             <Mic2 className="h-7 w-7 text-gold" />
             <h2 className="mt-5 font-display text-4xl font-semibold tracking-tight">Your first lesson is on us.</h2>
-            <p className="mt-3 max-w-md text-background/70">Book a free 30-minute trial with a senior mentor. No card needed.</p>
+            <p className="mt-3 max-w-md text-background/70">Join thousands of students who have already started their musical journey with us.</p>
           </div>
           <div className="flex flex-wrap justify-end gap-3">
             <Button asChild size="lg" className="bg-gold text-gold-foreground hover:bg-gold/90">
-              <Link to="/signup">Start trial <ArrowRight className="ml-1 h-4 w-4" /></Link>
+              <Link to="/signup">Start Now <ArrowRight className="ml-1 h-4 w-4" /></Link>
             </Button>
-            <Button asChild size="lg" variant="outline" className="border-background/20 bg-transparent text-background hover:bg-background/10">
-              <Link to="/contact">Talk to advisor</Link>
-            </Button>
+            
           </div>
         </div>
       </div>
