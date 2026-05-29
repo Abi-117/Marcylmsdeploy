@@ -190,6 +190,7 @@ if (existingPayment) {
         amount: Number(amount),
         status: "Paid",
         paidAt: new Date(),
+        invoice,
         paymentId:
           razorpay_payment_id,
         orderId:

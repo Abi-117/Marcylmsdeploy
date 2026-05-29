@@ -39,7 +39,11 @@ const paymentSchema = new mongoose.Schema(
       enum: ["Pending", "Paid"],
       default: "Paid",
     },
-
+    invoice: {
+  type: String,
+  unique: true,
+  sparse: true
+},
     paidAt: {
       type: Date,
       default: Date.now,
