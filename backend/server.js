@@ -8,7 +8,6 @@ dotenv.config();
 import connectDB from "./src/config/db.js";
 import authRoutes from "./src/routes/authRoutes.js";
 import adminRoutes from "./src/routes/adminRoutes.js";
-import batchRoutes from "./src/routes/batchRoutes.js";
 import classRoutes from "./src/routes/classRoutes.js";
 import paymentRoutes from "./src/routes/paymentRoutes.js";
 import reportRoutes from "./src/routes/reportRoutes.js";
@@ -24,6 +23,7 @@ from "./src/routes/teacherAttendance.js";
 import adminAttendanceRoutes from "./src/routes/adminAttendanceRoutes.js";
 import feedbackRouter from "./src/routes/feedback.js";
 import certificateRoutes from "./src/routes/certificate.routes.js";
+import notificationRoutes from "./src/routes/notificationRoutes.js";
 // import reminderRoutes
 // from "./src/routes/reminderRoutes.js";
 
@@ -44,10 +44,6 @@ app.get("/", (req, res) => {
 
 app.use("/api/auth", authRoutes);
 app.use("/api/admin", adminRoutes);
-app.use(
-  "/api/batches",
-  batchRoutes
-);
 app.use("/api/classes", classRoutes);
 app.use("/api/payments", paymentRoutes);
 app.use("/api/reports", reportRoutes);
@@ -71,7 +67,7 @@ app.use(
   "/api/certificates",
   certificateRoutes
 );
-
+app.use("/api/notifications", notificationRoutes);
 
 // app.use(
 //   "/api/reminders",

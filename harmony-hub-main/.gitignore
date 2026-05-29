@@ -33,5 +33,3 @@ dist-ssr
 
 .vercel
 .env*.local
-backend/.env
-.env
