@@ -155,12 +155,10 @@ function StudentProgress() {
   // FIND ACTIVE COURSE
   // =====================================
 
-  const latestPaid =
-    payments.length > 0
-      ? payments[
-          payments.length - 1
-        ]
-      : null;
+ const latestPaid =
+  payments.length > 0
+    ? payments[0]
+    : null;
 
   // =====================================
   // OPEN PAYMENT

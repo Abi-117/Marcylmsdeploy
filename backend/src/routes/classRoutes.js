@@ -17,9 +17,15 @@ router.get("/", async (req, res) => {
 
   try {
 
-    const classes = await Class.find()
-      .populate("students", "name email")
-      .sort({ date: 1 });
+    const classes = await Class.find({
+  teacher: req.params.teacherId,
+})
+.populate({
+  path: "students",
+  select:
+    "name email phone course selectedLevel paymentStatus progress",
+})
+.sort({ createdAt: -1 });
 
     res.json(classes);
 

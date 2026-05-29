@@ -203,23 +203,58 @@ export default function TeacherClasses() {
             className="flex items-center justify-between mt-3"
           >
             {/* STUDENT NAME */}
-            <div className="flex flex-col">
-              <span className="font-medium">
-                {s.name}
-              </span>
+           <div className="flex flex-col">
 
-              <span
-                className={`text-xs ${
-                  attendanceStatus === "Present"
-                    ? "text-green-600"
-                    : attendanceStatus === "Absent"
-                    ? "text-red-600"
-                    : "text-gray-400"
-                }`}
-              >
-                {attendanceStatus || "Not Marked"}
-              </span>
-            </div>
+  {/* NAME */}
+  <span className="font-semibold text-sm">
+    {s.name}
+  </span>
+
+  {/* EMAIL */}
+  <span className="text-xs text-muted-foreground">
+    {s.email}
+  </span>
+
+  {/* PHONE */}
+  <span className="text-xs text-muted-foreground">
+    {s.phone || "No Phone"}
+  </span>
+
+  {/* LEVEL */}
+  <span className="text-xs mt-1">
+    Level:
+    <span className="font-medium ml-1">
+      {s.selectedLevel || "Not Started"}
+    </span>
+  </span>
+
+  {/* PAYMENT */}
+  <span
+    className={`text-xs mt-1 font-medium ${
+      s.paymentStatus === "Paid"
+        ? "text-green-600"
+        : "text-red-500"
+    }`}
+  >
+    {s.paymentStatus || "Pending"}
+  </span>
+
+  {/* ATTENDANCE */}
+  <span
+    className={`text-xs mt-1 ${
+      attendanceStatus === "Present"
+        ? "text-green-600"
+        : attendanceStatus === "Absent"
+        ? "text-red-600"
+        : "text-gray-400"
+    }`}
+  >
+    Attendance:
+    {" "}
+    {attendanceStatus || "Not Marked"}
+  </span>
+
+</div>
 
             {/* BUTTONS */}
             <div className="flex gap-2">

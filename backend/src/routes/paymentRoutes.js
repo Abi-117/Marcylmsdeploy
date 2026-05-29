@@ -186,7 +186,7 @@ if (existingPayment) {
       await Payment.create({
         student: userId,
         course: courseId,
-        level,
+        level:course.mainLevel,
         amount: Number(amount),
         status: "Paid",
         paidAt: new Date(),
