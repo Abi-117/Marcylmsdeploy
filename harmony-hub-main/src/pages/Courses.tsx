@@ -35,7 +35,7 @@ function Courses() {
 
       const response =
         await fetch(
-          "https://marcylmsdeploy.onrender.com/api/courses"
+          "https://marcylmsdeploy-2.onrender.com/api/courses"
         );
 
       const result =

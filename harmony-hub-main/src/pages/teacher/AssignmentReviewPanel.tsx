@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 
 const API =
-  "https://marcylmsdeploy.onrender.com/api";
+  "https://marcylmsdeploy-2.onrender.com/api";
 
 export default function AssignmentReviewPanel({
   assignment,

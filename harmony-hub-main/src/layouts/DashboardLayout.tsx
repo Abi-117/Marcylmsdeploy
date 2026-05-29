@@ -75,7 +75,7 @@ export function DashboardLayout() {
     const fetchNotifications = async () => {
       try {
         const res = await axios.get(
-          "https://marcylmsdeploy.onrender.com/api/notifications"
+          "https://marcylmsdeploy-2.onrender.com/api/notifications"
         );
         setNotifications(res.data || []);
       } catch (err) {

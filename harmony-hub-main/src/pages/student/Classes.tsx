@@ -36,7 +36,7 @@ function StudentClasses() {
       console.log("Fetching classes for:", studentId);
 
       const res = await axios.get(
-        `https://marcylmsdeploy.onrender.com/api/classes/student/${studentId}`
+        `https://marcylmsdeploy-2.onrender.com/api/classes/student/${studentId}`
       );
 
       console.log("Classes response:", res.data);

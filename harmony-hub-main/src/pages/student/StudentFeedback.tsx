@@ -3,7 +3,7 @@ import axios from "axios";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 
-const API = "https://marcylmsdeploy.onrender.com/api";
+const API = "https://marcylmsdeploy-2.onrender.com/api";
 
 type Props = {
   teacherId: string;

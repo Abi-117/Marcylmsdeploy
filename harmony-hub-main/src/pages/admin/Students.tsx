@@ -73,7 +73,7 @@ function AdminStudents() {
       setLoading(true);
 
       const response = await fetch(
-        "https://marcylmsdeploy.onrender.com/api/admin/students"
+        "https://marcylmsdeploy-2.onrender.com/api/admin/students"
       );
 
       const data =
@@ -113,7 +113,7 @@ function AdminStudents() {
     try {
 
       const response = await fetch(
-        "https://marcylmsdeploy.onrender.com/api/courses"
+        "https://marcylmsdeploy-2.onrender.com/api/courses"
       );
 
       const data =
@@ -158,7 +158,7 @@ function AdminStudents() {
       }
 
       const response = await fetch(
-        "https://marcylmsdeploy.onrender.com/api/admin/students",
+        "https://marcylmsdeploy-2.onrender.com/api/admin/students",
         {
           method: "POST",
 

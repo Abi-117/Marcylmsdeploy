@@ -24,7 +24,7 @@ import { Progress } from "@/components/ui/progress";
 import { useAuth } from "@/store/auth";
 
 const API =
-  "https://marcylmsdeploy.onrender.com/api";
+  "https://marcylmsdeploy-2.onrender.com/api";
 
 export default function TeacherStudents() {
 

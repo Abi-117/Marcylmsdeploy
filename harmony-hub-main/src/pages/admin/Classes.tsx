@@ -57,7 +57,7 @@ function AdminClasses() {
     try {
 
       const response = await fetch(
-        "https://marcylmsdeploy.onrender.com/api/classes"
+        "https://marcylmsdeploy-2.onrender.com/api/classes"
       );
 
       const data = await response.json();

@@ -24,7 +24,7 @@ function StudentProgress() {
     const fetchCourses = async () => {
       try {
         const res = await axios.get(
-          "https://marcylmsdeploy.onrender.com/api/courses"
+          "https://marcylmsdeploy-2.onrender.com/api/courses"
         );
         setCourses(res.data || []);
       } catch (err) {
@@ -80,7 +80,7 @@ function StudentProgress() {
       }
 
       const { data } = await axios.post(
-        "https://marcylmsdeploy.onrender.com/api/payments/create-order",
+        "https://marcylmsdeploy-2.onrender.com/api/payments/create-order",
         {
           amount: selectedCourse.fee,
         }
@@ -99,7 +99,7 @@ function StudentProgress() {
         handler: async function (response: any) {
           try {
             await axios.post(
-              "https://marcylmsdeploy.onrender.com/api/payments/verify",
+              "https://marcylmsdeploy-2.onrender.com/api/payments/verify",
               {
                 razorpay_order_id: response.razorpay_order_id,
                 razorpay_payment_id: response.razorpay_payment_id,

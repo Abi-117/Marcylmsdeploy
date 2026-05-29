@@ -54,7 +54,7 @@ function AdminCourses() {
     try {
 
       const response = await fetch(
-        "https://marcylmsdeploy.onrender.com/api/courses"
+        "https://marcylmsdeploy-2.onrender.com/api/courses"
       );
 
       const result =
@@ -85,7 +85,7 @@ function AdminCourses() {
     try {
 
       const response = await fetch(
-        "https://marcylmsdeploy.onrender.com/api/courses",
+        "https://marcylmsdeploy-2.onrender.com/api/courses",
         {
           method: "POST",
 
@@ -136,7 +136,7 @@ function AdminCourses() {
     try {
 
       const response = await fetch(
-        `https://marcylmsdeploy.onrender.com/api/courses/${editId}`,
+        `https://marcylmsdeploy-2.onrender.com/api/courses/${editId}`,
         {
           method: "PUT",
 
@@ -199,7 +199,7 @@ function AdminCourses() {
     try {
 
       await fetch(
-        `https://marcylmsdeploy.onrender.com/api/courses/${id}`,
+        `https://marcylmsdeploy-2.onrender.com/api/courses/${id}`,
         {
           method: "DELETE",
         }

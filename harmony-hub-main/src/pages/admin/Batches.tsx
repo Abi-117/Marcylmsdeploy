@@ -60,7 +60,7 @@ function AdminBatches() {
     try {
 
       const response = await fetch(
-        "https://marcylmsdeploy.onrender.com/api/batches"
+        "https://marcylmsdeploy-2.onrender.com/api/batches"
       );
 
       const data = await response.json();

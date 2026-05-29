@@ -32,7 +32,7 @@ function Login() {
   const studentLogin = async () => {
   try {
     const response = await fetch(
-      "https://marcylmsdeploy.onrender.com/api/auth/login",
+      "https://marcylmsdeploy-2.onrender.com/api/auth/login",
       {
         method: "POST",
 
@@ -74,7 +74,7 @@ const teacherLogin = async () => {
   try {
 
     const response = await fetch(
-      "https://marcylmsdeploy.onrender.com/api/auth/login",
+      "https://marcylmsdeploy-2.onrender.com/api/auth/login",
       {
         method: "POST",
 
@@ -118,7 +118,7 @@ const teacherLogin = async () => {
 const adminLogin = async () => {
   try {
     const response = await fetch(
-      "https://marcylmsdeploy.onrender.com/api/auth/login",
+      "https://marcylmsdeploy-2.onrender.com/api/auth/login",
       {
         method: "POST",
 

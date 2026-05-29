@@ -31,7 +31,7 @@ import {
 } from "@/components/ui/select";
 
 const API =
-  "https://marcylmsdeploy.onrender.com/api";
+  "https://marcylmsdeploy-2.onrender.com/api";
 
 export default function TeacherAttendance() {
 

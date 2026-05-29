@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/card";
 
 const API =
-  "https://marcylmsdeploy.onrender.com/api";
+  "https://marcylmsdeploy-2.onrender.com/api";
 
 const days = [
   "Monday",

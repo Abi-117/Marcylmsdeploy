@@ -21,7 +21,7 @@ import {
 import { Button } from "@/components/ui/button";
 
 const API =
-  "https://marcylmsdeploy.onrender.com/api";
+  "https://marcylmsdeploy-2.onrender.com/api";
 
 export default function AdminOverview() {
 

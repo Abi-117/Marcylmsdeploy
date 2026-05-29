@@ -52,7 +52,7 @@ function AdminTeachers() {
     try {
 
       const response = await fetch(
-        "https://marcylmsdeploy.onrender.com/api/admin/teachers"
+        "https://marcylmsdeploy-2.onrender.com/api/admin/teachers"
       );
 
       const data = await response.json();
@@ -79,7 +79,7 @@ function AdminTeachers() {
     try {
 
       const response = await fetch(
-        "https://marcylmsdeploy.onrender.com/api/admin/teachers",
+        "https://marcylmsdeploy-2.onrender.com/api/admin/teachers",
         {
           method: "POST",
 

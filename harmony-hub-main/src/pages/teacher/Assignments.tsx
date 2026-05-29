@@ -23,7 +23,7 @@ import {
   Users,
 } from "lucide-react";
 
-const API = "https://marcylmsdeploy.onrender.com/api";
+const API = "https://marcylmsdeploy-2.onrender.com/api";
 
 type Assignment = {
   _id: string;

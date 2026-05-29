@@ -59,7 +59,7 @@ function PaymentHistory() {
 
           const res =
             await axios.get(
-              `https://marcylmsdeploy.onrender.com/api/payments/history/${user?.id}`
+              `https://marcylmsdeploy-2.onrender.com/api/payments/history/${user?.id}`
             );
 
           setPayments(
@@ -208,7 +208,7 @@ function PaymentHistory() {
                   variant="outline"
                   onClick={() =>
                     window.open(
-                      `https://marcylmsdeploy.onrender.com/api/payments/invoice/${p.paymentId}`,
+                      `https://marcylmsdeploy-2.onrender.com/api/payments/invoice/${p.paymentId}`,
                       "_blank"
                     )
                   }

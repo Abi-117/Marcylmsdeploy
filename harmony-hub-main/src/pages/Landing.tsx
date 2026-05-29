@@ -13,7 +13,7 @@ function Landing() {
   useEffect(() => {
 
   fetch(
-    "https://marcylmsdeploy.onrender.com/api/courses"
+    "https://marcylmsdeploy-2.onrender.com/api/courses"
   )
     .then((res) => res.json())
     .then((data) => setCourses(data));

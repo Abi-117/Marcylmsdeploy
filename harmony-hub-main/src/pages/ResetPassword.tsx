@@ -35,7 +35,7 @@ function ResetPassword() {
       setLoading(true);
 
       const response = await fetch(
-        "https://marcylmsdeploy.onrender.com/api/auth/reset-password",
+        "https://marcylmsdeploy-2.onrender.com/api/auth/reset-password",
         {
           method: "POST",
 

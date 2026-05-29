@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 
 const API =
-  "https://marcylmsdeploy.onrender.com/api";
+  "https://marcylmsdeploy-2.onrender.com/api";
 
 export default function AdminCertificates() {
 

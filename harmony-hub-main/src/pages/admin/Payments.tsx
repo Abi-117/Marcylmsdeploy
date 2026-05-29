@@ -57,7 +57,7 @@ function AdminPayments() {
     try {
 
       const response = await fetch(
-        "https://marcylmsdeploy.onrender.com/api/payments"
+        "https://marcylmsdeploy-2.onrender.com/api/payments"
       );
 
       const data = await response.json();
@@ -254,7 +254,7 @@ function AdminPayments() {
   size="sm"
   onClick={() => {
    window.open(
-  `https://marcylmsdeploy.onrender.com/api/payments/invoice/${p.paymentId}`,
+  `https://marcylmsdeploy-2.onrender.com/api/payments/invoice/${p.paymentId}`,
   "_blank"
 );
   }}

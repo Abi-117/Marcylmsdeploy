@@ -65,7 +65,7 @@ function AdminReports() {
     try {
 
       const response = await fetch(
-        "https://marcylmsdeploy.onrender.com/api/reports"
+        "https://marcylmsdeploy-2.onrender.com/api/reports"
       );
 
       const data = await response.json();

@@ -43,7 +43,7 @@ function StudentOverview() {
       setLoading(true);
 
       const response = await fetch(
-        `https://marcylmsdeploy.onrender.com/api/student/overview/${studentId}`
+        `https://marcylmsdeploy-2.onrender.com/api/student/overview/${studentId}`
       );
 
       const data = await response.json();

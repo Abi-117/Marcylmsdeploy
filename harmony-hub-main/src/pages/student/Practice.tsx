@@ -26,7 +26,7 @@ import {
   CartesianGrid,
 } from "recharts";
 
-const API = "https://marcylmsdeploy.onrender.com/api";
+const API = "https://marcylmsdeploy-2.onrender.com/api";
 
 export default function Practice() {
   const storedUser = localStorage.getItem("user");

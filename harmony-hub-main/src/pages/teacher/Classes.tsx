@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 
 import { ExternalLink, Users } from "lucide-react";
 
-const API = "https://marcylmsdeploy.onrender.com/api";
+const API = "https://marcylmsdeploy-2.onrender.com/api";
 
 export default function TeacherClasses() {
   const user = JSON.parse(

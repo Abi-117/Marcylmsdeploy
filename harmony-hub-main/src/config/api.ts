@@ -1,3 +1,3 @@
-const API_URL = "https://marcylmsdeploy.onrender.com";
+const API_URL = "https://marcylmsdeploy-2.onrender.com";
 
 export default API_URL;

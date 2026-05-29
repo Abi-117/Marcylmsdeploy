@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { Card, CardContent } from "@/components/ui/card";
 
-const API = "https://marcylmsdeploy.onrender.com/api";
+const API = "https://marcylmsdeploy-2.onrender.com/api";
 
 export default function TeacherFeedback() {
   const auth = JSON.parse(localStorage.getItem("ms-auth") || "{}");
