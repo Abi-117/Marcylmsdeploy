@@ -27,11 +27,10 @@ router.get("/dashboard/:teacherId", async (req, res) => {
 
     const courseIds = matchingCourses.map((c) => String(c._id));
 
-    const students = await User.find({
-      role: "student",
-      course: { $in: courseIds },
-      paymentStatus: "Paid",
-    }).select("-password");
+   const students = await User.find(query)
+  .populate("course")
+  .select("-password");
+
 
     const classes = await Class.find({ teacherId }).sort({ date: 1 });
 

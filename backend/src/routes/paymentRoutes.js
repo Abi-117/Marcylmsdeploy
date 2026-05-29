@@ -202,8 +202,19 @@ if (existingPayment) {
     user.paymentStatus = "Paid";
 
     // CURRENT ACTIVE GRADE
-    user.selectedLevel =
-      course.grade;
+   // ACTIVE COURSE (current)
+user.course = course._id;
+
+// STORE HISTORY (IMPORTANT FIX)
+if (!user.levelHistory) {
+  user.levelHistory = [];
+}
+
+user.levelHistory.push({
+  course: course._id,
+  grade: course.grade,
+  paidAt: new Date(),
+});
 
     // STORE PAID COURSES
     if (!user.unlockedLevels) {
