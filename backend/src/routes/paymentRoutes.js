@@ -163,23 +163,20 @@ router.post("/verify", async (req, res) => {
     // ====================================
 
     const existingPayment =
-      await Payment.findOne({
-        student: userId,
-        course: courseId,
-      });
+  await Payment.findOne({
+    paymentId: razorpay_payment_id,
+  });
 
-    if (existingPayment) {
+if (existingPayment) {
 
-      return res.json({
-        success: true,
-        alreadyPaid: true,
-        message:
-          "Already paid for this course",
-        payment: existingPayment,
-      });
+  return res.json({
+    success: true,
+    alreadyPaid: true,
+    message: "Payment already processed",
+    payment: existingPayment,
+  });
 
-    }
-
+}
     // ====================================
     // CREATE PAYMENT
     // ====================================

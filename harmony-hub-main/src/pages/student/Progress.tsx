@@ -264,6 +264,8 @@ function StudentProgress() {
                 alert(
                   "Payment Successful"
                 );
+                localStorage.removeItem("ms-auth");
+                window.location.reload();
 
                 setOpenPayment(
                   false
