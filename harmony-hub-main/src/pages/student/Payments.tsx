@@ -28,8 +28,6 @@ type Payment = {
 
   amount: number;
 
-  level: string;
-
   status: "Paid" | "Failed";
 
   paymentId: string;
@@ -37,6 +35,12 @@ type Payment = {
   orderId: string;
 
   createdAt: string;
+
+  course?: {
+    name: string;
+    grade: string;
+    mainLevel: string;
+  };
 };
 
 function PaymentHistory() {
@@ -50,6 +54,10 @@ function PaymentHistory() {
   const [loading, setLoading] =
     useState(true);
 
+  // =====================================
+  // FETCH PAYMENTS
+  // =====================================
+
   useEffect(() => {
 
     const fetchPayments =
@@ -59,11 +67,11 @@ function PaymentHistory() {
 
           const res =
             await axios.get(
-              `https://marcylmsdeploy-2.onrender.com/api/payments/history/${user?.id}`
+              `https://marcylmsdeploy-2.onrender.com/api/payments/history/${user?._id}`
             );
 
           setPayments(
-            res.data
+            res.data || []
           );
 
         } catch (err) {
@@ -78,13 +86,17 @@ function PaymentHistory() {
 
       };
 
-    if (user?.id) {
+    if (user?._id) {
 
       fetchPayments();
 
     }
 
-  }, [user?.id]);
+  }, [user?._id]);
+
+  // =====================================
+  // LOADING
+  // =====================================
 
   if (loading) {
 
@@ -99,6 +111,10 @@ function PaymentHistory() {
     );
 
   }
+
+  // =====================================
+  // UI
+  // =====================================
 
   return (
 
@@ -121,8 +137,9 @@ function PaymentHistory() {
 
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
 
-         {payments.map((p) => (
-  <Card key={p.paymentId}>
+          {payments.map((p) => (
+
+            <Card key={p._id}>
 
               <CardContent className="p-5">
 
@@ -156,17 +173,23 @@ function PaymentHistory() {
 
                 </div>
 
-                {/* LEVEL */}
+                {/* COURSE */}
 
                 <div className="mt-4 text-lg font-bold">
 
-                  {p.level} Level
+                  {p.course?.grade || "Course"}
+
+                </div>
+
+                <div className="text-sm text-muted-foreground">
+
+                  {p.course?.name}
 
                 </div>
 
                 {/* AMOUNT */}
 
-                <div className="text-sm text-muted-foreground">
+                <div className="mt-4 text-2xl font-bold">
 
                   ₹{p.amount}
 
@@ -174,9 +197,9 @@ function PaymentHistory() {
 
                 {/* PAYMENT ID */}
 
-                <div className="mt-2 text-xs text-muted-foreground break-all">
+                <div className="mt-3 text-xs text-muted-foreground break-all">
 
-                  Payment ID: {p.paymentId}
+                  Payment ID: {p.paymentId || "-"}
 
                 </div>
 
@@ -184,18 +207,16 @@ function PaymentHistory() {
 
                 <div className="mt-1 text-xs text-muted-foreground break-all">
 
-                  Order ID: {p.orderId}
+                  Order ID: {p.orderId || "-"}
 
                 </div>
 
                 {/* DATE */}
 
-                <div className="mt-2 text-xs text-muted-foreground">
+                <div className="mt-3 text-xs text-muted-foreground">
 
                   {format(
-                    new Date(
-                      p.createdAt
-                    ),
+                    new Date(p.createdAt),
                     "dd MMM yyyy · hh:mm a"
                   )}
 
@@ -204,11 +225,11 @@ function PaymentHistory() {
                 {/* DOWNLOAD */}
 
                 <Button
-                  className="mt-4 w-full"
+                  className="mt-5 w-full"
                   variant="outline"
                   onClick={() =>
                     window.open(
-                      `https://marcylmsdeploy-2.onrender.com/api/payments/invoice/${p.paymentId}`,
+                      `https://marcylmsdeploy-2.onrender.com/api/payments/invoice/${p._id}`,
                       "_blank"
                     )
                   }

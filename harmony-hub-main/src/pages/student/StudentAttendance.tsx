@@ -29,7 +29,7 @@ export default function StudentAttendance() {
 
   const { user } = useAuth();
 
-  const studentId = user?.id;
+  const studentId = user?.id || user?._id; // FIX FOR BOTH TEACHER AND ADMIN LOGIN STRUCTURE
 
   // ====================================
   // STATES

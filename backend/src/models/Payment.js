@@ -1,7 +1,5 @@
 import mongoose from "mongoose";
 
-// Payment model
-
 const paymentSchema = new mongoose.Schema(
   {
     student: {
@@ -16,9 +14,9 @@ const paymentSchema = new mongoose.Schema(
       required: true,
     },
 
-    level: {
-      type: String,
-      default: "",
+    amount: {
+      type: Number,
+      required: true,
     },
 
     paymentId: {
@@ -31,14 +29,9 @@ const paymentSchema = new mongoose.Schema(
       default: "",
     },
 
-    amount: {
-      type: Number,
-      required: true,
-    },
-
     status: {
       type: String,
-      enum: ["Pending", "Paid"],
+      enum: ["Pending", "Paid", "Failed"],
       default: "Paid",
     },
 
@@ -52,8 +45,9 @@ const paymentSchema = new mongoose.Schema(
   }
 );
 
-
-
-const Payment = mongoose.model("Payment", paymentSchema);
+const Payment = mongoose.model(
+  "Payment",
+  paymentSchema
+);
 
 export default Payment;
