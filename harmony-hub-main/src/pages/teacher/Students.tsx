@@ -277,7 +277,7 @@ export default function TeacherStudents() {
 
                   </span>{" "}
 
-                  {s.course?.name} • {s.batch}
+                  {s.activeCourse?.grade || s.course?.grade}
 
                 </div>
 
