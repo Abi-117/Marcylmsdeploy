@@ -92,13 +92,18 @@ function TeacherOverview() {
 
       try {
 
-        const response =
-          await fetch(
-            `${API}/teacher/dashboard/${teacherId}`
-          );
+        const response = await fetch(
+  `${API}/teacher/dashboard/${teacherId}`
+);
 
-        const data =
-          await response.json();
+if (!response.ok) {
+  console.log("Dashboard API failed");
+  return;
+}
+
+const data = await response.json();
+
+if (!data) return;
 
         setClasses(
           data.classes || []
@@ -108,9 +113,14 @@ function TeacherOverview() {
           data.students || []
         );
 
-        setStats(
-          data.stats
-        );
+       setStats(
+  data?.stats || {
+    todayClasses: 0,
+    students: 0,
+    pendingReviews: 0,
+    rating: 0,
+  }
+);
 
       } catch (error) {
 
