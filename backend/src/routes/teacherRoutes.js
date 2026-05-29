@@ -21,25 +21,32 @@ router.get("/dashboard/:teacherId", async (req, res) => {
 
     const subject = teacher.subject || "";
 
+    // FIX: define query properly
     const matchingCourses = await Course.find({
       name: subject,
     }).select("_id");
 
-    const courseIds = matchingCourses.map((c) => String(c._id));
+    const courseIds = matchingCourses.map((c) => c._id);
 
-   const students = await User.find(query)
-  .populate("course")
-  .select("-password");
+    // ✅ FIXED QUERY
+    const query = {
+      role: "student",
+      course: { $in: courseIds },
+    };
 
+    const students = await User.find(query)
+      .populate("course")
+      .select("-password");
 
     const classes = await Class.find({ teacherId }).sort({ date: 1 });
 
     const today = new Date().toDateString();
 
-    const todayClasses = classes.filter((c) => {
-      if (!c.date) return false;
-      return new Date(c.date).toDateString() === today;
-    });
+    const todayClasses = classes.filter(
+      (c) =>
+        c.date &&
+        new Date(c.date).toDateString() === today
+    );
 
     return res.json({
       students: students || [],
@@ -54,7 +61,6 @@ router.get("/dashboard/:teacherId", async (req, res) => {
 
   } catch (err) {
     console.log("Dashboard error:", err);
-
     return res.status(500).json({
       message: "Dashboard fetch failed",
       error: err.message,
