@@ -17,27 +17,51 @@ function generateOTP() {
 // ================= SEND OTP =================
 router.post("/send-otp", async (req, res) => {
   try {
+    console.log("API HIT");
+
     const { email } = req.body;
 
+    console.log("EMAIL:", email);
+
     const user = await User.findOne({ email });
-    if (!user)
-      return res.status(404).json({ message: "User not found" });
+
+    console.log("USER:", user);
+
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found",
+      });
+    }
 
     const otp = generateOTP();
 
+    console.log("OTP:", otp);
+
     await OTP.deleteMany({ email });
+
+    console.log("OLD OTP DELETED");
 
     await OTP.create({ email, otp });
 
-    // ✅ SEND EMAIL HERE
+    console.log("OTP SAVED");
+
     await sendOTPEmail(email, otp);
 
-    res.json({
-      message: "OTP sent successfully to email",
+    console.log("MAIL SENT SUCCESS");
+
+    return res.json({
+      message: "OTP sent successfully",
     });
 
   } catch (err) {
-    res.status(500).json({ message: "Failed to send OTP" });
+    console.log("SEND OTP ERROR:");
+    console.log(err);
+    console.log(err.message);
+
+    return res.status(500).json({
+      message: "Failed to send OTP",
+      error: err.message,
+    });
   }
 });
 
