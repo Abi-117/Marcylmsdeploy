@@ -14,6 +14,11 @@ const paymentSchema = new mongoose.Schema(
       required: true,
     },
 
+    level: {
+      type: String,
+      default: "",
+    },
+
     amount: {
       type: Number,
       required: true,
@@ -21,17 +26,17 @@ const paymentSchema = new mongoose.Schema(
 
     paymentId: {
       type: String,
-      default: "",
+      required: true,
     },
 
     orderId: {
       type: String,
-      default: "",
+      required: true,
     },
 
     status: {
       type: String,
-      enum: ["Pending", "Paid", "Failed"],
+      enum: ["Pending", "Paid"],
       default: "Paid",
     },
 

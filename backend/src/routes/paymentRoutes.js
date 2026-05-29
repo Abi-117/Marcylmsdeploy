@@ -164,7 +164,8 @@ router.post("/verify", async (req, res) => {
 
     const existingPayment =
   await Payment.findOne({
-    paymentId: razorpay_payment_id,
+    student: userId,
+  course: courseId,
   });
 
 if (existingPayment) {
@@ -185,6 +186,7 @@ if (existingPayment) {
       await Payment.create({
         student: userId,
         course: courseId,
+        level,
         amount: Number(amount),
         status: "Paid",
         paidAt: new Date(),
