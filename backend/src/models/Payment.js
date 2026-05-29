@@ -26,27 +26,22 @@ const paymentSchema = new mongoose.Schema(
 
     paymentId: {
       type: String,
-      required: true,
+      default: "",
     },
 
     orderId: {
       type: String,
-      required: true,
+      default: "",
     },
 
     status: {
       type: String,
-      enum: ["Pending", "Paid"],
-      default: "Paid",
+      enum: ["Pending", "Paid", "Failed"],
+      default: "Pending",
     },
-    invoice: {
-  type: String,
-  unique: true,
-  sparse: true
-},
+
     paidAt: {
       type: Date,
-      default: Date.now,
     },
   },
   {

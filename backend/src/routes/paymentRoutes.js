@@ -182,20 +182,18 @@ if (existingPayment) {
     // CREATE PAYMENT
     // ====================================
 
-    const payment =
-      await Payment.create({
-        student: userId,
-        course: courseId,
-        level:course.mainLevel,
-        amount: Number(amount),
-        status: "Paid",
-        paidAt: new Date(),
-        invoice,
-        paymentId:
-          razorpay_payment_id,
-        orderId:
-          razorpay_order_id,
-      });
+   const payment =
+  await Payment.create({
+    student: userId,
+    course: courseId,
+    level: course.mainLevel,
+    amount: Number(amount),
+    status: "Paid",
+    paidAt: new Date(),
+
+    paymentId: razorpay_payment_id,
+    orderId: razorpay_order_id,
+  });
 
     // ====================================
     // UPDATE USER
