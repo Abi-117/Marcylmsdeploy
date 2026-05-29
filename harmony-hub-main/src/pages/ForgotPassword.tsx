@@ -22,7 +22,7 @@ function ForgotPassword() {
       setLoading(true);
 
       const response = await fetch(
-        "http://marcylmsdeploy.onrender.com/api/auth/send-otp",
+        "https://marcylmsdeploy.onrender.com/api/auth/send-otp",
         {
           method: "POST",
 
