@@ -9,6 +9,8 @@ import fs from "fs";
 import path from "path";
 
 import User from "../models/User.js";
+import Payment from "../models/Payment.js";
+
 
 const router = express.Router();
 
@@ -24,39 +26,35 @@ console.log("🔥 Payment Routes Loaded");
 // ========================================
 // CREATE ORDER
 // ========================================
-
 router.post("/create-order", async (req, res) => {
   try {
     const { amount } = req.body;
 
     if (!amount || amount <= 0) {
-      return res.status(400).json({
-        message: "Invalid amount",
-      });
+      return res.status(400).json({ message: "Invalid amount" });
     }
 
     const order = await razorpay.orders.create({
       amount: Math.round(Number(amount) * 100),
       currency: "INR",
-      receipt: "receipt_" + Date.now(),
+      receipt: "rcpt_" + Date.now(),
     });
 
     res.json({
       success: true,
       order,
     });
+
   } catch (err) {
-    console.log(err);
-    res.status(500).json({
-      message: "Order creation failed",
-    });
+    console.log("ORDER ERROR:", err);
+    res.status(500).json({ message: "Order creation failed" });
   }
 });
+
 
 // ========================================
 // VERIFY PAYMENT
 // ========================================
-import Payment from "../models/Payment.js";
 
 router.post("/verify", async (req, res) => {
   try {
@@ -70,6 +68,7 @@ router.post("/verify", async (req, res) => {
       amount,
     } = req.body;
 
+    // 1. VERIFY SIGNATURE
     const body = `${razorpay_order_id}|${razorpay_payment_id}`;
 
     const expectedSignature = crypto
@@ -78,43 +77,50 @@ router.post("/verify", async (req, res) => {
       .digest("hex");
 
     if (expectedSignature !== razorpay_signature) {
-      return res.status(400).json({ message: "Invalid signature" });
+      return res.status(400).json({
+        success: false,
+        message: "Invalid signature",
+      });
     }
 
+    // 2. FIND USER
     const user = await User.findById(userId);
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
-    // =========================
-    // PREVENT DUPLICATE PAYMENT
-    // =========================
-    const exists = await Payment.findOne({
+    // 3. CHECK IF PAYMENT ALREADY EXISTS (SAFE IDENTITY CHECK)
+    const existingPayment = await Payment.findOne({
       student: userId,
       course: courseId,
+      amount,
     });
 
-    if (exists) {
-      return res.status(400).json({
-        message: "Already paid for this course",
+    if (existingPayment) {
+      return res.json({
+        success: true,
+        message: "Payment already processed",
+        payment: existingPayment,
       });
     }
 
-    // =========================
-    // CREATE PAYMENT RECORD
-    // =========================
+    // 4. CREATE PAYMENT RECORD
     const payment = await Payment.create({
       student: userId,
       course: courseId,
       amount,
       status: "Paid",
       paidAt: new Date(),
+      paymentId: razorpay_payment_id,
+      orderId: razorpay_order_id,
     });
 
-    // =========================
-    // UPDATE USER (ONLY ACCESS CONTROL)
-    // =========================
+    // 5. UNLOCK LEVEL SAFELY
+    if (!user.unlockedLevels) {
+      user.unlockedLevels = [];
+    }
+
     if (!user.unlockedLevels.includes(level)) {
       user.unlockedLevels.push(level);
     }
@@ -124,15 +130,18 @@ router.post("/verify", async (req, res) => {
 
     await user.save();
 
-    res.json({
+    // 6. RESPONSE
+    return res.json({
       success: true,
-      message: "Payment verified",
+      message: "Payment verified successfully",
       payment,
     });
 
   } catch (err) {
     console.log("VERIFY ERROR:", err);
-    res.status(500).json({
+
+    return res.status(500).json({
+      success: false,
       message: "Verification failed",
       error: err.message,
     });

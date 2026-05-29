@@ -48,7 +48,7 @@ export default function TeacherSchedule() {
     localStorage.getItem("ms-auth") || "{}"
   )?.state?.user;
 
-  const teacherId = user?.id;
+  const teacherId = user?.id || user?._id; // FIX FOR BOTH TEACHER AND ADMIN LOGIN STRUCTURE
 
   const [students, setStudents] =
     useState<any[]>([]);

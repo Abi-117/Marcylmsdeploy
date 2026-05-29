@@ -2,7 +2,7 @@ import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
   LayoutDashboard, Users, GraduationCap, CalendarDays, Wallet, Bell, Settings,
-  LogOut, BookOpen, Award, BarChart3, Video, ClipboardList,
+  LogOut, Music2, BookOpen, Award, BarChart3, Video, ClipboardList, Trophy,
   Search, Sun, Moon, Menu,
 } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -40,11 +40,14 @@ const navByRole: Record<Role, any[]> = {
     { to: "/teacher/attendance", label: "Attendance", icon: CalendarDays },
     { to: "/teacher/assignments", label: "Assignments", icon: ClipboardList },
     { to: "/teacher/certificates", label: "Certificates", icon: Award },
+    { to: "/teacher/feedback", label: "Feedback", icon: BarChart3 },
+    { to: "/teacher/schedule", label: "Schedule", icon: CalendarDays },
   ],
   student: [
     { to: "/student", label: "Overview", icon: LayoutDashboard },
     { to: "/student/classes", label: "Classes", icon: Video },
     { to: "/student/progress", label: "Progress", icon: Award },
+    { to: "/student/Notificationassignments", label: "Assignments", icon: ClipboardList },
     { to: "/student/payments", label: "Payments", icon: Wallet },
     { to: "/student/attendance", label: "Attendance", icon: CalendarDays },
     { to: "/student/certificates", label: "Certificates", icon: Award },
@@ -58,8 +61,6 @@ export function DashboardLayout() {
 
   const [dark, setDark] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
-
-  // ✅ REAL NOTIFICATIONS STATE
   const [notifications, setNotifications] = useState<any[]>([]);
 
   useEffect(() => {
@@ -70,7 +71,6 @@ export function DashboardLayout() {
     document.documentElement.classList.toggle("dark", dark);
   }, [dark]);
 
-  // ✅ FETCH NOTIFICATIONS FROM BACKEND
   useEffect(() => {
     const fetchNotifications = async () => {
       try {
@@ -93,32 +93,21 @@ export function DashboardLayout() {
 
   return (
     <div className="flex min-h-screen bg-background">
+
       {/* SIDEBAR */}
-      <aside
-        className={`fixed inset-y-0 left-0 z-40 w-64 transform border-r bg-sidebar transition-transform lg:static lg:translate-x-0 ${
-          mobileOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
-      >
+      <aside className={`fixed inset-y-0 left-0 z-40 w-64 transform border-r bg-sidebar transition-transform lg:static ${mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}>
         <div className="flex h-16 items-center border-b px-5">
           <Logo />
         </div>
 
         <nav className="flex flex-col gap-1 p-3">
           {items.map((item) => {
-            const active =
-              pathname === item.to || pathname.startsWith(item.to);
-
+            const active = pathname === item.to;
             return (
-              <Link
-                key={item.to}
-                to={item.to}
-                onClick={() => setMobileOpen(false)}
+              <Link key={item.to} to={item.to} onClick={() => setMobileOpen(false)}
                 className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm ${
-                  active
-                    ? "bg-gold-soft font-medium"
-                    : "text-muted-foreground hover:bg-muted"
-                }`}
-              >
+                  active ? "bg-gold-soft font-medium" : ""
+                }`}>
                 <item.icon className="h-4 w-4" />
                 {item.label}
               </Link>
@@ -126,24 +115,19 @@ export function DashboardLayout() {
           })}
         </nav>
 
-        {/* USER */}
-        <div className="absolute bottom-0 left-0 right-0 border-t p-3">
+        <div className="absolute bottom-0 p-3 w-full border-t">
           <div className="flex items-center gap-3">
             <Avatar className="h-9 w-9">
               <AvatarFallback>
-                {user.name
-                  ?.split(" ")
-                  .map((p) => p[0])
-                  .join("")
-                  .slice(0, 2)}
+                {user?.name
+                  ? user.name.split(" ").map((p: string) => p[0]).join("").slice(0, 2)
+                  : "U"}
               </AvatarFallback>
             </Avatar>
 
             <div>
-              <div className="text-sm font-medium">{user.name}</div>
-              <div className="text-xs text-muted-foreground">
-                {user.role}
-              </div>
+              <div className="text-sm font-medium">{user?.name}</div>
+              <div className="text-xs text-muted-foreground">{user?.role}</div>
             </div>
           </div>
         </div>
@@ -151,24 +135,17 @@ export function DashboardLayout() {
 
       {/* MAIN */}
       <div className="flex flex-1 flex-col">
+
         {/* HEADER */}
-        <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b bg-background px-4">
-          <button onClick={() => setMobileOpen(!mobileOpen)}>
-            <Menu className="h-5 w-5" />
+        <header className="flex h-16 items-center border-b px-4">
+          <button onClick={() => setMobileOpen(!mobileOpen)} className="lg:hidden">
+            <Menu />
           </button>
 
-          <div className="relative hidden flex-1 md:block">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2" />
-            <Input className="pl-9" placeholder="Search..." />
-          </div>
-
           <div className="ml-auto flex items-center gap-2">
-            {/* DARK MODE */}
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setDark(!dark)}
-            >
+
+            {/* THEME */}
+            <Button variant="ghost" size="icon" onClick={() => setDark(!dark)}>
               {dark ? <Sun /> : <Moon />}
             </Button>
 
@@ -176,9 +153,9 @@ export function DashboardLayout() {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon">
-                  <Bell className="h-4 w-4" />
+                  <Bell />
                   {unread > 0 && (
-                    <span className="absolute h-2 w-2 rounded-full bg-gold" />
+                    <span className="absolute h-2 w-2 bg-gold rounded-full" />
                   )}
                 </Button>
               </DropdownMenuTrigger>
@@ -188,24 +165,14 @@ export function DashboardLayout() {
                 <DropdownMenuSeparator />
 
                 {notifications.length === 0 ? (
-                  <div className="p-3 text-sm text-muted-foreground">
-                    No notifications
-                  </div>
+                  <div className="p-3 text-sm">No notifications</div>
                 ) : (
                   notifications.map((n) => (
-                    <DropdownMenuItem
-                      key={n._id}
-                      className="flex flex-col items-start"
-                    >
-                      <div className="flex w-full justify-between">
-                        <span className="font-medium">{n.title}</span>
-                        {!n.read && (
-                          <Badge className="h-2 w-2 rounded-full p-0" />
-                        )}
+                    <DropdownMenuItem key={n._id}>
+                      <div>
+                        <div className="font-medium">{n.title}</div>
+                        <div className="text-xs text-muted-foreground">{n.message}</div>
                       </div>
-                      <span className="text-xs text-muted-foreground">
-                        {n.message}
-                      </span>
                     </DropdownMenuItem>
                   ))
                 )}
@@ -216,24 +183,20 @@ export function DashboardLayout() {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon">
-                  <Settings className="h-4 w-4" />
+                  <Settings />
                 </Button>
               </DropdownMenuTrigger>
 
               <DropdownMenuContent align="end">
-                <DropdownMenuLabel>{user.email}</DropdownMenuLabel>
+                <DropdownMenuLabel>{user?.email}</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  onClick={() => {
-                    logout();
-                    navigate("/");
-                  }}
-                >
+                <DropdownMenuItem onClick={() => { logout(); navigate("/login"); }}>
                   <LogOut className="mr-2 h-4 w-4" />
                   Logout
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
+
           </div>
         </header>
 
@@ -246,6 +209,7 @@ export function DashboardLayout() {
         >
           <Outlet />
         </motion.main>
+
       </div>
     </div>
   );

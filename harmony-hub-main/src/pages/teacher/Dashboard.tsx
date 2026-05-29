@@ -54,7 +54,7 @@ function TeacherOverview() {
     localStorage.getItem("ms-auth") || "{}"
   )?.state?.user;
 
-  const teacherId = user?.id;
+  const teacherId = user?._id || user?.id;
 
   const teacherCourse =
     user?.courseName || "";

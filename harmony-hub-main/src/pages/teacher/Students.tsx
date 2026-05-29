@@ -34,7 +34,7 @@ export default function TeacherStudents() {
 
   const { user } = useAuth();
 
-  const teacherId = user?.id;
+  const teacherId = user?.id || user?._id; // FIX FOR BOTH TEACHER AND ADMIN LOGIN STRUCTURE
 
   // ====================================
   // STATES
