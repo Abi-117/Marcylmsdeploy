@@ -102,36 +102,132 @@ router.post("/reset-password", async (req, res) => {
 // REGISTER
 // ==========================================
 
+// ==========================================
+// REGISTER
+// ==========================================
+
 router.post("/register", async (req, res) => {
   try {
-    const { name, email, password, role } = req.body;
 
-    const exists = await User.findOne({ email });
-    if (exists)
-      return res.status(400).json({ message: "User exists" });
-
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    const user = await User.create({
+    const {
       name,
       email,
-      password: hashedPassword,
+      password,
       role,
-      unlockedLevels: [],
+
+      phone,
+      course,
+
+      selectedLevel,
+      level,
+      batch,
+
+      mode,
+      fromTime,
+      toTime,
+      availableDays,
+
+    } = req.body;
+
+    // =========================
+    // CHECK EXISTING USER
+    // =========================
+
+    const exists = await User.findOne({ email });
+
+    if (exists) {
+      return res.status(400).json({
+        message: "User already exists",
+      });
+    }
+
+    // =========================
+    // HASH PASSWORD
+    // =========================
+
+    const hashedPassword =
+      await bcrypt.hash(password, 10);
+
+    // =========================
+    // CREATE USER
+    // =========================
+
+    const user = await User.create({
+
+      name,
+      email,
+
+      password: hashedPassword,
+
+      role: role || "student",
+
+      // STUDENT DETAILS
+
+      phone,
+      course,
+
+      selectedLevel,
+      level,
+      batch,
+
+      mode,
+      fromTime,
+      toTime,
+
+      availableDays,
+
+      // DEFAULTS
+
+      unlockedLevels: [
+        level,
+        batch,
+      ],
+
       completedLevels: [],
+
       paymentStatus: "Pending",
+
       payments: [],
+
     });
 
+    // =========================
+    // JWT TOKEN
+    // =========================
+
     const token = jwt.sign(
-      { id: user._id },
+      {
+        id: user._id,
+        role: user.role,
+      },
       process.env.JWT_SECRET,
-      { expiresIn: "7d" }
+      {
+        expiresIn: "7d",
+      }
     );
 
-    res.status(201).json({ token, user });
+    // =========================
+    // RESPONSE
+    // =========================
+
+    res.status(201).json({
+
+      message: "Register Success",
+
+      token,
+
+      user,
+
+    });
+
   } catch (err) {
-    res.status(500).json({ message: "Server error" });
+
+    console.log(err);
+
+    res.status(500).json({
+      message: "Server error",
+    });
+
   }
 });
 
