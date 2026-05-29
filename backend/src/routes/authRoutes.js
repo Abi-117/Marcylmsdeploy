@@ -2,7 +2,7 @@ import express from "express";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import OTP from "../models/otpModel.js";
-
+import { sendOTPEmail } from "../utils/mailer.js";
 import User from "../models/User.js";
 
 const router = express.Router();
@@ -29,9 +29,13 @@ router.post("/send-otp", async (req, res) => {
 
     await OTP.create({ email, otp });
 
-    console.log("OTP:", otp);
+    // ✅ SEND EMAIL HERE
+    await sendOTPEmail(email, otp);
 
-    res.json({ message: "OTP sent successfully" });
+    res.json({
+      message: "OTP sent successfully to email",
+    });
+
   } catch (err) {
     res.status(500).json({ message: "Failed to send OTP" });
   }
