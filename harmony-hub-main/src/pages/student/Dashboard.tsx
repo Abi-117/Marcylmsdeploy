@@ -23,7 +23,6 @@ import { format } from "date-fns";
 import { useAuth } from "@/store/auth";
 
 function StudentOverview() {
-
   const { user } = useAuth();
 
   const [overview, setOverview] = useState<any>(null);
@@ -50,7 +49,7 @@ function StudentOverview() {
 
       setOverview(data);
 
-      // ✅ NEW: class links from backend
+      // Backend-ilirundhu varum class links inge set aagirum
       setClassLinks(data.classLinks || []);
     } catch (error) {
       console.log("Overview error:", error);
@@ -79,7 +78,6 @@ function StudentOverview() {
 
   return (
     <div>
-
       {/* HEADER */}
       <PageHeader
         title={`Welcome back, ${overview.student?.name || ""}`}
@@ -89,7 +87,7 @@ function StudentOverview() {
       {/* STATS */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard label="Current level" value={overview.student?.level} icon={Music2} accent />
-        {/* <StatCard label="Practice streak" value={`${overview.stats?.streak || 0} days`} icon={Flame} /> */}
+        <StatCard label="Practice streak" value={`${overview.stats?.streak || 0} days`} icon={Flame} />
         <StatCard label="Classes attended" value={`${overview.stats?.attended || 0}/${overview.stats?.totalClasses || 0}`} icon={Video} />
         <StatCard label="Certificates" value={String(overview.stats?.certificates || 0)} icon={Trophy} />
       </div>
@@ -98,7 +96,6 @@ function StudentOverview() {
       <div className="mt-6">
         <Card>
           <CardContent className="p-6">
-
             <Badge className="bg-gold text-black">Next class</Badge>
 
             <div className="mt-4 text-2xl font-bold">
@@ -117,28 +114,25 @@ function StudentOverview() {
 
             {next?.meetingLink && (
               <Button className="mt-4" asChild>
-                <a href={next.meetingLink} target="_blank">
+                <a href={next.meetingLink} target="_blank" rel="noreferrer">
                   Join Class <ExternalLink className="ml-2 h-4 w-4" />
                 </a>
               </Button>
             )}
-
           </CardContent>
         </Card>
       </div>
 
-      {/* 🔥 TEACHER CLASS LINKS (NEW SECTION) */}
-      {/* <div className="mt-6">
+      {/* TEACHER CLASS LINKS */}
+      <div className="mt-6">
         <Card>
           <CardContent className="p-6">
-
             <div className="flex items-center gap-2 font-semibold">
               <Bell className="h-4 w-4" />
               Teacher Shared Class Links
             </div>
 
             <div className="mt-4 space-y-3">
-
               {classLinks.length === 0 ? (
                 <div className="text-sm text-muted-foreground">
                   No class links shared yet
@@ -149,7 +143,6 @@ function StudentOverview() {
                     key={i}
                     className="border rounded-xl p-4 flex items-center justify-between"
                   >
-
                     <div>
                       <div className="font-medium text-sm">
                         {c.title || "Class Link"}
@@ -168,22 +161,18 @@ function StudentOverview() {
 
                     {c.link && (
                       <Button size="sm" asChild>
-                        <a href={c.link} target="_blank">
+                        <a href={c.link} target="_blank" rel="noreferrer">
                           Join <ExternalLink className="ml-2 h-4 w-4" />
                         </a>
                       </Button>
                     )}
-
                   </div>
                 ))
               )}
-
             </div>
-
           </CardContent>
         </Card>
-      </div> */}
-
+      </div>
     </div>
   );
 }
