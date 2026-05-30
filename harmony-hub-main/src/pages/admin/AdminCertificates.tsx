@@ -137,18 +137,12 @@ export default function AdminCertificates() {
 
         // ADD TO APPROVED
 
-        if (
-          res.data?.cert
-        ) {
-
-          setApprovedCerts(
-            (prev) => [
-              res.data.cert,
-              ...prev,
-            ]
-          );
-
-        }
+       if (res.data?.certificate) {
+  setApprovedCerts((prev) => [
+    res.data.certificate,
+    ...prev,
+  ]);
+}
 
       } catch (err) {
 
