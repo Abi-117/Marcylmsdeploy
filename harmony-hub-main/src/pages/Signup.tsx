@@ -26,6 +26,23 @@ const steps = [
 function Signup() {
 
   const navigate = useNavigate();
+  const [image, setImage] = useState<File | null>(null);
+  const uploadImage = async () => {
+  const formData = new FormData();
+  formData.append("file", image as any);
+  formData.append("upload_preset", "your_upload_preset");
+
+  const res = await fetch(
+    "https://api.cloudinary.com/v1_1/YOUR_CLOUD_NAME/image/upload",
+    {
+      method: "POST",
+      body: formData,
+    }
+  );
+
+  const data = await res.json();
+  return data.secure_url;
+};
 
   const login = useAuth((s) => s.login);
 
@@ -167,93 +184,60 @@ function Signup() {
   // ====================================
 
   const finish = async () => {
+  try {
+    let imageUrl = "";
 
-    try {
-
-      const response = await fetch(
-        "https://marcylmsdeploy-2.onrender.com/api/auth/register",
-        {
-          method: "POST",
-
-          headers: {
-            "Content-Type":
-              "application/json",
-          },
-
-          body: JSON.stringify({
-
-            name: data.name,
-
-            email: data.email,
-
-            password:
-              data.password,
-
-            phone: data.phone,
-
-            role: "student",
-
-            // IMPORTANT
-            // SAVE REAL COURSE ID
-            course:
-              selectedGradeCourse?._id,
-
-            // SAVE LEVEL
-            level:
-              data.selectedLevel,
-
-            // SAVE GRADE
-            batch:
-              selectedGradeCourse?.grade,
-
-            mode: data.mode,
-
-            fromTime:
-              data.fromTime,
-
-            toTime:
-              data.toTime,
-
-            availableDays:
-              data.availableDays,
-
-          }),
-        }
-      );
-
-      const result =
-        await response.json();
-
-      if (!response.ok) {
-
-        alert(result.message);
-
-        return;
-
-      }
-
-      localStorage.setItem(
-        "token",
-        result.token
-      );
-
-      login(result.user);
-
-      alert("Signup Success");
-
-      navigate("/student");
-
-    } catch (error) {
-
-      console.log(error);
-
-      alert(
-        "Something went wrong"
-      );
-
+    if (image) {
+      imageUrl = await uploadImage();
     }
 
-  };
+    const response = await fetch(
+      "https://marcylmsdeploy-2.onrender.com/api/auth/register",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: data.name,
+          email: data.email,
+          password: data.password,
+          phone: data.phone,
+          role: "student",
+
+          course: selectedGradeCourse?._id,
+          level: data.selectedLevel,
+          batch: selectedGradeCourse?.grade,
+          mode: data.mode,
+          fromTime: data.fromTime,
+          toTime: data.toTime,
+          availableDays: data.availableDays,
+
+          // 👇 NEW CLOUD IMAGE
+          image: imageUrl,
+
+          address: data.address,
+          parentName: data.parentName,
+        }),
+      }
+    );
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      alert(result.message);
+      return;
+    }
+
+    localStorage.setItem("token", result.token);
+    login(result.user);
+
+    navigate("/student");
+  } catch (err) {
+    console.log(err);
+    alert("Error occurred");
+  }
+};
 
   return (
 
@@ -788,9 +772,10 @@ function Signup() {
                       </span>
 
                       <input
-                        type="file"
-                        className="hidden"
-                      />
+  type="file"
+  accept="image/*"
+  onChange={(e) => setImage(e.target.files?.[0] || null)}
+/>
 
                     </label>
 

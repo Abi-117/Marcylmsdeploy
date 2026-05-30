@@ -26,6 +26,7 @@ import certificateRoutes from "./src/routes/certificate.routes.js";
 import notificationRoutes from "./src/routes/notificationRoutes.js";
 // import reminderRoutes
 // from "./src/routes/reminderRoutes.js";
+import profileRoutes from "./src/routes/profileRoutes.js";
 
 import path from "path";
 
@@ -68,6 +69,7 @@ app.use(
   certificateRoutes
 );
 app.use("/api/notifications", notificationRoutes);
+app.use("/api/profile", profileRoutes);
 
 // app.use(
 //   "/api/reminders",

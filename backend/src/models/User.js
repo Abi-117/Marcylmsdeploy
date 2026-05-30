@@ -161,6 +161,25 @@ feesReminderSent: {
   type: Boolean,
   default: false,
 },
+profileImage: {
+  type: String,
+  default: ""
+},
+
+parentName: {
+  type: String,
+  default: ""
+},
+
+address: {
+  type: String,
+  default: ""
+},
+
+gender: {
+  type: String,
+  default: ""
+},
 
     // =========================
     // TEACHER

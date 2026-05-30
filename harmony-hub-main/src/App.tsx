@@ -50,6 +50,7 @@ import StudentAttendance from "./pages/student/StudentAttendance";
 import StudentFeedback from "./pages/student/StudentFeedback";
 import StudentPayments from "./pages/student/Payments";
 import StudentCertificates from "./pages/student/Certificates";
+import ProfilePage from "./pages/ProfilePage";
 
 function NotFound() {
   return (
@@ -90,6 +91,7 @@ export default function App() {
       <Route path="/teacher-signup" element={<TeacherSignup />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset-password" element={<ResetPassword />} />
+      <Route path="/profile" element={<ProfilePage />} />
       {/* Admin */}
       <Route path="/admin/*" element={<DashboardLayout />}>
         <Route index element={<AdminDashboard />} />
