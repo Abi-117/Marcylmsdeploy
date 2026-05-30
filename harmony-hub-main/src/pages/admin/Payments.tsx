@@ -61,6 +61,7 @@ function AdminPayments() {
       );
 
       const data = await response.json();
+      console.log("PAYMENTS", data);
 
       setPayments(data);
 
@@ -199,19 +200,18 @@ function AdminPayments() {
 
                       <td className="px-5 py-3.5 font-mono text-xs">
 
-                        {p.invoice}
+                        INV-{p._id.slice(-6).toUpperCase()}
 
                       </td>
 
                       <td className="px-5 py-3.5">
 
-                        {p.studentName}
-
+                        {(p as any).student?.name || "Unknown"}
                       </td>
 
                       <td className="px-5 py-3.5">
 
-                        {p.level}
+                        {p.level || (p as any).course?.grade || "-"}
 
                       </td>
 
@@ -243,7 +243,7 @@ function AdminPayments() {
 
                       <td className="px-5 py-3.5 text-muted-foreground">
 
-                        {p.date}
+                        {new Date((p as any).createdAt).toLocaleDateString()}
 
                       </td>
 
@@ -253,9 +253,9 @@ function AdminPayments() {
   variant="ghost"
   size="sm"
   onClick={() => {
-   window.open(
-  `https://marcylmsdeploy-2.onrender.com/api/payments/invoice/${p.paymentId}`,
-  "_blank"
+window.open(
+`https://marcylmsdeploy-2.onrender.com/api/payments/invoice/${p._id}`,
+"_blank"
 );
   }}
 >
