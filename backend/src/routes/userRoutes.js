@@ -92,27 +92,56 @@ router.put(
 // =========================
 // GET PROFILE (/me)
 // =========================
+
+
 router.get("/me", async (req, res) => {
   try {
     const token = req.headers.authorization;
 
     if (!token) {
-      return res.status(401).json({ message: "No token" });
+      return res.status(401).json({
+        message: "No token",
+      });
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = jwt.verify(
+      token,
+      process.env.JWT_SECRET
+    );
 
-    const user = await User.findById(decoded.id).select("-password");
+    const user = await User.findById(
+      decoded.id
+    ).select("-password");
 
     if (!user) {
-      return res.status(404).json({ message: "User not found" });
+      return res.status(404).json({
+        message: "User not found",
+      });
     }
 
-    res.json(user);
+    let courseName = "-";
+
+    if (user.course) {
+      const course = await Course.findById(
+        user.course
+      );
+
+      if (course) {
+        courseName = course.name;
+      }
+    }
+
+    res.json({
+      ...user.toObject(),
+      courseName,
+    });
 
   } catch (err) {
     console.log(err);
-    res.status(401).json({ message: "Invalid token" });
+
+    res.status(401).json({
+      message: "Invalid token",
+    });
   }
 });
 

@@ -5,13 +5,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { DashboardLayout } from "@/layouts/DashboardLayout";
 
-
 type UserType = {
   name: string;
   email: string;
   phone?: string;
   role: string;
   course?: string;
+  courseName?: string;
   level?: string;
   batch?: string;
   parentName?: string;
@@ -211,7 +211,13 @@ export default function ProfilePage() {
 
           {profile.role === "student" && (
             <>
-              <Input value={form.course} disabled />
+              <Input
+  value={
+    profile.courseName ||
+    "No Course"
+  }
+  disabled
+/>
               <Input value={form.level} disabled />
               <Input value={form.batch} disabled />
             </>
