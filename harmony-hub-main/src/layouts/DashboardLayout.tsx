@@ -46,14 +46,20 @@ const navByRole: Record<Role, any[]> = {
     { to: "/teacher/schedule", label: "Schedule", icon: CalendarDays },
   ],
   student: [
-    { to: "/student", label: "Overview", icon: LayoutDashboard },
-    { to: "/student/classes", label: "Classes", icon: Video },
-    { to: "/student/progress", label: "Progress", icon: Award },
-    { to: "/student/Notificationassignments", label: "Assignments", icon: ClipboardList },
-    { to: "/student/payments", label: "Payments", icon: Wallet },
-    { to: "/student/attendance", label: "Attendance", icon: CalendarDays },
-    { to: "/student/certificates", label: "Certificates", icon: Award },
-  ],
+  { to: "/student", label: "Overview", icon: LayoutDashboard },
+  { to: "/student/classes", label: "Classes", icon: Video },
+  { to: "/student/progress", label: "Progress", icon: Award },
+
+  // ✅ FIXED
+  { to: "/student/notificationassignments", label: "Assignments", icon: ClipboardList },
+
+  { to: "/student/payments", label: "Payments", icon: Wallet },
+  { to: "/student/attendance", label: "Attendance", icon: CalendarDays },
+  { to: "/student/certificates", label: "Certificates", icon: Award },
+
+  // ✅ ADD PROFILE MENU
+  { to: "/student/profile", label: "Profile", icon: Users },
+],
 };
 
 export function DashboardLayout() {

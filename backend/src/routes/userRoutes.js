@@ -2,8 +2,22 @@ import express from "express";
 
 import User from "../models/User.js";
 import jwt from "jsonwebtoken";
+import multer from "multer";
+import path from "path";
+import fs from "fs";
 
 const router = express.Router();
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "uploads/profiles");
+  },
+  filename: (req, file, cb) => {
+    cb(null, Date.now() + path.extname(file.originalname));
+  },
+});
+
+const upload = multer({ storage });
 
 router.put(
   "/unlock-level/:id",
@@ -129,5 +143,23 @@ router.put("/profile", async (req, res) => {
     res.status(500).json({ message: "Update failed" });
   }
 });
+router.put("/upload-profile-image", upload.single("image"), async (req, res) => {
+  try {
+    const token = req.headers.authorization;
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
+    const imageUrl = `/uploads/profiles/${req.file.filename}`;
+
+    const user = await User.findByIdAndUpdate(
+      decoded.id,
+      { profileImage: imageUrl },
+      { new: true }
+    ).select("-password");
+
+    res.json(user);
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ message: "Upload failed" });
+  }
+});
 export default router;

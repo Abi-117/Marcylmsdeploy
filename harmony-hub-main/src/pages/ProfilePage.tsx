@@ -3,6 +3,8 @@ import axios from "axios";
 import { useAuth } from "@/store/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { DashboardLayout } from "@/layouts/DashboardLayout";
+
 
 type UserType = {
   name: string;
@@ -14,11 +16,15 @@ type UserType = {
   batch?: string;
   parentName?: string;
   address?: string;
+  profileImage?: string;
 };
 
 export default function ProfilePage() {
   const { user } = useAuth();
-  const token = localStorage.getItem("token");
+  const token = localStorage.getItem("token") || "";
+
+  const [image, setImage] = useState<File | null>(null);
+  const [preview, setPreview] = useState("");
 
   const [profile, setProfile] = useState<UserType | null>(null);
   const [editMode, setEditMode] = useState(false);
@@ -45,7 +51,7 @@ export default function ProfilePage() {
           "https://marcylmsdeploy-2.onrender.com/api/users/me",
           {
             headers: {
-              Authorization: token || "",
+              Authorization: token,
             },
           }
         );
@@ -58,7 +64,49 @@ export default function ProfilePage() {
     };
 
     fetchProfile();
-  }, []);
+  }, [token]);
+
+  // =========================
+  // IMAGE SELECT
+  // =========================
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setImage(file);
+      setPreview(URL.createObjectURL(file));
+    }
+  };
+
+  // =========================
+  // UPLOAD IMAGE
+  // =========================
+  const uploadImage = async () => {
+    if (!image) return;
+
+    try {
+      const formData = new FormData();
+      formData.append("image", image);
+
+      const res = await axios.put(
+        "https://marcylmsdeploy-2.onrender.com/api/users/upload-profile-image",
+        formData,
+        {
+          headers: {
+            Authorization: token,
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+
+      setProfile(res.data);
+      setImage(null);
+      setPreview("");
+
+      alert("Profile image updated");
+    } catch (err) {
+      console.log("UPLOAD ERROR:", err);
+    }
+  };
 
   // =========================
   // UPDATE PROFILE
@@ -70,7 +118,7 @@ export default function ProfilePage() {
         form,
         {
           headers: {
-            Authorization: token || "",
+            Authorization: token,
           },
         }
       );
@@ -86,12 +134,34 @@ export default function ProfilePage() {
   if (!profile) return <div>Loading...</div>;
 
   return (
+    <>
+
     <div className="max-w-3xl mx-auto p-6 space-y-6">
 
-      {/* PROFILE CARD */}
       <div className="border rounded-xl p-6 shadow">
         <h2 className="text-xl font-bold">My Profile</h2>
 
+        {/* IMAGE SECTION */}
+        <div className="flex items-center gap-4 mt-4">
+          <img
+            src={
+              preview ||
+              profile.profileImage ||
+              "https://via.placeholder.com/100"
+            }
+            className="w-24 h-24 rounded-full object-cover border"
+          />
+
+          <div className="space-y-2">
+            <Input type="file" onChange={handleImageChange} />
+
+            <Button onClick={uploadImage} disabled={!image}>
+              Upload Image
+            </Button>
+          </div>
+        </div>
+
+        {/* FORM */}
         <div className="space-y-3 mt-4">
 
           <Input
@@ -121,7 +191,6 @@ export default function ProfilePage() {
             placeholder="Phone"
           />
 
-          {/* EXTRA DETAILS */}
           <Input
             disabled={!editMode}
             value={form.parentName}
@@ -166,5 +235,7 @@ export default function ProfilePage() {
         </div>
       </div>
     </div>
+  
+    </>
   );
 }

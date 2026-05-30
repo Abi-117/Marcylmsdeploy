@@ -91,7 +91,7 @@ export default function App() {
       <Route path="/teacher-signup" element={<TeacherSignup />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset-password" element={<ResetPassword />} />
-      <Route path="/profile" element={<ProfilePage />} />
+      
       {/* Admin */}
       <Route path="/admin/*" element={<DashboardLayout />}>
         <Route index element={<AdminDashboard />} />
@@ -124,18 +124,20 @@ export default function App() {
 
       {/* Student */}
       <Route path="/student/*" element={<DashboardLayout />}>
-        <Route index element={<StudentDashboard />} />
-        <Route path="classes" element={<StudentClasses />} />
-        <Route path="practice" element={<StudentPractice />} />
-        <Route path="progress" element={<StudentProgress />} />
-        <Route path="notificationassignments" element={<NotificationAssignments />} />
-        <Route path="assignments" element={<StudentAssignments />} />
-        <Route path="attendance" element={<StudentAttendance />} />
-        <Route path="payments" element={<StudentPayments />} />
-        <Route path="certificates" element={<StudentCertificates />} />
-        <Route path="feedback" element={<StudentFeedback />} />
-      </Route>
+  <Route index element={<StudentDashboard />} />
+  <Route path="classes" element={<StudentClasses />} />
+  <Route path="practice" element={<StudentPractice />} />
+  <Route path="progress" element={<StudentProgress />} />
+  <Route path="notificationassignments" element={<NotificationAssignments />} />
+  <Route path="assignments" element={<StudentAssignments />} />
+  <Route path="attendance" element={<StudentAttendance />} />
+  <Route path="payments" element={<StudentPayments />} />
+  <Route path="certificates" element={<StudentCertificates />} />
+  <Route path="feedback" element={<StudentFeedback />} />
 
+  {/* ✅ ADD THIS */}
+  <Route path="profile" element={<ProfilePage />} />
+</Route>
       <Route path="*" element={<NotFound />} />
     </Routes>
   );

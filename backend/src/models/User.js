@@ -180,6 +180,10 @@ gender: {
   type: String,
   default: ""
 },
+profileImage: {
+  type: String,
+  default: "",
+},
 
     // =========================
     // TEACHER
