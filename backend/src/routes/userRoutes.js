@@ -5,15 +5,16 @@ import jwt from "jsonwebtoken";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
+import { CloudinaryStorage } from "multer-storage-cloudinary";
+import cloudinary from "../config/cloudinary.js";
 
 const router = express.Router();
 
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, "uploads/profiles");
-  },
-  filename: (req, file, cb) => {
-    cb(null, Date.now() + path.extname(file.originalname));
+const storage = new CloudinaryStorage({
+  cloudinary,
+  params: {
+    folder: "marcy-profile-images",
+    allowed_formats: ["jpg", "jpeg", "png", "webp"],
   },
 });
 
@@ -143,23 +144,41 @@ router.put("/profile", async (req, res) => {
     res.status(500).json({ message: "Update failed" });
   }
 });
-router.put("/upload-profile-image", upload.single("image"), async (req, res) => {
-  try {
-    const token = req.headers.authorization;
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    const imageUrl = `/uploads/profiles/${req.file.filename}`;
+router.put(
+  "/upload-profile-image",
+  upload.single("image"),
+  async (req, res) => {
+    try {
+      const token = req.headers.authorization;
 
-    const user = await User.findByIdAndUpdate(
-      decoded.id,
-      { profileImage: imageUrl },
-      { new: true }
-    ).select("-password");
+      const decoded = jwt.verify(
+        token,
+        process.env.JWT_SECRET
+      );
 
-    res.json(user);
-  } catch (err) {
-    console.log(err);
-    res.status(500).json({ message: "Upload failed" });
+      const updatedUser =
+        await User.findByIdAndUpdate(
+          decoded.id,
+          {
+            profileImage: req.file.path,
+          },
+          { new: true }
+        ).select("-password");
+
+      res.json(updatedUser);
+
+    } catch (err) {
+
+      console.log(err);
+
+      res.status(500).json({
+        message: err.message,
+      });
+
+    }
   }
-});
+);
+
+
 export default router;
