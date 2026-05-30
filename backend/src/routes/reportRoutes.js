@@ -17,40 +17,52 @@ router.get("/", async (req, res) => {
     // COURSE ENROLLMENT
     // =========================
 
-    const courseStats =
-      await User.aggregate([
+    const courseStats = await User.aggregate([
+  {
+    $match: {
+      role: "student",
+    },
+  },
 
-        {
-          $match: {
-            role: "student",
-          },
-        },
+  {
+    $lookup: {
+      from: "courses",
+      localField: "course",
+      foreignField: "_id",
+      as: "courseData",
+    },
+  },
 
-        {
-          $group: {
+  {
+    $unwind: {
+      path: "$courseData",
+      preserveNullAndEmptyArrays: true,
+    },
+  },
 
-            _id: "$course",
+  {
+    $group: {
+      _id: "$courseData.name",
+      students: {
+        $sum: 1,
+      },
+    },
+  },
 
-            students: {
-              $sum: 1,
-            },
+  {
+    $project: {
+      _id: 0,
+      name: "$_id",
+      students: 1,
+    },
+  },
 
-          },
-        },
-
-        {
-          $project: {
-
-            _id: 0,
-
-            name: "$_id",
-
-            students: 1,
-
-          },
-        },
-
-      ]);
+  {
+    $sort: {
+      students: -1,
+    },
+  },
+]);
 
 
     // =========================
