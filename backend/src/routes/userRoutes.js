@@ -1,6 +1,6 @@
 import express from "express";
-
 import User from "../models/User.js";
+import Course from "../models/Course.js";
 import jwt from "jsonwebtoken";
 import multer from "multer";
 import path from "path";
