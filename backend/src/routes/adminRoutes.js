@@ -22,6 +22,11 @@ router.get("/dashboard", async (req, res) => {
 
     // ✅ FIX 1: safe revenue calculation
     const payments = await Payment.find();
+    const recentPayments = await Payment.find()
+  .populate("student", "name email")
+  .populate("course", "name grade mainLevel")
+  .sort({ createdAt: -1 })
+  .limit(5);
 
     const totalRevenue = payments.reduce(
       (sum, p) => sum + (p.amount || 0),
@@ -83,15 +88,16 @@ router.get("/dashboard", async (req, res) => {
     }).sort({ date: 1 });
 
     res.json({
-      totalRevenue,
-      totalStudents,
-      totalTeachers,
-      liveClasses,
-      revenueData,
-      attendanceData,
-      topStudents,
-      classes,
-    });
+  totalRevenue,
+  totalStudents,
+  totalTeachers,
+  liveClasses,
+  revenueData,
+  attendanceData,
+  topStudents,
+  classes,
+  recentPayments,
+});
   } catch (err) {
     console.log(err);
     res.status(500).json({ message: "Dashboard error" });

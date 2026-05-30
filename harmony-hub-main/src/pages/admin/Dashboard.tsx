@@ -28,6 +28,8 @@ export default function AdminOverview() {
   // =====================================
   // STATES
   // =====================================
+  const [recentPayments, setRecentPayments] =
+  useState<any[]>([]);
 
   const [
     loading,
@@ -73,8 +75,11 @@ export default function AdminOverview() {
           await axios.get(
             `${API}/admin/dashboard`
           );
-
+setRecentPayments(
+  res.data.recentPayments || []
+);
         setDashboard({
+          
 
           totalRevenue:
             res.data.totalRevenue || 0,
@@ -374,132 +379,69 @@ export default function AdminOverview() {
           </CardContent>
 
         </Card>
+        <Card className="mt-8 rounded-3xl w-full shadow-lg border-0">
 
+  <CardHeader>
+    <CardTitle className="text-2xl flex items-center gap-3 font-black font-bold">
+      Recent Payments
+    </CardTitle>
+  </CardHeader>
+
+  <CardContent>
+
+    {recentPayments.length === 0 ? (
+
+      <div className="text-center py-10 text-slate-500">
+        No Payments Found
       </div>
 
-      {/* ===================================== */}
-      {/* PENDING FEES */}
-      {/* ===================================== */}
+    ) : (
 
-      <Card
-        className="
-          mt-8
-          rounded-3xl
-          shadow-lg
-          border-0
-        "
-      >
+      <div className="space-y-3">
 
-        <CardHeader>
+        {recentPayments.map((p) => (
 
-          <CardTitle
-            className="
-              text-2xl
-              font-black
-              flex
-              items-center
-              gap-3
-            "
+          <div
+            key={p._id}
+            className="border rounded-2xl p-4 flex justify-between items-center"
           >
 
-            <BellRing />
+            <div>
 
-            Pending Fee Students
+              <h3 className="font-bold">
+                {p.student?.name}
+              </h3>
 
-          </CardTitle>
-
-        </CardHeader>
-
-        <CardContent className="space-y-4">
-
-          {pendingStudents.length === 0 ? (
-
-            <div
-              className="
-                text-center
-                py-10
-                text-slate-500
-              "
-            >
-
-              No Pending Fees
+              <p className="text-sm text-slate-500">
+                {p.course?.grade}
+              </p>
 
             </div>
 
-          ) : (
+            <div className="text-right">
 
-            pendingStudents.map(
-              (student: any) => (
+              <div className="font-bold">
+                ₹{p.amount}
+              </div>
 
-                <div
-                  key={student._id}
-                  className="
-                    flex
-                    flex-col
-                    md:flex-row
-                    md:items-center
-                    md:justify-between
-                    gap-4
-                    border
-                    rounded-2xl
-                    p-5
-                  "
-                >
+              <Badge>
+                {p.status}
+              </Badge>
 
-                  <div>
+            </div>
 
-                    <h2
-                      className="
-                        text-xl
-                        font-bold
-                      "
-                    >
+          </div>
 
-                      {student.name}
+        ))}
 
-                    </h2>
+      </div>
 
-                    <p className="text-slate-500">
+    )}
 
-                      {student.course}
+  </CardContent>
 
-                    </p>
-
-                    <p className="text-slate-400 text-sm mt-1">
-
-                      {student.phone}
-
-                    </p>
-
-                  </div>
-
-                  <Button
-                    onClick={() =>
-                      sendReminder(
-                        student._id
-                      )
-                    }
-                    className="
-                      bg-black
-                      hover:bg-slate-800
-                      rounded-xl
-                    "
-                  >
-
-                    Send Reminder
-
-                  </Button>
-
-                </div>
-
-              )
-            )
-
-          )}
-
-        </CardContent>
-
-      </Card>
+</Card>
+      </div>
 
     </div>
   );
