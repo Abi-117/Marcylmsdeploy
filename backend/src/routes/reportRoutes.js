@@ -1,5 +1,7 @@
+import mongoose from "mongoose";
 import express from "express";
 import User from "../models/User.js";
+import Course from "../models/Course.js";
 
 const router = express.Router();
 
@@ -14,35 +16,57 @@ router.get("/", async (req, res) => {
     // =========================
 
     const courseStats = await User.aggregate([
-      {
-        $match: {
-          role: "student",
-        },
-      },
+  {
+    $match: {
+      role: "student",
+      course: { $ne: "" },
+    },
+  },
 
-      {
-        $group: {
-          _id: "$course",
-          students: {
-            $sum: 1,
-          },
-        },
+  {
+    $addFields: {
+      courseObjectId: {
+        $toObjectId: "$course",
       },
+    },
+  },
 
-      {
-        $project: {
-          _id: 0,
-          name: "$_id",
-          students: 1,
-        },
-      },
+  {
+    $lookup: {
+      from: "courses",
+      localField: "courseObjectId",
+      foreignField: "_id",
+      as: "courseData",
+    },
+  },
 
-      {
-        $sort: {
-          students: -1,
-        },
+  {
+    $unwind: "$courseData",
+  },
+
+  {
+    $group: {
+      _id: "$courseData.name",
+      students: {
+        $sum: 1,
       },
-    ]);
+    },
+  },
+
+  {
+    $project: {
+      _id: 0,
+      name: "$_id",
+      students: 1,
+    },
+  },
+
+  {
+    $sort: {
+      students: -1,
+    },
+  },
+]);
 
     // =========================
     // MONTHLY STUDENT GROWTH
