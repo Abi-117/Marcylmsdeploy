@@ -46,9 +46,7 @@ export function ProfileCard({ user, token }: Props) {
 
   return (
     <div
-      className="p-3 cursor-pointer hover:bg-muted transition rounded-xl"
-      onClick={() => navigate(`/${profile.role}/profile`)}
-    >
+      className="p-3 cursor-pointer hover:bg-muted transition rounded-xl">
       <div className="flex items-center gap-3">
         <img
           src={

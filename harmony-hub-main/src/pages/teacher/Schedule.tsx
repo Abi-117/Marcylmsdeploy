@@ -40,6 +40,9 @@ const hours = [
   "06:00 PM",
   "07:00 PM",
   "08:00 PM",
+  "09:00 PM",
+  "10:00 PM",
+  "11:00 PM",
 ];
 
 export default function TeacherSchedule() {

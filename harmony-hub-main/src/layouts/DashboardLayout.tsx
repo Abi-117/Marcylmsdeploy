@@ -125,7 +125,6 @@ export function DashboardLayout() {
 
       <div
   className="absolute bottom-0 p-3 w-full border-t cursor-pointer"
-  onClick={() => navigate("/profile")}
 >
   <ProfileCard
     user={user}

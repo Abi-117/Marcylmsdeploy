@@ -667,23 +667,22 @@ function AdminStudents() {
 
                           <div className="flex items-center gap-3">
 
-                            <Avatar className="h-9 w-9">
-
-                              <AvatarFallback className="bg-gold-soft text-xs">
-
-                                {s?.name
-                                  ?.split(" ")
-                                  ?.map(
-                                    (
-                                      p: string
-                                    ) =>
-                                      p[0]
-                                  )
-                                  ?.join("")}
-
-                              </AvatarFallback>
-
-                            </Avatar>
+<Avatar className="h-10 w-10">
+  {s?.profileImage ? (
+    <img
+      src={s.profileImage}
+      alt={s.name}
+      className="h-full w-full rounded-full object-cover"
+    />
+  ) : (
+    <AvatarFallback className="bg-gold-soft text-xs">
+      {s?.name
+        ?.split(" ")
+        ?.map((p: string) => p[0])
+        ?.join("")}
+    </AvatarFallback>
+  )}
+</Avatar>
 
                             <div>
 
@@ -769,50 +768,45 @@ function AdminStudents() {
 {/* ========================= */}
 
 {viewOpen && selectedStudent && (
-
   <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 overflow-y-auto">
+    <div className="w-full max-w-5xl rounded-2xl bg-white p-8 shadow-xl">
 
-    <div className="w-full max-w-3xl rounded-2xl bg-white p-6 shadow-xl">
+      {/* HEADER */}
+      <div className="sticky top-0 z-10 mb-6 flex items-center justify-between border-b bg-white pb-4">
 
-      {/* TOP */}
+  <h2 className="text-2xl font-semibold">
+    Student Details
+  </h2>
 
-      <div className="mb-6 flex items-center justify-between">
+  <button
+    onClick={() => setViewOpen(false)}
+    className="flex h-10 w-10 items-center justify-center rounded-full hover:bg-gray-100"
+  >
+    <X className="h-5 w-5" />
+  </button>
 
-        <h2 className="text-2xl font-semibold">
-          Student Details
-        </h2>
-
-        <button
-          onClick={() =>
-            setViewOpen(false)
-          }
-        >
-          <X className="h-5 w-5" />
-        </button>
-
-      </div>
-
+</div>
       {/* PROFILE */}
+      <div className="mb-6 flex items-center gap-5 border-b pb-5">
 
-      <div className="mb-6 flex items-center gap-4 border-b pb-5">
-
-        <Avatar className="h-16 w-16">
-
-          <AvatarFallback className="bg-gold-soft text-lg">
-
-            {selectedStudent?.name
-              ?.split(" ")
-              ?.map(
-                (p: string) => p[0]
-              )
-              ?.join("")}
-
-          </AvatarFallback>
-
+        <Avatar className="h-24 w-24">
+          {selectedStudent?.profileImage ? (
+            <img
+              src={selectedStudent.profileImage}
+              alt={selectedStudent.name}
+              className="h-full w-full rounded-full object-cover"
+            />
+          ) : (
+            <AvatarFallback className="bg-gold-soft text-lg">
+              {selectedStudent?.name
+                ?.split(" ")
+                ?.map((p: string) => p[0])
+                ?.join("")}
+            </AvatarFallback>
+          )}
         </Avatar>
 
         <div>
-
           <h3 className="text-xl font-semibold">
             {selectedStudent.name}
           </h3>
@@ -820,173 +814,160 @@ function AdminStudents() {
           <p className="text-sm text-muted-foreground">
             {selectedStudent.email}
           </p>
-
         </div>
-
       </div>
 
       {/* DETAILS */}
-
       <div className="grid gap-5 sm:grid-cols-2">
 
-        {/* PHONE */}
-
         <div>
-          <p className="text-xs text-muted-foreground">
-            Phone Number
-          </p>
-
+          <p className="text-xs text-muted-foreground">Phone Number</p>
           <p className="font-medium">
             {selectedStudent.phone || "-"}
           </p>
         </div>
 
-        {/* COURSE */}
-
         <div>
-          <p className="text-xs text-muted-foreground">
-            Course
-          </p>
-
+          <p className="text-xs text-muted-foreground">Course</p>
           <p className="font-medium">
             {getCourseName(selectedStudent)}
           </p>
         </div>
 
-        {/* LEVEL */}
-
         <div>
-          <p className="text-xs text-muted-foreground">
-            Level
-          </p>
-
+          <p className="text-xs text-muted-foreground">Level</p>
           <p className="font-medium">
-            {selectedStudent.level ||
-              selectedStudent.exp ||
-              "-"}
+            {selectedStudent.level || "-"}
           </p>
         </div>
 
-        {/* GRADE */}
-
         <div>
-          <p className="text-xs text-muted-foreground">
-            Grade
-          </p>
-
+          <p className="text-xs text-muted-foreground">Grade</p>
           <p className="font-medium">
             {selectedStudent.batch || "-"}
           </p>
         </div>
 
-        {/* PAYMENT */}
+        <div>
+          <p className="text-xs text-muted-foreground">Parent Name</p>
+          <p className="font-medium">
+            {selectedStudent.parentName || "-"}
+          </p>
+        </div>
 
         <div>
-          <p className="text-xs text-muted-foreground">
-            Payment Status
+          <p className="text-xs text-muted-foreground">Address</p>
+          <p className="font-medium">
+            {selectedStudent.address || "-"}
           </p>
+        </div>
 
+        <div>
+          <p className="text-xs text-muted-foreground">Role</p>
+          <p className="font-medium capitalize">
+            {selectedStudent.role || "-"}
+          </p>
+        </div>
+
+        <div>
+          <p className="text-xs text-muted-foreground">Payment Status</p>
           <p className="font-medium">
             {selectedStudent.paymentStatus || "Pending"}
           </p>
         </div>
 
-        {/* FEES PAID */}
-
         <div>
-          <p className="text-xs text-muted-foreground">
-            Fees Paid
-          </p>
-
+          <p className="text-xs text-muted-foreground">Fees Paid</p>
           <p className="font-medium">
             ₹{selectedStudent.feesPaid || 0}
           </p>
         </div>
 
-        {/* REMAINING */}
-
         <div>
-          <p className="text-xs text-muted-foreground">
-            Remaining Fees
-          </p>
-
+          <p className="text-xs text-muted-foreground">Remaining Fees</p>
           <p className="font-medium">
             ₹{selectedStudent.remainingFees || 0}
           </p>
         </div>
 
-        {/* MODE */}
-
         <div>
-          <p className="text-xs text-muted-foreground">
-            Learning Mode
-          </p>
-
+          <p className="text-xs text-muted-foreground">Learning Mode</p>
           <p className="font-medium">
             {selectedStudent.mode || "-"}
           </p>
         </div>
 
-        {/* FROM TIME */}
-
         <div>
-          <p className="text-xs text-muted-foreground">
-            From Time
-          </p>
-
+          <p className="text-xs text-muted-foreground">From Time</p>
           <p className="font-medium">
             {selectedStudent.fromTime || "-"}
           </p>
         </div>
 
-        {/* TO TIME */}
-
         <div>
-          <p className="text-xs text-muted-foreground">
-            To Time
-          </p>
-
+          <p className="text-xs text-muted-foreground">To Time</p>
           <p className="font-medium">
             {selectedStudent.toTime || "-"}
           </p>
         </div>
 
-        {/* DAYS */}
-
         <div>
-          <p className="text-xs text-muted-foreground">
-            Available Days
-          </p>
-
+          <p className="text-xs text-muted-foreground">Available Days</p>
           <p className="font-medium">
-            {selectedStudent.availableDays
-              ?.join(", ") || "-"}
+            {selectedStudent.availableDays?.join(", ") || "-"}
           </p>
         </div>
 
-        {/* JOIN DATE */}
+        <div>
+          <p className="text-xs text-muted-foreground">Current Level</p>
+          <p className="font-medium">
+            {selectedStudent.selectedLevel || "-"}
+          </p>
+        </div>
 
         <div>
-          <p className="text-xs text-muted-foreground">
-            Joined Date
-          </p>
-
+          <p className="text-xs text-muted-foreground">Unlocked Levels</p>
           <p className="font-medium">
+            {selectedStudent.unlockedLevels?.join(", ") || "-"}
+          </p>
+        </div>
 
-            {selectedStudent.createdAt
-              ? new Date(
-                  selectedStudent.createdAt
-                ).toLocaleDateString()
+        <div>
+          <p className="text-xs text-muted-foreground">Completed Levels</p>
+          <p className="font-medium">
+            {selectedStudent.completedLevels?.join(", ") || "-"}
+          </p>
+        </div>
+
+        <div>
+          <p className="text-xs text-muted-foreground">Total Payments</p>
+          <p className="font-medium">
+            {selectedStudent.payments?.length || 0}
+          </p>
+        </div>
+
+        <div>
+          <p className="text-xs text-muted-foreground">Last Payment</p>
+          <p className="font-medium">
+            {selectedStudent.payments?.length
+              ? `₹${selectedStudent.payments[selectedStudent.payments.length - 1]?.amount}`
               : "-"}
-
           </p>
         </div>
-   
+
+        <div>
+          <p className="text-xs text-muted-foreground">Joined Date</p>
+          <p className="font-medium">
+            {selectedStudent.createdAt
+              ? new Date(selectedStudent.createdAt).toLocaleDateString()
+              : "-"}
+          </p>
+        </div>
+
       </div>
 
     </div>
   </div>
-
 )}
 
     </div>
