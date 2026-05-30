@@ -30,7 +30,7 @@ function StudentOverview() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const studentId = user?.id || user?._id || user?.user?._id;
+    const studentId = user?.id || user?._id;
     if (studentId) fetchOverview(studentId);
   }, [user]);
 
@@ -83,9 +83,9 @@ function StudentOverview() {
       >
         <PageHeader
           title={`Welcome back, ${overview.student?.name || ""}`}
-          subtitle={`${overview.student?.course || "Course"} · ${
-            overview.student?.level || "Beginner"
-          }`}
+         subtitle={`${overview.student?.courseName || "Course"} · ${
+  overview.student?.level || "Beginner"
+}`}
         />
       </motion.div>
 
@@ -103,9 +103,9 @@ function StudentOverview() {
             icon: Music2,
           },
           {
-            label: "Practice streak",
-            value: `${overview.stats?.streak || 0} days`,
-            icon: Flame,
+            label: "Course",
+            value: overview.student?.courseName || "No Course",
+            icon: Video,
           },
           {
             label: "Classes attended",
@@ -177,7 +177,7 @@ function StudentOverview() {
         initial={{ y: 30, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
       >
-        <Card className="rounded-2xl shadow-lg border">
+        {/* <Card className="rounded-2xl shadow-lg border">
           <CardContent className="p-6">
             <div className="flex items-center gap-2 font-semibold text-lg">
               <Bell className="h-4 w-4" />
@@ -220,7 +220,7 @@ function StudentOverview() {
               )}
             </div>
           </CardContent>
-        </Card>
+        </Card> */}
       </motion.div>
     </motion.div>
   );

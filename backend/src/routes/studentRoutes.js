@@ -128,10 +128,21 @@ router.get("/overview/:studentId", async (req, res) => {
     // ======================
     // GET STUDENT
     // ======================
-    const student = await User.findById(studentId).populate("course");
+    const student = await User.findById(studentId);
 
     if (!student) {
-      return res.status(404).json({ message: "Student not found" });
+      return res.status(404).json({
+        message: "Student not found",
+      });
+    }
+
+    // ======================
+    // GET REAL COURSE
+    // ======================
+    let course = null;
+
+    if (student.course) {
+      course = await Course.findById(student.course);
     }
 
     // ======================
@@ -153,37 +164,52 @@ router.get("/overview/:studentId", async (req, res) => {
     // NEXT CLASS
     // ======================
     const nextClass =
-      safeClasses.find((c) => c.status !== "Completed") || null;
+      safeClasses.find(
+        (c) => c.status !== "Completed"
+      ) || null;
 
     // ======================
-    // REAL COURSE DATA
-    // ======================
-    const course = student.course;
-
-    // ======================
-    // REAL LEARNING PATH
+    // LEARNING PROGRESS
     // ======================
     let progress = [];
 
     if (course) {
       const percent =
-        total === 0 ? 0 : Math.round((attended / total) * 100);
+        total === 0
+          ? 0
+          : Math.round(
+              (attended / total) * 100
+            );
 
       progress = [
         {
-          level: course.mainLevel || "Beginner",
+          level:
+            course.mainLevel ||
+            "Beginner",
           status: "active",
           progress: percent,
         },
         {
           level: "Intermediate",
-          status: percent >= 60 ? "active" : "locked",
-          progress: percent >= 60 ? percent - 60 : 0,
+          status:
+            percent >= 60
+              ? "active"
+              : "locked",
+          progress:
+            percent >= 60
+              ? percent - 60
+              : 0,
         },
         {
           level: "Advanced",
-          status: percent >= 90 ? "active" : "locked",
-          progress: percent >= 90 ? percent - 90 : 0,
+          status:
+            percent >= 90
+              ? "active"
+              : "locked",
+          progress:
+            percent >= 90
+              ? percent - 90
+              : 0,
         },
       ];
     }
@@ -193,9 +219,25 @@ router.get("/overview/:studentId", async (req, res) => {
     // ======================
     res.json({
       student: {
+        _id: student._id,
+
         name: student.name || "",
-        course: course?.name || student.courseName || "",
-        level: course?.mainLevel || student.level || "Beginner",
+
+        course:
+          student.course || "",
+
+        courseName:
+          course?.name || "-",
+
+        level:
+          course?.mainLevel ||
+          student.level ||
+          "Beginner",
+
+        batch:
+          course?.grade ||
+          student.batch ||
+          "",
       },
 
       stats: {
@@ -207,27 +249,42 @@ router.get("/overview/:studentId", async (req, res) => {
 
       nextClass: nextClass
         ? {
-            title: nextClass.title || "",
-            teacher: nextClass.teacher || "",
-            batchName: nextClass.batchName || "",
-            date: nextClass.date || null,
-            meetingLink: nextClass.meetingLink || "",
+            title:
+              nextClass.title || "",
+
+            teacher:
+              nextClass.teacher ||
+              "",
+
+            batchName:
+              nextClass.batchName ||
+              "",
+
+            date:
+              nextClass.date ||
+              null,
+
+            meetingLink:
+              nextClass.meetingLink ||
+              "",
           }
         : null,
 
-      // 🔥 REAL LEARNING PATH (NO DUMMY)
       progress,
 
       reminders: [],
     });
   } catch (err) {
-    console.log("OVERVIEW ERROR:", err);
+    console.log(
+      "OVERVIEW ERROR:",
+      err
+    );
+
     res.status(500).json({
       message: "Overview failed",
       error: err.message,
     });
   }
 });
-
 
 export default router;
