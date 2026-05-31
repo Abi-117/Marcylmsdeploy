@@ -21,39 +21,30 @@ router.get("/dashboard/:teacherId", async (req, res) => {
 
     const subject = teacher.subject || "";
 
-    // FIX: define query properly
-    const matchingCourses = await Course.find({
-      name: subject,
-    }).select("_id");
+   const matchingCourses = await Course.find({
+  name: subject,
+}).select("_id");
 
-    const courseIds = matchingCourses.map((c) => c._id);
+const courseIds = matchingCourses.map(
+  (c) => c._id.toString()
+);
 
-    // ✅ FIXED QUERY
-    const query = {
-      role: "student",
-      course: { $in: courseIds },
+const students = await User.find({
+  role: "student",
+  course: { $in: courseIds },
+}).select("-password");
+
+const formattedStudents = await Promise.all(
+  students.map(async (s) => {
+    const course = await Course.findById(s.course);
+
+    return {
+      ...s.toObject(),
+      courseName: course?.name || "No Course",
     };
-
-    const students = await User.find(query)
-  .select("-password");
-
-const formattedStudents =
-  await Promise.all(
-    students.map(async (s) => {
-
-      const course =
-        await Course.findById(
-          s.course
-        );
-
-      return {
-        ...s.toObject(),
-        courseName:
-          course?.name || "No Course",
-      };
-
-    })
-  );
+  })
+);
+    // ✅ FIXED QUERY
 
     const classes = await Class.find({ teacherId }).sort({ date: 1 });
 
@@ -66,15 +57,15 @@ const formattedStudents =
     );
 
     return res.json({
-      students: students || [],
-      classes: classes || [],
-      stats: {
-        todayClasses: todayClasses.length,
-        students: students.length,
-        pendingReviews: 0,
-        rating: 4.9,
-      },
-    });
+  students: formattedStudents,
+  classes,
+  stats: {
+    todayClasses: todayClasses.length,
+    students: formattedStudents.length,
+    pendingReviews: 0,
+    rating: 4.9,
+  },
+});
 
   } catch (err) {
     console.log("Dashboard error:", err);
