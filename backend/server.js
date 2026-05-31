@@ -28,11 +28,20 @@ import profileRoutes from "./src/routes/profileRoutes.js";
 
 const app = express();
 
+// =====================
+// DB CONNECT
+// =====================
 connectDB();
 
-// =========================
-// # CORS (FIXED)
-// =========================
+// =====================
+// BODY PARSER
+// =====================
+app.use(express.json({ limit: "50mb" }));
+app.use(express.urlencoded({ extended: true, limit: "50mb" }));
+
+// =====================
+// CORS (PRODUCTION SAFE)
+// =====================
 const allowedOrigins = [
   "http://localhost:8080",
   "http://localhost:5173",
@@ -42,49 +51,33 @@ const allowedOrigins = [
 app.use(
   cors({
     origin: function (origin, callback) {
-      // allow Postman / server-to-server calls
-      if (!origin) return callback(null, true);
+      if (!origin) return callback(null, true); // Postman / server
 
       if (allowedOrigins.includes(origin)) {
         return callback(null, true);
       }
 
-      return callback(new Error("Not allowed by CORS"));
+      console.log("Blocked by CORS:", origin);
+      return callback(null, false);
     },
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
   })
 );
 
-// # =========================
-// # IMPORTANT: handle preflight
-// # =========================
-const corsOptions = {
-  origin: [
-    "http://localhost:8080",
-    "http://localhost:5173",
-    "https://marcylmsdeploy-3.onrender.com",
-  ],
-  credentials: true,
-  methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-};
+// IMPORTANT: preflight must pass
+app.options(/.*/, cors());
 
-app.use(cors(corsOptions));
-app.options(/.*/, cors(corsOptions));
-
-// # =========================
-// # BODY PARSING (ONLY ONCE)
-// # =========================
-app.use(express.json({ limit: "50mb" }));
-app.use(express.urlencoded({ extended: true, limit: "50mb" }));
-
-// # =========================
-// # ROUTES
-// =========================
+// =====================
+// TEST ROUTE
+// =====================
 app.get("/", (req, res) => {
   res.send("Marcy Academy Backend Running");
 });
 
+// =====================
+// ROUTES
+// =====================
 app.use("/api/auth", authRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/classes", classRoutes);
@@ -104,8 +97,12 @@ app.use("/api/certificates", certificateRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/profile", profileRoutes);
 
+// static uploads
 app.use("/uploads", express.static("uploads"));
 
+// =====================
+// START SERVER
+// =====================
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
