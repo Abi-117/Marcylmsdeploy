@@ -40,6 +40,7 @@ const navByRole: Record<Role, any[]> = {
     { to: "/teacher/classes", label: "My Classes", icon: Video },
     { to: "/teacher/students", label: "Students", icon: GraduationCap },
     { to: "/teacher/attendance", label: "Attendance", icon: CalendarDays },
+    { to: "/teacher/grades", label: "My Attendance", icon: CalendarDays },
     { to: "/teacher/assignments", label: "Assignments", icon: ClipboardList },
     { to: "/teacher/certificates", label: "Certificates", icon: Award },
     { to: "/teacher/feedback", label: "Feedback", icon: BarChart3 },

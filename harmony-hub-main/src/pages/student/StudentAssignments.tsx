@@ -146,7 +146,7 @@ export default function StudentAssignments() {
 
                   {mySubmission.feedback && (
                     <div className="text-sm text-muted-foreground">
-                      💬 Feedback: {mySubmission.feedback}
+                      💬 Teacher's Review: {mySubmission.feedback}
                     </div>
                   )}
 

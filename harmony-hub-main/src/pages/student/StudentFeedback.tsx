@@ -33,11 +33,11 @@ export default function StudentFeedback({ teacherId, teacherName }: Props) {
         message,
       });
 
-      alert("Feedback sent");
+      alert("Comments sent");
       setMessage("");
     } catch (err: any) {
       console.log(err?.response?.data || err);
-      alert("Failed to send feedback");
+      alert("Failed to send comments");
     } finally {
       setLoading(false);
     }
@@ -47,17 +47,17 @@ export default function StudentFeedback({ teacherId, teacherName }: Props) {
     <div className="border rounded-xl p-4 space-y-3 bg-white">
 
       <h2 className="font-semibold">
-        Feedback {teacherName && `to ${teacherName}`}
+        Student Comments {teacherName && `to ${teacherName}`}
       </h2>
 
       <Textarea
-        placeholder="Write feedback..."
+        placeholder="Write your Comments..."
         value={message}
         onChange={(e) => setMessage(e.target.value)}
       />
 
       <Button onClick={sendFeedback} disabled={loading}>
-        {loading ? "Sending..." : "Send Feedback"}
+        {loading ? "Sending..." : "Send Comments"}
       </Button>
 
     </div>
