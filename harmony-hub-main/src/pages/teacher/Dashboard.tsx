@@ -167,12 +167,7 @@ function TeacherOverview() {
           icon={ClipboardList}
         />
 
-        <StatCard
-          label="Average Rating"
-          value={stats.rating.toString()}
-          icon={Award}
-        />
-
+        
       </div>
 
       {/* ===================================== */}
@@ -518,7 +513,7 @@ function TeacherOverview() {
 
         <div className="mt-1 font-semibold">
 
-         {s.course?.name}
+         {s.courseName || s.course || "No Course"}
 
         </div>
 

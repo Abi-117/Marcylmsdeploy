@@ -123,7 +123,7 @@ export const getAllAttendance = async (req, res) => {
       studentName: a.studentId?.name || "Unknown",
       studentEmail: a.studentId?.email || "",
       classTitle: a.classId?.title || "",
-      courseName: a.classId?.courseName || "",
+      courseName: a.classId?.title || "No Course", // FIX HERE
       status: a.status,
       date: a.date,
     }));

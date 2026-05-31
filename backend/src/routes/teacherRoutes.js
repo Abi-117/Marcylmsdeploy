@@ -35,8 +35,25 @@ router.get("/dashboard/:teacherId", async (req, res) => {
     };
 
     const students = await User.find(query)
-      .populate("course")
-      .select("-password");
+  .select("-password");
+
+const formattedStudents =
+  await Promise.all(
+    students.map(async (s) => {
+
+      const course =
+        await Course.findById(
+          s.course
+        );
+
+      return {
+        ...s.toObject(),
+        courseName:
+          course?.name || "No Course",
+      };
+
+    })
+  );
 
     const classes = await Class.find({ teacherId }).sort({ date: 1 });
 

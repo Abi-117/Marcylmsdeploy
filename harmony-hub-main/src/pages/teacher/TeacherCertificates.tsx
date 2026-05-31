@@ -17,7 +17,7 @@ import preview
 from "../../assets/certificate-bg.png";
 
 const API =
-  "http://localhost:5000/api";
+  "https://marcylmsdeploy-2.onrender.com/api";
 
 export default function
 TeacherCertificateForm() {

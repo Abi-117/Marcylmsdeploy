@@ -24,6 +24,10 @@ const attendanceSchema = new mongoose.Schema(
       type: Date,
       default: Date.now,
     },
+    courseName: {
+  type: String,
+  required: true
+},
   },
   { timestamps: true }
 );
