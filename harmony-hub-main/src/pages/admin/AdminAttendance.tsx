@@ -468,7 +468,7 @@ export default function AdminAttendance() {
 
                   <Badge variant="secondary">
 
-                    {a.courseName || a.course?.name || a.course?.title || "No Course"}
+                     {a.courseName || a.classTitle || "No Course"}
                   </Badge>
 
                   <Badge

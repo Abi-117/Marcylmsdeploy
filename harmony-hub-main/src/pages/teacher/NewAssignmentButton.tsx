@@ -11,7 +11,7 @@ import axios from "axios";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 
-const API = "https://marcylmsdeploy-.onrender.com/api";
+const API = "https://marcylmsdeploy.onrender.com/api";
 
 function NewAssignmentButton({ onRefresh }: any) {
   const [title, setTitle] = useState("");
