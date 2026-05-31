@@ -4,8 +4,9 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-
 import connectDB from "./src/config/db.js";
+
+// routes
 import authRoutes from "./src/routes/authRoutes.js";
 import adminRoutes from "./src/routes/adminRoutes.js";
 import classRoutes from "./src/routes/classRoutes.js";
@@ -18,27 +19,68 @@ import courseRoutes from "./src/routes/courseRoutes.js";
 import assignmentRoutes from "./src/routes/assignmentRoutes.js";
 import userRoutes from "./src/routes/userRoutes.js";
 import attendanceRoutes from "./src/routes/attendanceRoutes.js";
-import teacherAttendanceRoutes
-from "./src/routes/teacherAttendance.js";
+import teacherAttendanceRoutes from "./src/routes/teacherAttendance.js";
 import adminAttendanceRoutes from "./src/routes/adminAttendanceRoutes.js";
 import feedbackRouter from "./src/routes/feedback.js";
 import certificateRoutes from "./src/routes/certificate.routes.js";
 import notificationRoutes from "./src/routes/notificationRoutes.js";
-// import reminderRoutes
-// from "./src/routes/reminderRoutes.js";
 import profileRoutes from "./src/routes/profileRoutes.js";
-
-import path from "path";
-
-
-
 
 const app = express();
 
-app.use(cors());
-app.use(express.json());
 connectDB();
 
+// =========================
+// # CORS (FIXED)
+// =========================
+const allowedOrigins = [
+  "http://localhost:8080",
+  "http://localhost:5173",
+  "https://marcylmsdeploy-3.onrender.com",
+];
+
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      // allow Postman / server-to-server calls
+      if (!origin) return callback(null, true);
+
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+
+      return callback(new Error("Not allowed by CORS"));
+    },
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+  })
+);
+
+// # =========================
+// # IMPORTANT: handle preflight
+// # =========================
+const corsOptions = {
+  origin: [
+    "http://localhost:8080",
+    "http://localhost:5173",
+    "https://marcylmsdeploy-3.onrender.com",
+  ],
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+};
+
+app.use(cors(corsOptions));
+app.options(/.*/, cors(corsOptions));
+
+// # =========================
+// # BODY PARSING (ONLY ONCE)
+// # =========================
+app.use(express.json({ limit: "50mb" }));
+app.use(express.urlencoded({ extended: true, limit: "50mb" }));
+
+// # =========================
+// # ROUTES
+// =========================
 app.get("/", (req, res) => {
   res.send("Marcy Academy Backend Running");
 });
@@ -55,40 +97,14 @@ app.use("/api/assignments", assignmentRoutes);
 app.use("/api/courses", courseRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/attendance", attendanceRoutes);
-app.use(
-  "/api/teacher-attendance",
-  teacherAttendanceRoutes
-);
-app.use(
-  "/api/admin-attendance",
-  adminAttendanceRoutes
-);
+app.use("/api/teacher-attendance", teacherAttendanceRoutes);
+app.use("/api/admin-attendance", adminAttendanceRoutes);
 app.use("/api/feedback", feedbackRouter);
-app.use(
-  "/api/certificates",
-  certificateRoutes
-);
+app.use("/api/certificates", certificateRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/profile", profileRoutes);
 
-// app.use(
-//   "/api/reminders",
-//   reminderRoutes
-// );
-// serve uploaded videos
 app.use("/uploads", express.static("uploads"));
-app.use(
-  express.json({
-    limit: "50mb",
-  })
-);
-
-app.use(
-  express.urlencoded({
-    extended: true,
-    limit: "50mb",
-  })
-);
 
 const PORT = process.env.PORT || 5000;
 

@@ -2,6 +2,8 @@ import express from "express";
 import mongoose from "mongoose";
 
 import Assignment from "../models/Assignment.js";
+import User from "../models/User.js";
+
 
 const router = express.Router();
 
@@ -9,6 +11,16 @@ const router = express.Router();
 // =========================================
 // 📌 GET TEACHER ASSIGNMENTS
 // =========================================
+
+router.get("/admin/students", async (req, res) => {
+  try {
+    const students = await User.find({ role: "student" }).select("name email");
+    res.json(students);
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ message: err.message });
+  }
+});
 //
 
 router.get(
