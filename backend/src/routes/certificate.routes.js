@@ -337,4 +337,32 @@ router.get(
     }
   }
 );
+
+router.get(
+  "/teacher/:teacherId",
+  async (req, res) => {
+
+    try {
+
+      const certs =
+        await CertificateRequest.find({
+          teacher:
+            req.params.teacherId,
+        })
+        .sort({
+          createdAt: -1,
+        });
+
+      res.json(certs);
+
+    } catch (err) {
+
+      res.status(500).json({
+        message: err.message,
+      });
+
+    }
+
+  }
+);
 export default router;

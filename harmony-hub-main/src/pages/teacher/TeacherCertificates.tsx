@@ -15,6 +15,7 @@ from "html2canvas-pro";
 
 import preview
 from "../../assets/certificate-bg.png";
+import { Badge } from "@/components/ui/badge";
 
 const API =
   "https://marcylmsdeploy-2.onrender.com/api";
@@ -28,6 +29,59 @@ TeacherCertificateForm() {
 
   const previewRef =
     useRef<any>(null);
+  
+const [levels, setLevels] =
+  useState<string[]>([]);
+  useEffect(() => {
+  fetchLevels();
+}, []);
+
+const fetchLevels = async () => {
+  try {
+    const res = await axios.get(
+      `${API}/courses`
+    );
+
+const allLevels =
+  res.data.map(
+    (c) =>
+      `${c.mainLevel} - ${c.grade}`
+  );
+
+setLevels(
+  [...new Set(allLevels)]
+);
+
+
+  } catch (err) {
+    console.log(err);
+  }
+};
+
+const [certificates, setCertificates] =
+  useState<any[]>([]);
+
+useEffect(() => {
+  fetchCertificates();
+}, []);
+
+const fetchCertificates =
+  async () => {
+
+    const teacherId =
+      localStorage.getItem(
+        "userId"
+      );
+
+    const res =
+      await axios.get(
+        `${API}/certificates/teacher/${teacherId}`
+      );
+
+    setCertificates(
+      res.data
+    );
+  };
 
   const [
     students,
@@ -159,79 +213,67 @@ TeacherCertificateForm() {
       });
     };
 
+
+    
+
   // =========================
   // SEND REQUEST
   // =========================
 
-  const sendRequest =
-  async () => {
+const sendRequest = async () => {
+  try {
 
-    try {
+    setLoading(true);
 
-      setLoading(true);
+    const teacher =
+      localStorage.getItem("userId");
 
-      console.log(
-        "START"
+    const canvas =
+      await html2canvas(
+        previewRef.current,
+        {
+          scale: 1,
+          useCORS: true,
+          backgroundColor: "#ffffff",
+        }
       );
 
-      const canvas =
-        await html2canvas(
-          previewRef.current,
-          {
-            scale: 1,
-            useCORS: true,
-            backgroundColor:
-              "#ffffff",
-          }
-        );
-
-      console.log(
-        "CANVAS DONE"
+    const previewImage =
+      canvas.toDataURL(
+        "image/jpeg",
+        0.4
       );
 
-     const previewImage =
-  canvas.toDataURL(
-    "image/jpeg",
-    0.4
-  );
-
-      console.log(
-        "IMAGE DONE"
+    const res =
+      await axios.post(
+        `${API}/certificates/create`,
+        {
+          ...form,
+          teacher,
+          previewImage,
+        }
       );
 
-      const res =
-        await axios.post(
-          `${API}/certificates/create`,
-          {
-            ...form,
-            previewImage,
-          }
-        );
+    alert(
+      "Certificate Request Sent"
+    );
 
-      console.log(
-        res.data
-      );
+    fetchCertificates();
 
-      alert(
-        "Certificate Request Sent"
-      );
+  } catch (err) {
 
-    } catch (err) {
+    console.log(err);
 
-      console.log(
-        err
-      );
+    alert(
+      "Request Failed"
+    );
 
-      alert(
-        "Request Failed"
-      );
+  } finally {
 
-    } finally {
+    setLoading(false);
 
-      setLoading(false);
-
-    }
-  };
+  }
+};
 
   return (
 
@@ -413,22 +455,23 @@ TeacherCertificateForm() {
                 Level
               </label>
 
-              <input
-                type="text"
-                name="level"
-                value={
-                  form.level
-                }
-                onChange={
-                  handleChange
-                }
-                className="
-                  w-full
-                  border
-                  rounded-lg
-                  p-3
-                "
-              />
+             <select
+  name="level"
+  value={form.level}
+  onChange={handleChange}
+  className="w-full border rounded-lg p-3"
+>
+  <option value="">Select Level</option>
+
+  {levels.map((level) => (
+    <option
+      key={level}
+      value={level}
+    >
+      {level}
+    </option>
+  ))}
+</select>
 
             </div>
 
@@ -766,8 +809,43 @@ TeacherCertificateForm() {
           </div>
 
         </div>
+        
 
       </div>
+      {certificates.map((c) => (
+
+  <div
+    key={c._id}
+    className="border p-4 rounded-xl"
+  >
+
+    <h3>
+      {c.studentName}
+    </h3>
+
+    <p>
+      {c.course}
+    </p>
+
+    <p>
+      {c.level}
+    </p>
+
+    <Badge
+  className={
+    c.status === "approved"
+      ? "bg-green-600 text-white"
+      : "bg-orange-500 text-white"
+  }
+>
+  {c.status === "approved"
+    ? "Completed"
+    : "Pending Approval"}
+</Badge>
+
+  </div>
+
+))}
 
     </div>
   );
