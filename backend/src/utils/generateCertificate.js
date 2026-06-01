@@ -247,101 +247,91 @@ async ({
     const lineHeight =
       42;
 
-    const words =
-      desc.split(" ");
+    const maxWidth = 1000;
 
-    let lines =
-      [];
+const words = desc.split(" ");
 
-    let currentLine =
-      "";
+let lines = [];
+let currentLine = "";
 
-    for (
-      let i = 0;
-      i < words.length;
-      i++
-    ) {
+for (const word of words) {
 
-      const testLine =
-        currentLine +
-        words[i] +
-        " ";
+  const testLine =
+    currentLine
+      ? `${currentLine} ${word}`
+      : word;
 
-      const textWidth =
-        normalFont.widthOfTextAtSize(
-          testLine,
-          fontSize
-        );
+  const width =
+    normalFont.widthOfTextAtSize(
+      testLine,
+      24
+    );
 
-      if (
-        textWidth >
-        maxWidth
-      ) {
+  if (
+    width > maxWidth
+  ) {
 
-        lines.push(
-          currentLine.trim()
-        );
+    lines.push(
+      currentLine
+    );
 
-        currentLine =
-          words[i] +
-          " ";
+    currentLine =
+      word;
 
-      } else {
+  } else {
 
-        currentLine =
-          testLine;
-      }
-    }
+    currentLine =
+      testLine;
+  }
+}
 
-    if (
-      currentLine.trim()
-    ) {
+if (currentLine)
+  lines.push(
+    currentLine
+  );
 
-      lines.push(
-        currentLine.trim()
-      );
-    }
+let startY = 400;
 
-    let startY =
-      380;
+lines.forEach(
+  (line, index) => {
 
-    lines.forEach(
-      (
+    const lineWidth =
+      normalFont.widthOfTextAtSize(
         line,
-        index
-      ) => {
+        24
+      );
 
-        const lineWidth =
-          normalFont.widthOfTextAtSize(
-            line,
-            fontSize
-          );
+    page.drawText(
+      line,
+      {
+        x:
+          (1400 -
+            lineWidth) /
+          2,
 
-        page.drawText(
-          line,
-          {
-            x:
-              (width -
-                lineWidth) /
-              2,
+        y:
+          startY -
+          index * 42,
 
-            y:
-              startY -
-              index *
-                lineHeight,
+        size: 24,
 
-            size:
-              fontSize,
+        font:
+          normalFont,
 
-            font:
-              normalFont,
-
-            color:
-              black,
-          }
-        );
+        color:
+          black,
       }
     );
+  }
+);
+   
+
+      
+   
+
+ 
+
+      
 
     // =====================
     // DURATION
