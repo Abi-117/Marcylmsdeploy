@@ -50,7 +50,7 @@ const allLevels =
 
 setLevels(
   [...new Set(allLevels)]
-);
+); 
 
 
   } catch (err) {
@@ -666,8 +666,8 @@ const sendRequest = async () => {
                   className="
                     absolute
                     top-[280px]
-                    left-[600px]
-                    text-[52px]
+                    left-[500px]
+                    text-[58px]
                     font-bold
                     whitespace-nowrap
                   "
@@ -685,7 +685,7 @@ const sendRequest = async () => {
                   className="
                     absolute
                     top-[350px]
-                    left-[700px]
+                    left-[600px]
                     text-[42px]
                     font-bold
                     uppercase
@@ -705,7 +705,7 @@ const sendRequest = async () => {
                   className="
                     absolute
                     top-[460px]
-                    left-[710px]
+                    left-[600px]
                     text-[48px]
                     font-bold
                     whitespace-nowrap
@@ -724,7 +724,7 @@ const sendRequest = async () => {
                   className="
                     absolute
                     top-[540px]
-                    left-[350px]
+                    left-[250px]
                     w-[900px]
                     text-center
                     text-[24px]
@@ -752,7 +752,7 @@ const sendRequest = async () => {
 
                   </p>
 
-                  <p className="mt-6">
+                  <p className="mt-2 top-[560px] left-[250px] w-[900px] text-center text-[24px] leading-[42px]" style={{color: "#000000"}}>
 
                     {form.description}
 
@@ -766,7 +766,7 @@ const sendRequest = async () => {
                   className="
                     absolute
                     bottom-[250px]
-                    left-[680px]
+                    left-[580px]
                     text-[24px]
                   "
                   style={{
@@ -787,7 +787,7 @@ const sendRequest = async () => {
                   className="
                     absolute
                     bottom-[220px]
-                    left-[620px]
+                    left-[520px]
                     text-[24px]
                   "
                   style={{
