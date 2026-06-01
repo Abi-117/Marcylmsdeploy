@@ -544,7 +544,7 @@ export default function TeacherAttendance() {
 
                       <Badge variant="outline">
 
-                        {a.courseName || a.course?.name || a.course?.title || "N/A"}
+                        {a.courseName}
 
                       </Badge>
 

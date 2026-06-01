@@ -38,8 +38,9 @@ export default function AdminOverview() {
     try {
       const res = await axios.get(`${API}/admin/dashboard`);
 
-      setRecentPayments(res.data.recentPayments || [].slice(0, 3));
-
+setRecentPayments(
+  (res.data.recentPayments || []).slice(0, 3)
+);
       setDashboard({
         totalRevenue: res.data.totalRevenue || 0,
         totalStudents: res.data.totalStudents || 0,
@@ -62,7 +63,7 @@ export default function AdminOverview() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-100 p-6">
+    <div className="min-h-screen p-6">
 
       {/* TITLE */}
       <div className="mb-8">
@@ -76,7 +77,7 @@ export default function AdminOverview() {
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
 
         {/* Revenue */}
-        <Card className="rounded-3xl shadow-lg border-0">
+        <Card className="rounded-3xl shadow-lg border-1">
           <CardContent className="p-6">
             <p className="text-slate-500 text-sm">Total Revenue</p>
             <h2 className="text-3xl font-black mt-2">
@@ -86,7 +87,7 @@ export default function AdminOverview() {
         </Card>
 
         {/* Students */}
-        <Card className="rounded-3xl shadow-lg border-0">
+        <Card className="rounded-3xl shadow-lg border-1">
           <CardContent className="p-6">
             <p className="text-slate-500 text-sm">Students</p>
             <h2 className="text-3xl font-black mt-2">
@@ -96,7 +97,7 @@ export default function AdminOverview() {
         </Card>
 
         {/* Teachers */}
-        <Card className="rounded-3xl shadow-lg border-0">
+        <Card className="rounded-3xl shadow-lg border-1">
           <CardContent className="p-6">
             <p className="text-slate-500 text-sm">Teachers</p>
             <h2 className="text-3xl font-black mt-2">
@@ -106,7 +107,7 @@ export default function AdminOverview() {
         </Card>
 
         {/* Live Classes */}
-        <Card className="rounded-3xl shadow-lg border-0">
+        <Card className="rounded-3xl shadow-lg border-1">
           <CardContent className="p-6">
             <p className="text-slate-500 text-sm">Live Classes</p>
             <h2 className="text-3xl font-black mt-2">

@@ -13,59 +13,57 @@ const router = express.Router();
 // GET ALL CLASSES
 // =====================================
 
+// =====================================
+// GET ALL CLASSES
+// =====================================
+
 router.get("/", async (req, res) => {
-
   try {
 
-    const classes = await Class.find({
-  teacher: req.params.teacherId,
-})
-.populate({
-  path: "students",
-  select:
-    "name email phone course selectedLevel paymentStatus progress",
-})
-.sort({ createdAt: -1 });
+    const now = new Date();
 
-    res.json(classes);
+    const classes = await Class.find()
+      .populate({
+        path: "students",
+        select:
+          "name email phone course selectedLevel paymentStatus progress",
+      })
+      .sort({ date: -1 });
 
-  } catch (err) {
+    const updatedClasses = await Promise.all(
+      classes.map(async (cls) => {
 
-    console.log(err);
+        const startTime = new Date(cls.date);
 
-    res.status(500).json({
-      message: "Fetch failed",
-    });
+        const endTime = new Date(
+          startTime.getTime() +
+          (cls.duration || 60) * 60 * 1000
+        );
 
-  }
+        let newStatus = "Upcoming";
 
-});
+        if (
+          now >= startTime &&
+          now <= endTime
+        ) {
+          newStatus = "Live";
+        }
 
+        if (now > endTime) {
+          newStatus = "Completed";
+        }
 
-// =====================================
-// GET SINGLE CLASS
-// =====================================
+        // update only if changed
+        if (cls.status !== newStatus) {
+          cls.status = newStatus;
+          await cls.save();
+        }
 
-router.get("/:id", async (req, res) => {
-
-  try {
-
-    const classItem = await Class.findById(
-      req.params.id
-    ).populate(
-      "students",
-      "name email phone"
+        return cls;
+      })
     );
 
-    if (!classItem) {
-
-      return res.status(404).json({
-        message: "Class not found",
-      });
-
-    }
-
-    res.json(classItem);
+    res.json(updatedClasses);
 
   } catch (err) {
 
@@ -76,8 +74,10 @@ router.get("/:id", async (req, res) => {
     });
 
   }
-
 });
+
+
+
 
 
 // =====================================
@@ -502,5 +502,42 @@ router.put(
 
   }
 );
+// =====================================
+// GET SINGLE CLASS
+// =====================================
+
+router.get("/:id", async (req, res) => {
+
+  try {
+
+    const classItem = await Class.findById(
+      req.params.id
+    ).populate(
+      "students",
+      "name email phone"
+    );
+
+    if (!classItem) {
+
+      return res.status(404).json({
+        message: "Class not found",
+      });
+
+    }
+
+    res.json(classItem);
+
+  } catch (err) {
+
+    console.log(err);
+
+    res.status(500).json({
+      message: "Fetch failed",
+    });
+
+  }
+
+});
+
 
 export default router;
