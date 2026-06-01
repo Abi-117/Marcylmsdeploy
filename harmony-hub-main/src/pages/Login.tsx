@@ -83,15 +83,30 @@ function Login() {
 
       const data = await response.json();
 
-      if (!response.ok) {
-        alert(data.message);
-        return;
-      }
+console.log("LOGIN DATA:", data);
 
-      localStorage.setItem("token", data.token);
-      login(data.user);
-      alert("Teacher Login Success");
-      navigate("/teacher");
+if (!response.ok) {
+  alert(data.message);
+  return;
+}
+
+localStorage.setItem("token", data.token);
+
+localStorage.setItem(
+  "userId",
+  data.user._id
+);
+
+localStorage.setItem(
+  "role",
+  data.user.role
+);
+
+login(data.user);
+
+alert("Teacher Login Success");
+
+navigate("/teacher");
     } catch (error) {
       console.log(error);
       alert("Something went wrong");

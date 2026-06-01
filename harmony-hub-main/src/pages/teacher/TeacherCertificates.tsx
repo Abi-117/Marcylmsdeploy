@@ -65,23 +65,35 @@ useEffect(() => {
   fetchCertificates();
 }, []);
 
+const teacherId =
+  localStorage.getItem("userId");
+
+console.log(
+  "Teacher ID:",
+  teacherId
+);
 const fetchCertificates = async () => {
+
+  const teacherId =
+    localStorage.getItem("userId");
+
+  if (!teacherId) {
+    console.log(
+      "Teacher ID not found"
+    );
+    return;
+  }
+
   try {
-
-    const teacherId =
-      localStorage.getItem("userId");
-
-    if (!teacherId) {
-      console.log("Teacher ID not found");
-      return;
-    }
 
     const res =
       await axios.get(
         `${API}/certificates/teacher/${teacherId}`
       );
 
-    setCertificates(res.data);
+    setCertificates(
+      res.data
+    );
 
   } catch (err) {
 
