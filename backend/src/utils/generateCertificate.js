@@ -1,7 +1,3 @@
-// =====================================
-// utils/generateCertificate.js
-// =====================================
-
 import fs from "fs";
 import path from "path";
 
@@ -27,10 +23,6 @@ async ({
 
   try {
 
-    // =========================
-    // CREATE PDF
-    // =========================
-
     const pdfDoc =
       await PDFDocument.create();
 
@@ -45,10 +37,6 @@ async ({
       height,
     } = page.getSize();
 
-    // =========================
-    // COLORS
-    // =========================
-
     const black =
       rgb(0, 0, 0);
 
@@ -58,10 +46,6 @@ async ({
         0.56,
         0.18
       );
-
-    // =========================
-    // FONTS
-    // =========================
 
     const boldFont =
       await pdfDoc.embedFont(
@@ -73,9 +57,9 @@ async ({
         StandardFonts.Helvetica
       );
 
-    // =========================
-    // BACKGROUND IMAGE
-    // =========================
+    // =====================
+    // BG IMAGE
+    // =====================
 
     const bgPath =
       path.join(
@@ -83,15 +67,6 @@ async ({
         "uploads",
         "certificate-bg.png"
       );
-
-    if (
-      !fs.existsSync(bgPath)
-    ) {
-
-      throw new Error(
-        "certificate-bg.png not found"
-      );
-    }
 
     const bgBytes =
       fs.readFileSync(
@@ -113,31 +88,28 @@ async ({
       }
     );
 
-    // =========================
+    // =====================
     // CATEGORY
-    // =========================
-
-    const categoryText =
-      category ||
-      "Performance Arts";
+    // =====================
 
     const categorySize =
-      40;
+      58;
 
     const categoryWidth =
       boldFont.widthOfTextAtSize(
-        categoryText,
+        category,
         categorySize
       );
 
     page.drawText(
-      categoryText,
+      category,
       {
         x:
           (width -
-            categoryWidth) / 2,
+            categoryWidth) /
+          2,
 
-        y: 690,
+        y: 720,
 
         size:
           categorySize,
@@ -150,16 +122,15 @@ async ({
       }
     );
 
-    // =========================
+    // =====================
     // COURSE
-    // =========================
+    // =====================
 
     const courseText =
-      (course || "")
-      .toUpperCase();
+      course.toUpperCase();
 
     const courseSize =
-      36;
+      42;
 
     const courseWidth =
       boldFont.widthOfTextAtSize(
@@ -172,9 +143,10 @@ async ({
       {
         x:
           (width -
-            courseWidth) / 2,
+            courseWidth) /
+          2,
 
-        y: 620,
+        y: 650,
 
         size:
           courseSize,
@@ -187,31 +159,28 @@ async ({
       }
     );
 
-    // =========================
+    // =====================
     // STUDENT NAME
-    // =========================
-
-    const studentText =
-      studentName ||
-      "Student Name";
+    // =====================
 
     const nameSize =
-      42;
+      48;
 
     const nameWidth =
       boldFont.widthOfTextAtSize(
-        studentText,
+        studentName,
         nameSize
       );
 
     page.drawText(
-      studentText,
+      studentName,
       {
         x:
           (width -
-            nameWidth) / 2,
+            nameWidth) /
+          2,
 
-        y: 520,
+        y: 540,
 
         size:
           nameSize,
@@ -224,33 +193,34 @@ async ({
       }
     );
 
-    // =========================
-    // FIRST DESCRIPTION
-    // =========================
+    // =====================
+    // LINE 1
+    // =====================
 
-    const desc1 =
-      `In recognition of successful completion of ${level} in ${course} under ${category}.`;
+    const line1 =
+      `In recognition of successful completion of ${level} in ${course} under ${category}`;
 
-    const desc1Size =
-      22;
+    const line1Size =
+      24;
 
-    const desc1Width =
+    const line1Width =
       normalFont.widthOfTextAtSize(
-        desc1,
-        desc1Size
+        line1,
+        line1Size
       );
 
     page.drawText(
-      desc1,
+      line1,
       {
         x:
           (width -
-            desc1Width) / 2,
+            line1Width) /
+          2,
 
         y: 430,
 
         size:
-          desc1Size,
+          line1Size,
 
         font:
           normalFont,
@@ -260,122 +230,122 @@ async ({
       }
     );
 
-    // =========================
-// SECOND DESCRIPTION
-// =========================
+    // =====================
+    // DESCRIPTION
+    // =====================
 
-const desc2 =
-  description &&
-  description.trim() !== ""
-    ? description
-    : "With dedication and excellence.";
+    const desc =
+      description ||
+      "";
 
-console.log("DESCRIPTION:", desc2);
+    const maxWidth =
+      900;
 
-const maxWidth = 850;
-const fontSize = 22;
-const lineHeight = 30;
+    const fontSize =
+      24;
 
-const words =
-  desc2.split(" ");
+    const lineHeight =
+      42;
 
-let lines = [];
-let currentLine = "";
+    const words =
+      desc.split(" ");
 
-for (
-  let i = 0;
-  i < words.length;
-  i++
-) {
+    let lines =
+      [];
 
-  const word =
-    words[i];
+    let currentLine =
+      "";
 
-  const testLine =
-    currentLine +
-    word +
-    " ";
+    for (
+      let i = 0;
+      i < words.length;
+      i++
+    ) {
 
-  const textWidth =
-    normalFont.widthOfTextAtSize(
-      testLine,
-      fontSize
-    );
+      const testLine =
+        currentLine +
+        words[i] +
+        " ";
 
-  if (
-    textWidth >
-    maxWidth
-  ) {
+      const textWidth =
+        normalFont.widthOfTextAtSize(
+          testLine,
+          fontSize
+        );
 
-    lines.push(
+      if (
+        textWidth >
+        maxWidth
+      ) {
+
+        lines.push(
+          currentLine.trim()
+        );
+
+        currentLine =
+          words[i] +
+          " ";
+
+      } else {
+
+        currentLine =
+          testLine;
+      }
+    }
+
+    if (
       currentLine.trim()
-    );
+    ) {
 
-    currentLine =
-      word + " ";
-
-  } else {
-
-    currentLine =
-      testLine;
-  }
-}
-
-if (
-  currentLine.trim() !== ""
-) {
-
-  lines.push(
-    currentLine.trim()
-  );
-}
-
-// =========================
-// DRAW DESCRIPTION
-// =========================
-
-let startY = 360;
-
-lines.forEach(
-  (
-    line,
-    index
-  ) => {
-
-    const lineWidth =
-      normalFont.widthOfTextAtSize(
-        line,
-        fontSize
+      lines.push(
+        currentLine.trim()
       );
+    }
 
-    page.drawText(
-      line,
-      {
-        x:
-          (width -
-            lineWidth) / 2,
+    let startY =
+      380;
 
-        y:
-          startY -
-          index * 30,
+    lines.forEach(
+      (
+        line,
+        index
+      ) => {
 
-        size:
-          fontSize,
+        const lineWidth =
+          normalFont.widthOfTextAtSize(
+            line,
+            fontSize
+          );
 
-        font:
-          normalFont,
+        page.drawText(
+          line,
+          {
+            x:
+              (width -
+                lineWidth) /
+              2,
 
-        color:
-          black,
+            y:
+              startY -
+              index *
+                lineHeight,
+
+            size:
+              fontSize,
+
+            font:
+              normalFont,
+
+            color:
+              black,
+          }
+        );
       }
     );
-  }
-);
 
-
-    // =========================
+    // =====================
     // DURATION
-    // =========================
+    // =====================
 
     const durationText =
       `Course Duration: ${duration}`;
@@ -383,7 +353,7 @@ lines.forEach(
     const durationWidth =
       normalFont.widthOfTextAtSize(
         durationText,
-        22
+        24
       );
 
     page.drawText(
@@ -391,11 +361,12 @@ lines.forEach(
       {
         x:
           (width -
-            durationWidth) / 2,
+            durationWidth) /
+          2,
 
-        y: 200,
+        y: 250,
 
-        size: 22,
+        size: 24,
 
         font:
           normalFont,
@@ -405,9 +376,9 @@ lines.forEach(
       }
     );
 
-    // =========================
+    // =====================
     // DATE
-    // =========================
+    // =====================
 
     const dateText =
       `Date of Completion: ${completionDate}`;
@@ -415,7 +386,7 @@ lines.forEach(
     const dateWidth =
       normalFont.widthOfTextAtSize(
         dateText,
-        22
+        24
       );
 
     page.drawText(
@@ -423,11 +394,12 @@ lines.forEach(
       {
         x:
           (width -
-            dateWidth) / 2,
+            dateWidth) /
+          2,
 
-        y: 160,
+        y: 220,
 
-        size: 22,
+        size: 24,
 
         font:
           normalFont,
@@ -437,9 +409,9 @@ lines.forEach(
       }
     );
 
-    // =========================
+    // =====================
     // SAVE PDF
-    // =========================
+    // =====================
 
     const pdfBytes =
       await pdfDoc.save();
@@ -457,10 +429,6 @@ lines.forEach(
       tempPath,
       pdfBytes
     );
-
-    // =========================
-    // UPLOAD CLOUDINARY
-    // =========================
 
     const result =
       await cloudinary.uploader.upload(
@@ -483,23 +451,14 @@ lines.forEach(
         }
       );
 
-    // DELETE TEMP
-
     fs.unlinkSync(
       tempPath
     );
 
-    // =========================
-    // PDF URL
-    // =========================
-
-    const pdfUrl =
-      result.secure_url.replace(
-        "/upload/",
-        "/upload/fl_attachment/"
-      );
-
-    return pdfUrl;
+    return result.secure_url.replace(
+      "/upload/",
+      "/upload/fl_attachment/"
+    );
 
   } catch (err) {
 
