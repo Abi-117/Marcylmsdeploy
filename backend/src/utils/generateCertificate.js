@@ -238,9 +238,6 @@ async ({
       description ||
       "";
 
-    const maxWidth =
-      900;
-
     const fontSize =
       24;
 
