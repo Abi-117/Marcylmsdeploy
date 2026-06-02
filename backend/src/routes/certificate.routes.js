@@ -221,29 +221,14 @@ router.put(
       // =========================
 
       const pdfUrl =
-        await generateCertificate({
+  await generateCertificate({
 
-          studentName:
-            cert.studentName,
+    studentName:
+      cert.studentName,
 
-          course:
-            cert.course,
-
-          category:
-            cert.category,
-
-          level:
-            cert.level,
-
-          description:
-            cert.description,
-
-          duration:
-            cert.duration,
-
-          completionDate:
-            cert.completionDate,
-        });
+    previewImage:
+      cert.previewImage,
+  });
 
       console.log(
         "PDF URL:",
