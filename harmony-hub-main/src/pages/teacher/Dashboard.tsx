@@ -495,153 +495,68 @@ function TeacherOverview() {
 
   </DialogTrigger>
 
-  <DialogContent className="max-w-lg">
-
-    <DialogHeader>
-
-      <DialogTitle>
-
-        Student Details
-
-      </DialogTitle>
-
-    </DialogHeader>
-
-    <div className="space-y-4">
-
-      {/* NAME */}
-
-      <div className="rounded-xl border border-border p-4">
-
-        <div className="text-xs text-muted-foreground">
-
-          Student Name
-
-        </div>
-
-        <div className="mt-1 font-semibold">
-
-          {s.name}
-
-        </div>
-
-      </div>
-
-      {/* COURSE */}
-
-      <div className="rounded-xl border border-border p-4">
-
-        <div className="text-xs text-muted-foreground">
-
-          Course
-
-        </div>
-
-        <div className="mt-1 font-semibold">
-
-         {s.courseName || s.course || "No Course"}
-
-        </div>
-
-      </div>
-
-      {/* LEVEL */}
-
-      <div className="rounded-xl border border-border p-4">
-
-        <div className="text-xs text-muted-foreground">
-
-          Level
-
-        </div>
-
-        <div className="mt-1 font-semibold">
-
-          {s.selectedLevel}
-
-        </div>
-
-      </div>
-
-      {/* DAYS */}
-
-      <div className="rounded-xl border border-border p-4">
-
-        <div className="text-xs text-muted-foreground">
-
-          Available Days
-
-        </div>
-
-        <div className="mt-1 font-semibold">
-
-          {s.availableDays?.join(", ")}
-
-        </div>
-
-      </div>
-
-      {/* TIME */}
-
-      <div className="rounded-xl border border-border p-4">
-
-        <div className="text-xs text-muted-foreground">
-
-          Available Time
-
-        </div>
-
-        <div className="mt-1 font-semibold">
-
-          {s.fromTime} - {s.toTime}
-
-        </div>
-
-      </div>
-
-      {/* MODE */}
-
-      <div className="rounded-xl border border-border p-4">
-
-        <div className="text-xs text-muted-foreground">
-
-          Class Mode
-
-        </div>
-
-        <div className="mt-1 font-semibold">
-
-          {s.mode}
-
-        </div>
-
-      </div>
-
-      {/* PAYMENT */}
-
-      <div className="rounded-xl border border-border p-4">
-
-        <div className="text-xs text-muted-foreground">
-
-          Payment Status
-
-        </div>
-
-        <div className="mt-1">
-
-          <Badge className="bg-green-600 text-white">
-
-            {s.paymentStatus}
-
-          </Badge>
-
-        </div>
-
-      </div>
-
+<DialogContent className="w-[95vw] max-w-2xl sm:max-w-3xl max-h-[90vh] overflow-hidden rounded-2xl p-0 flex flex-col">  
+  <DialogHeader className="px-6 pt-6">
+    <DialogTitle>Student Details</DialogTitle>
+  </DialogHeader>
+
+  {/* 👇 THIS IS THE SCROLL AREA */}
+  <div className="max-h-[75vh] overflow-y-auto px-6 pb-6 custom-scroll space-y-4">
+    
+    {/* NAME */}
+    <div className="rounded-xl border border-border p-4">
+      <div className="text-xs text-muted-foreground">Student Name</div>
+      <div className="mt-1 font-semibold">{s.name}</div>
     </div>
 
-  </DialogContent>
+    {/* COURSE */}
+    <div className="rounded-xl border border-border p-4">
+      <div className="text-xs text-muted-foreground">Course</div>
+      <div className="mt-1 font-semibold">
+        {s.courseName || s.course || "No Course"}
+      </div>
+    </div>
+
+    {/* LEVEL */}
+    <div className="rounded-xl border border-border p-4">
+      <div className="text-xs text-muted-foreground">Level</div>
+      <div className="mt-1 font-semibold">{s.selectedLevel}</div>
+    </div>
+
+    {/* DAYS */}
+    <div className="rounded-xl border border-border p-4">
+      <div className="text-xs text-muted-foreground">Available Days</div>
+      <div className="mt-1 font-semibold">
+        {s.availableDays?.join(", ")}
+      </div>
+    </div>
+
+    {/* TIME */}
+    <div className="rounded-xl border border-border p-4">
+      <div className="text-xs text-muted-foreground">Available Time</div>
+      <div className="mt-1 font-semibold">
+        {s.fromTime} - {s.toTime}
+      </div>
+    </div>
+
+    {/* MODE */}
+    <div className="rounded-xl border border-border p-4">
+      <div className="text-xs text-muted-foreground">Class Mode</div>
+      <div className="mt-1 font-semibold">{s.mode}</div>
+    </div>
+
+    {/* PAYMENT */}
+    <div className="rounded-xl border border-border p-4">
+      <div className="text-xs text-muted-foreground">Payment Status</div>
+      <div className="mt-1">
+        <Badge className="bg-green-600 text-white">
+          {s.paymentStatus}
+        </Badge>
+      </div>
+    </div>
+
+  </div>
+</DialogContent>
 
 </Dialog>
 

@@ -2,14 +2,10 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { format } from "date-fns";
 
-import {
-  StatCard,
-  PageHeader,
-} from "@/components/dashboard/Primitives";
-
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 
 import {
   Flame,
@@ -18,9 +14,18 @@ import {
   Trophy,
   ExternalLink,
   Bell,
+  CalendarClock,
+  GraduationCap,
+  Link2,
+  Sparkles,
 } from "lucide-react";
 
 import { useAuth } from "@/store/auth";
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 16 },
+  show: { opacity: 1, y: 0 },
+};
 
 function StudentOverview() {
   const { user } = useAuth();
@@ -41,7 +46,6 @@ function StudentOverview() {
         `https://marcylmsdeploy-2.onrender.com/api/student/overview/${studentId}`
       );
       const data = await response.json();
-
       setOverview(data);
       setClassLinks(data.classLinks || []);
     } catch (error) {
@@ -51,178 +55,196 @@ function StudentOverview() {
     }
   };
 
+  /* ---------------- LOADING ---------------- */
   if (loading) {
     return (
-      <div className="h-[60vh] flex items-center justify-center text-muted-foreground animate-pulse">
-        Loading your dashboard...
+      <div className="mx-auto max-w-6xl space-y-6 p-4 md:p-8">
+        <Skeleton className="h-28 w-full rounded-2xl" />
+        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Skeleton key={i} className="h-28 rounded-2xl" />
+          ))}
+        </div>
+        <Skeleton className="h-56 w-full rounded-2xl" />
       </div>
     );
   }
 
+  /* ---------------- EMPTY ---------------- */
   if (!overview) {
     return (
-      <div className="h-[60vh] flex items-center justify-center text-muted-foreground">
-        No data found
+      <div className="flex min-h-[60vh] flex-col items-center justify-center gap-3 text-center">
+        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-muted">
+          <Sparkles className="h-7 w-7 text-muted-foreground" />
+        </div>
+        <p className="text-lg font-semibold">No data found</p>
+        <p className="text-sm text-muted-foreground">
+          We couldn't load your dashboard right now.
+        </p>
       </div>
     );
   }
 
   const next = overview.nextClass;
+  const studentName = overview.student?.name || "Student";
+
+  const stats = [
+    { label: "Current level", value: overview.student?.level || "—", icon: Music2 },
+    { label: "Course", value: overview.student?.courseName || "No Course", icon: GraduationCap },
+    {
+      label: "Classes attended",
+      value: `${overview.stats?.attended || 0}/${overview.stats?.totalClasses || 0}`,
+      icon: Video,
+    },
+    { label: "Certificates", value: String(overview.stats?.certificates || 0), icon: Trophy },
+  ];
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      className="space-y-8"
-    >
-      {/* HEADER */}
+    <div className="mx-auto max-w-6xl space-y-6 p-4 md:p-8">
+      {/* ---------------- HEADER ---------------- */}
       <motion.div
-        initial={{ y: -20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.4 }}
+        variants={fadeUp}
+        initial="hidden"
+        animate="show"
+        className="relative overflow-hidden rounded-2xl border bg-gradient-to-br from-primary to-primary/70 p-6 text-primary-foreground shadow-lg"
       >
-        <PageHeader
-          title={`Welcome back, ${overview.student?.name || ""}`}
-         subtitle={`${overview.student?.courseName || "Course"} · ${
-  overview.student?.level || "Beginner"
-}`}
-        />
+        <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-white/10 blur-2xl" />
+        <div className="relative flex items-center justify-between gap-4">
+          <div>
+            <p className="text-sm/relaxed opacity-90">Welcome back 👋</p>
+            <h1 className="mt-1 text-2xl font-bold md:text-3xl">{studentName}</h1>
+            <div className="mt-3 inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-xs font-medium backdrop-blur">
+              <Flame className="h-3.5 w-3.5" />
+              Keep your learning streak going
+            </div>
+          </div>
+          <div className="hidden h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-white/15 backdrop-blur sm:flex">
+            <GraduationCap className="h-7 w-7" />
+          </div>
+        </div>
       </motion.div>
 
-      {/* STATS */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ staggerChildren: 0.1 }}
-        className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4"
-      >
-        {[
-          {
-            label: "Current level",
-            value: overview.student?.level,
-            icon: Music2,
-          },
-          {
-            label: "Course",
-            value: overview.student?.courseName || "No Course",
-            icon: Video,
-          },
-          {
-            label: "Classes attended",
-            value: `${overview.stats?.attended || 0}/${
-              overview.stats?.totalClasses || 0
-            }`,
-            icon: Video,
-          },
-          {
-            label: "Certificates",
-            value: String(overview.stats?.certificates || 0),
-            icon: Trophy,
-          },
-        ].map((item, i) => (
-          <motion.div
-            key={i}
-            whileHover={{ scale: 1.03 }}
-            transition={{ type: "spring", stiffness: 200 }}
-          >
-            <StatCard {...item} accent />
-          </motion.div>
-        ))}
-      </motion.div>
+      {/* ---------------- STATS ---------------- */}
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+        {stats.map((item, i) => {
+          const Icon = item.icon;
+          return (
+            <motion.div
+              key={item.label}
+              variants={fadeUp}
+              initial="hidden"
+              animate="show"
+              transition={{ delay: 0.05 * i }}
+            >
+              <Card className="group h-full transition-shadow hover:shadow-md">
+                <CardContent className="flex flex-col gap-3 p-4">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
+                    <Icon className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">{item.label}</p>
+                    <p className="mt-0.5 truncate text-lg font-semibold">{item.value}</p>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          );
+        })}
+      </div>
 
-      {/* NEXT CLASS */}
-      <motion.div
-        initial={{ y: 30, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.4 }}
-      >
-        <Card className="border-0 shadow-xl rounded-2xl bg-gradient-to-br from-white to-slate-50">
+      {/* ---------------- NEXT CLASS ---------------- */}
+      <motion.div variants={fadeUp} initial="hidden" animate="show" transition={{ delay: 0.1 }}>
+        <Card className="overflow-hidden">
           <CardContent className="p-6">
-            <div className="flex items-center gap-2">
-              <Badge className="bg-yellow-500 text-black shadow-sm">
-                Next Class
-              </Badge>
+            <div className="flex items-center gap-2 text-sm font-medium text-primary">
+              <Bell className="h-4 w-4" />
+              Next Class
             </div>
 
-            <div className="mt-4 text-2xl font-bold tracking-tight">
-              {next?.title || "No upcoming class"}
-            </div>
+            <div className="mt-4 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+              <div className="space-y-2">
+                <h2 className="text-xl font-bold">
+                  {next?.title || "No upcoming class"}
+                </h2>
 
-            <div className="text-sm text-muted-foreground mt-1">
-              {next?.teacher} · {next?.batchName}
-            </div>
+                {(next?.teacher || next?.batchName) && (
+                  <p className="text-sm text-muted-foreground">
+                    {next?.teacher}
+                    {next?.teacher && next?.batchName ? " · " : ""}
+                    {next?.batchName}
+                  </p>
+                )}
 
-            {next?.date && (
-              <div className="text-xs text-muted-foreground mt-2">
-                {format(new Date(next.date), "EEE, dd MMM · h:mm a")}
+                {next?.date && (
+                  <Badge variant="secondary" className="gap-1.5">
+                    <CalendarClock className="h-3.5 w-3.5" />
+                    {format(new Date(next.date), "EEE, dd MMM · h:mm a")}
+                  </Badge>
+                )}
               </div>
-            )}
 
-            {next?.meetingLink && (
-              <motion.div whileTap={{ scale: 0.95 }}>
-                <Button className="mt-5 rounded-xl shadow-md" asChild>
+              {next?.meetingLink && (
+                <Button asChild size="lg" className="gap-2">
                   <a href={next.meetingLink} target="_blank" rel="noreferrer">
                     Join Live Class
-                    <ExternalLink className="ml-2 h-4 w-4" />
+                    <ExternalLink className="h-4 w-4" />
                   </a>
                 </Button>
-              </motion.div>
-            )}
+              )}
+            </div>
           </CardContent>
         </Card>
       </motion.div>
 
-      {/* TEACHER LINKS */}
-      <motion.div
-        initial={{ y: 30, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-      >
-        {/* <Card className="rounded-2xl shadow-lg border">
+      {/* ---------------- TEACHER SHARED LINKS ---------------- */}
+      <motion.div variants={fadeUp} initial="hidden" animate="show" transition={{ delay: 0.15 }}>
+        <Card>
           <CardContent className="p-6">
-            <div className="flex items-center gap-2 font-semibold text-lg">
-              <Bell className="h-4 w-4" />
+            <div className="flex items-center gap-2 text-sm font-medium">
+              <Link2 className="h-4 w-4 text-primary" />
               Teacher Shared Links
             </div>
 
-            <div className="mt-5 space-y-4">
+            <div className="mt-4 space-y-3">
               {classLinks.length === 0 ? (
-                <div className="text-sm text-muted-foreground">
-                  No class links shared yet
+                <div className="flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed py-10 text-center">
+                  <Link2 className="h-6 w-6 text-muted-foreground" />
+                  <p className="text-sm text-muted-foreground">
+                    No class links shared yet
+                  </p>
                 </div>
               ) : (
                 classLinks.map((c: any, i: number) => (
-                  <motion.div
+                  <div
                     key={i}
-                    whileHover={{ x: 5 }}
-                    className="border rounded-xl p-4 flex items-center justify-between bg-white shadow-sm"
+                    className="flex flex-col gap-3 rounded-xl border p-4 transition-colors hover:bg-muted/50 sm:flex-row sm:items-center sm:justify-between"
                   >
-                    <div>
-                      <div className="font-medium text-sm">{c.title}</div>
-                      <div className="text-xs text-muted-foreground">
-                        {c.teacher}
-                      </div>
+                    <div className="space-y-1">
+                      <p className="font-semibold">{c.title}</p>
+                      <p className="text-sm text-muted-foreground">{c.teacher}</p>
                       {c.date && (
-                        <div className="text-xs text-muted-foreground">
+                        <p className="text-xs text-muted-foreground">
                           {format(new Date(c.date), "EEE, dd MMM · h:mm a")}
-                        </div>
+                        </p>
                       )}
                     </div>
 
                     {c.link && (
-                      <Button size="sm" asChild className="rounded-lg">
+                      <Button asChild variant="outline" size="sm" className="gap-1.5">
                         <a href={c.link} target="_blank" rel="noreferrer">
-                          Join <ExternalLink className="ml-2 h-4 w-4" />
+                          Join
+                          <ExternalLink className="h-3.5 w-3.5" />
                         </a>
                       </Button>
                     )}
-                  </motion.div>
+                  </div>
                 ))
               )}
             </div>
           </CardContent>
-        </Card> */}
+        </Card>
       </motion.div>
-    </motion.div>
+    </div>
   );
 }
 
