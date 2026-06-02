@@ -28,7 +28,7 @@ TeacherCertificateForm() {
   // =========================
 
   const previewRef =
-    useRef<any>(null);
+  useRef<HTMLDivElement>(null);
   
 const [levels, setLevels] =
   useState<string[]>([]);
@@ -258,11 +258,9 @@ const sendRequest = async () => {
         }
       );
 
-    const previewImage =
-      canvas.toDataURL(
-        "image/jpeg",
-        0.9
-      );
+    canvas.toDataURL(
+  "image/png"
+)
 
     await axios.post(
       `${API}/certificates/create`,
@@ -644,11 +642,11 @@ const sendRequest = async () => {
                 origin-top-left
 
               "
-              style={{
-                zoom: 0.4,
-                backgroundColor:
-                  "#ffffff",
-              }}
+             style={{
+  transform: "scale(0.4)",
+  transformOrigin: "top left",
+  backgroundColor: "#ffffff",
+}}
             >
 
               {/* BG IMAGE */}
@@ -750,8 +748,8 @@ const sendRequest = async () => {
     "
   >
     In recognition of successful
-    completion of {form.level}
-    in {form.course}
+    completion of {form.level} 
+    in {form.course} 
     in {form.category}
   </p>
 
