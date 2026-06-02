@@ -254,26 +254,25 @@ const sendRequest = async () => {
           scale: 3,
           useCORS: true,
           backgroundColor: "#ffffff",
-          logging: false,
         }
       );
 
-    canvas.toDataURL(
-  "image/png"
-)
+    const previewImage =
+      canvas.toDataURL(
+        "image/jpeg",
+        0.9
+      );
 
     await axios.post(
       `${API}/certificates/create`,
       {
         ...form,
         teacher,
-        previewImage,
+        previewImage, // <-- use here
       }
     );
 
-    alert(
-      "Certificate Request Sent"
-    );
+    alert("Certificate Request Sent");
 
     fetchCertificates();
 
