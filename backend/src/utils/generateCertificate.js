@@ -198,7 +198,7 @@ async ({
     // =====================
 
     const line1 =
-      `In recognition of successful completion of ${level} in ${course} under ${category}`;
+      `In recognition of successful completion of ${level} in ${course} in ${category}`;
 
     const line1Size =
       24;

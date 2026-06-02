@@ -240,37 +240,38 @@ const fetchCertificates = async () => {
 
 const sendRequest = async () => {
   try {
-
     setLoading(true);
 
     const teacher =
       localStorage.getItem("userId");
 
+    await document.fonts.ready;
+
     const canvas =
       await html2canvas(
         previewRef.current,
         {
-          scale: 1,
+          scale: 3,
           useCORS: true,
           backgroundColor: "#ffffff",
+          logging: false,
         }
       );
 
     const previewImage =
       canvas.toDataURL(
         "image/jpeg",
-        0.4
+        0.9
       );
 
-    const res =
-      await axios.post(
-        `${API}/certificates/create`,
-        {
-          ...form,
-          teacher,
-          previewImage,
-        }
-      );
+    await axios.post(
+      `${API}/certificates/create`,
+      {
+        ...form,
+        teacher,
+        previewImage,
+      }
+    );
 
     alert(
       "Certificate Request Sent"
@@ -282,9 +283,7 @@ const sendRequest = async () => {
 
     console.log(err);
 
-    alert(
-      "Request Failed"
-    );
+    alert("Request Failed");
 
   } finally {
 
@@ -644,17 +643,9 @@ const sendRequest = async () => {
                 rounded-lg
                 origin-top-left
 
-                scale-[0.16]
-
-                sm:scale-[0.22]
-
-                md:scale-[0.30]
-
-                lg:scale-[0.38]
-
-                xl:scale-[0.45]
               "
               style={{
+                zoom: 0.4,
                 backgroundColor:
                   "#ffffff",
               }}
@@ -681,21 +672,19 @@ const sendRequest = async () => {
                 {/* CATEGORY */}
 
                 <h1
-                  className="
-                    absolute
-                    top-[280px]
-                    left-[500px]
-                    text-[58px]
-                    font-bold
-                    whitespace-nowrap
-                  "
-                  style={{
-                    color:
-                      "#000000",
-                  }}
-                >
-                  {form.category}
-                </h1>
+  className="
+    absolute
+    top-[280px]
+    left-1/2
+    -translate-x-1/2
+    text-[58px]
+    font-bold
+    text-center
+    w-[900px]
+  "
+>
+  {form.category}
+</h1>
 
                 {/* COURSE */}
 
@@ -703,11 +692,16 @@ const sendRequest = async () => {
                   className="
                     absolute
                     top-[350px]
-                    left-[600px]
+                    left-1/2
+                    -transform
+                    -translate-x-1/2
+                    text-center
+                    w-[900px]
+                    
                     text-[42px]
                     font-bold
                     uppercase
-                    whitespace-nowrap
+                  
                   "
                   style={{
                     color:
@@ -720,63 +714,59 @@ const sendRequest = async () => {
                 {/* STUDENT */}
 
                 <h3
-                  className="
-                    absolute
-                    top-[460px]
-                    left-[600px]
-                    text-[48px]
-                    font-bold
-                    whitespace-nowrap
-                  "
-                  style={{
-                    color:
-                      "#b68b2d",
-                  }}
-                >
-                  {form.studentName}
-                </h3>
+  className="
+    absolute
+    top-[450px]
+    left-1/2
+    -translate-x-1/2
+    text-[48px]
+    font-bold
+    text-center
+    w-[900px]
+  "
+  style={{
+    color: "#b68b2d",
+  }}
+>
+  {form.studentName}
+</h3>
 
                 {/* DESCRIPTION */}
 
-                <div
-                  className="
-                    absolute
-                    top-[540px]
-                    left-[250px]
-                    w-[900px]
-                    text-center
-                    text-[24px]
-                    leading-[42px]
-                  "
-                  style={{
-                    color:
-                      "#000000",
-                  }}
-                >
+               <div
+  className="
+    absolute
+    top-[540px]
+    left-1/2
+    -translate-x-1/2
+    w-[900px]
+    text-center
+  "
+>
+  <p
+    className="
+      text-[24px]
+      leading-[38px]
+    "
+  >
+    In recognition of successful
+    completion of {form.level}
+    in {form.course}
+    in {form.category}
+  </p>
 
-                  <p>
-
-                    In recognition of successful completion of{" "}
-
-                    {form.level}
-
-                    {" "}in{" "}
-
-                    {form.course}
-
-                    {" "}under{" "}
-
-                    {form.category}
-
-                  </p>
-
-                  <p className="mt-2 top-[560px] left-[250px] w-[900px] text-center text-[24px] leading-[42px]" style={{color: "#000000"}}>
-
-                    {form.description}
-
-                  </p>
-
-                </div>
+  <p
+    className="
+      mt-4
+      text-[22px]
+      leading-[34px]
+      break-words
+      whitespace-normal
+    "
+  >
+    {form.description}
+  </p>
+</div>
 
                 {/* DURATION */}
 

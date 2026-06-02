@@ -146,7 +146,7 @@ function Hero() {
               className="relative overflow-hidden rounded-full bg-gradient-to-r from-pink-500 via-purple-600 to-indigo-600 px-8 py-6 text-base font-bold text-white shadow-lg shadow-purple-200 hover:shadow-xl hover:shadow-purple-300 transform hover:-translate-y-1 transition-all duration-300 group"
             >
               <Link to="/signup" className="flex items-center gap-2">
-                <span>Book Your Free Class Now 🎒</span>
+                <span>Book Your Class Now 🎒</span>
                 <ArrowRight className="h-5 w-5 transition-transform duration-300 group-hover:translate-x-1.5" />
               </Link>
             </Button>

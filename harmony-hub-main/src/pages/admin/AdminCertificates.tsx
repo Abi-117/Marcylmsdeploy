@@ -182,7 +182,7 @@ export default function AdminCertificates() {
 
   return (
 
-    <div className="min-h-screen bg-[#eef2ff] p-5 md:p-10">
+    <div className="min-h-screen p-5 md:p-10">
 
       {/* HEADER */}
 
@@ -425,7 +425,7 @@ export default function AdminCertificates() {
                       <img
                         src={cert.previewImage}
                         alt=""
-                        className="w-full h-[240px] object-cover rounded-2xl border"
+                        className="w-full h-auto object-cover rounded-2xl border"
                       />
 
                     )}

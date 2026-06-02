@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import logo from "@/assets/logo.png";
 
 type UserType = {
   _id?: string;
@@ -50,8 +51,7 @@ export function ProfileCard({ user, token }: Props) {
       <div className="flex items-center gap-3">
         <img
           src={
-            profile.profileImage ||
-            "https://via.placeholder.com/80"
+            profile.profileImage || logo
           }
           alt="profile"
           className="h-12 w-12 rounded-full object-cover border"
