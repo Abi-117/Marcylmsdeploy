@@ -642,7 +642,7 @@ const sendRequest = async () => {
 
               "
              style={{
-  transform: "scale(0.4)",
+  transform: "scale(1)",
   transformOrigin: "top left",
   backgroundColor: "#ffffff",
 }}
@@ -671,10 +671,10 @@ const sendRequest = async () => {
                 <h1
   className="
     absolute
-    top-[280px]
+    top-[250px]
     left-1/2
     -translate-x-1/2
-    text-[58px]
+    text-[72px]
     font-bold
     text-center
     w-[900px]
@@ -688,14 +688,14 @@ const sendRequest = async () => {
                 <h2
                   className="
                     absolute
-                    top-[350px]
+                    top-[340px]
                     left-1/2
                     -transform
                     -translate-x-1/2
                     text-center
                     w-[900px]
                     
-                    text-[42px]
+                    text-[52px]
                     font-bold
                     uppercase
                   
@@ -747,9 +747,7 @@ const sendRequest = async () => {
     "
   >
     In recognition of successful
-    completion of {form.level} 
-    in {form.course} 
-    in {form.category}
+    completion of {form.level} in {form.course} in {form.category}
   </p>
 
   <p
@@ -817,40 +815,54 @@ const sendRequest = async () => {
         
 
       </div>
-      {certificates.map((c) => (
+<div className="mt-10 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+  {certificates.map((c) => (
+    <div
+      key={c._id}
+      className="group bg-white border border-slate-200 rounded-2xl p-6 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
+    >
+      <div className="flex items-start justify-between mb-4">
+        <div>
+          <h3 className="text-lg font-bold text-slate-800 capitalize">
+            {c.studentName}
+          </h3>
 
-  <div
-    key={c._id}
-    className="border p-4 rounded-xl"
-  >
+          <p className="text-sm text-slate-500 mt-1">
+            Certificate Details
+          </p>
+        </div>
 
-    <h3>
-      {c.studentName}
-    </h3>
+        <Badge
+          className={
+            c.status === "approved"
+              ? "bg-green-600 text-white hover:bg-green-600"
+              : "bg-orange-500 text-white hover:bg-orange-500"
+          }
+        >
+          {c.status === "approved"
+            ? "Completed"
+            : "Pending Approval"}
+        </Badge>
+      </div>
 
-    <p>
-      {c.course}
-    </p>
+      <div className="space-y-3">
+        <div className="flex justify-between border-b pb-2">
+          <span className="text-slate-500 text-sm">Course</span>
+          <span className="font-medium text-slate-800">
+            {c.course}
+          </span>
+        </div>
 
-    <p>
-      {c.level}
-    </p>
-
-    <Badge
-  className={
-    c.status === "approved"
-      ? "bg-green-600 text-white"
-      : "bg-orange-500 text-white"
-  }
->
-  {c.status === "approved"
-    ? "Completed"
-    : "Pending Approval"}
-</Badge>
-
-  </div>
-
-))}
+        <div className="flex justify-between">
+          <span className="text-slate-500 text-sm">Level</span>
+          <span className="font-medium text-slate-800">
+            {c.level}
+          </span>
+        </div>
+      </div>
+    </div>
+  ))}
+</div>
 
     </div>
   );

@@ -70,12 +70,14 @@ function TeacherOverview() {
     useState<any[]>([]);
 
   const [stats, setStats] =
-    useState({
-      todayClasses: 0,
-      students: 0,
-      pendingReviews: 0,
-      rating: 4.9,
-    });
+  useState({
+    todayClasses: 0,
+    students: 0,
+    pendingReviews: 0,
+    completedClasses: 0,
+    certificates: 0,
+    totalClasses: 0,
+  });
 
   // =====================================
   // FETCH
@@ -166,6 +168,30 @@ function TeacherOverview() {
           value={stats.pendingReviews.toString()}
           icon={ClipboardList}
         />
+
+        <StatCard
+  label="Completed Classes"
+  value={String(
+    stats.completedClasses
+  )}
+  icon={Award}
+/>
+
+<StatCard
+  label="Certificates"
+  value={String(
+    stats.certificates
+  )}
+  icon={Award}
+/>
+
+<StatCard
+  label="Total Classes"
+  value={String(
+    stats.totalClasses
+  )}
+  icon={Video}
+/>
 
         
       </div>
