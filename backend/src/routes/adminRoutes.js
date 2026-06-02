@@ -10,97 +10,272 @@ import Attendance from "../models/Attendance.js";
 
 import ClassModel from "../models/Class.js";
 
+import CertificateRequest from "../models/CertificateRequest.js";
+
+
 
 const router = express.Router();
 
 
 router.get("/dashboard", async (req, res) => {
   try {
-    const totalStudents = await User.countDocuments({ role: "student" });
-    const totalTeachers = await User.countDocuments({ role: "teacher" });
-    const liveClasses = await ClassModel.countDocuments({ status: "Live" });
 
-    // ✅ FIX 1: safe revenue calculation
-    const payments = await Payment.find();
-    const recentPayments = await Payment.find()
-  .populate("student", "name email")
-  .populate("course", "name grade mainLevel")
-  .sort({ createdAt: -1 })
-  .limit(5);
+    // =========================
+    // COUNTS
+    // =========================
 
-    const totalRevenue = payments.reduce(
-      (sum, p) => sum + (p.amount || 0),
-      0
-    );
+    const totalStudents =
+      await User.countDocuments({
+        role: "student",
+      });
 
-    // ✅ FIX 2: revenue chart (IMPORTANT FIX)
-    const revenueData = await Payment.aggregate([
-      {
-        $group: {
-          _id: {
-            $dateToString: {
-              format: "%Y-%m",
-              date: "$createdAt", // MUST exist
+    const totalTeachers =
+      await User.countDocuments({
+        role: "teacher",
+      });
+
+    const liveClasses =
+      await ClassModel.countDocuments({
+        status: "Upcoming",
+      });
+
+    const totalCourses =
+      await Course.countDocuments();
+
+    // =========================
+    // CERTIFICATES
+    // =========================
+
+    const pendingCertificates =
+      await CertificateRequest.countDocuments({
+        status: "pending",
+      });
+
+    // =========================
+    // PAYMENTS
+    // =========================
+
+    const paidPayments =
+      await Payment.find({
+        status: "Paid",
+      });
+
+    const totalRevenue =
+      paidPayments.reduce(
+        (sum, p) =>
+          sum + (p.amount || 0),
+        0
+      );
+
+    const pendingPayments =
+      await Payment.countDocuments({
+        status: "Pending",
+      });
+
+    // =========================
+    // MONTH REVENUE
+    // =========================
+
+    const startOfMonth =
+      new Date(
+        new Date().getFullYear(),
+        new Date().getMonth(),
+        1
+      );
+
+    const monthlyPayments =
+      await Payment.find({
+        createdAt: {
+          $gte: startOfMonth,
+        },
+        status: "Paid",
+      });
+
+    const monthRevenue =
+      monthlyPayments.reduce(
+        (sum, p) =>
+          sum + (p.amount || 0),
+        0
+      );
+
+    // =========================
+    // RECENT PAYMENTS
+    // =========================
+
+    const recentPayments =
+      await Payment.find()
+        .populate(
+          "student",
+          "name email"
+        )
+        .populate(
+          "course",
+          "name grade mainLevel"
+        )
+        .sort({
+          createdAt: -1,
+        })
+        .limit(5);
+
+    // =========================
+    // REVENUE CHART
+    // =========================
+
+    const revenueData =
+      await Payment.aggregate([
+        {
+          $match: {
+            status: "Paid",
+          },
+        },
+        {
+          $group: {
+            _id: {
+              $dateToString: {
+                format: "%Y-%m",
+                date: "$createdAt",
+              },
+            },
+            revenue: {
+              $sum: "$amount",
             },
           },
-          revenue: { $sum: "$amount" },
         },
-      },
-      { $sort: { _id: 1 } },
-      {
-        $project: {
-          _id: 0,
-          month: "$_id",
-          revenue: 1,
+        {
+          $sort: {
+            _id: 1,
+          },
         },
-      },
-    ]);
+        {
+          $project: {
+            _id: 0,
+            month: "$_id",
+            revenue: 1,
+          },
+        },
+      ]);
 
-    // ✅ FIX 3: attendance safe
-    const attendanceRecords = await Attendance.find();
+    // =========================
+    // ATTENDANCE CHART
+    // =========================
+
+    const attendanceRecords =
+      await Attendance.find();
 
     const grouped = {};
 
-    attendanceRecords.forEach((a) => {
-      if (!a.date) return;
+    attendanceRecords.forEach(
+      (a) => {
 
-      const week = "W" + Math.ceil(new Date(a.date).getDate() / 7);
+        if (!a.date) return;
 
-      if (!grouped[week]) grouped[week] = { present: 0, absent: 0 };
+        const week =
+          "W" +
+          Math.ceil(
+            new Date(
+              a.date
+            ).getDate() / 7
+          );
 
-      if (a.status === "present") grouped[week].present++;
-      else grouped[week].absent++;
-    });
+        if (!grouped[week]) {
 
-    const attendanceData = Object.keys(grouped).map((w) => ({
-      week: w,
-      ...grouped[w],
-    }));
+          grouped[week] = {
+            present: 0,
+            absent: 0,
+          };
 
-    // ✅ FIX 4: top students
-    const topStudents = await User.find({ role: "student" })
-      .limit(5)
-      .select("name course");
+        }
 
-    // ✅ FIX 5: classes safe
-    const classes = await ClassModel.find({
-      status: { $ne: "Completed" },
-    }).sort({ date: 1 });
+        if (
+          a.status === "present"
+        ) {
+
+          grouped[week]
+            .present++;
+
+        } else {
+
+          grouped[week]
+            .absent++;
+
+        }
+
+      }
+    );
+
+    const attendanceData =
+      Object.keys(grouped).map(
+        (week) => ({
+          week,
+          ...grouped[week],
+        })
+      );
+
+    // =========================
+    // TOP STUDENTS
+    // =========================
+
+    const topStudents =
+      await User.find({
+        role: "student",
+      })
+        .select(
+          "name course"
+        )
+        .limit(5);
+
+    // =========================
+    // UPCOMING CLASSES
+    // =========================
+
+    const classes =
+      await ClassModel.find({
+        status: {
+          $ne: "Completed",
+        },
+      }).sort({
+        date: 1,
+      });
+
+    // =========================
+    // RESPONSE
+    // =========================
 
     res.json({
-  totalRevenue,
-  totalStudents,
-  totalTeachers,
-  liveClasses,
-  revenueData,
-  attendanceData,
-  topStudents,
-  classes,
-  recentPayments,
-});
+
+      totalRevenue,
+      totalStudents,
+      totalTeachers,
+      liveClasses,
+
+      totalCourses,
+      pendingCertificates,
+      pendingPayments,
+      monthRevenue,
+
+      recentPayments,
+
+      revenueData,
+      attendanceData,
+      topStudents,
+      classes,
+
+    });
+
   } catch (err) {
-    console.log(err);
-    res.status(500).json({ message: "Dashboard error" });
+
+    console.log(
+      "Dashboard Error:",
+      err
+    );
+
+    res.status(500).json({
+      message:
+        "Dashboard error",
+      error:
+        err.message,
+    });
+
   }
 });
 
