@@ -5,16 +5,20 @@ import {
   PDFDocument,
 } from "pdf-lib";
 
-import cloudinary
-from "../config/cloudinary.js";
+import cloudinary from "../config/cloudinary.js";
 
-export const generateCertificate =
-async ({
+export const generateCertificate = async ({
   previewImage,
   studentName,
 }) => {
 
   try {
+
+    if (!previewImage) {
+      throw new Error(
+        "Preview image missing"
+      );
+    }
 
     const pdfDoc =
       await PDFDocument.create();
@@ -30,13 +34,10 @@ async ({
       height,
     } = page.getSize();
 
-    // =====================
-    // CONVERT BASE64
-    // =====================
-
+    // Remove data URL header
     const base64Data =
       previewImage.replace(
-        /^data:image\/jpeg;base64,/,
+        /^data:image\/(png|jpeg|jpg);base64,/,
         ""
       );
 
@@ -46,14 +47,26 @@ async ({
         "base64"
       );
 
-    const image =
-      await pdfDoc.embedJpg(
-        imageBytes
-      );
+    let image;
 
-    // =====================
-    // DRAW IMAGE FULL PAGE
-    // =====================
+    if (
+      previewImage.includes(
+        "data:image/png"
+      )
+    ) {
+
+      image =
+        await pdfDoc.embedPng(
+          imageBytes
+        );
+
+    } else {
+
+      image =
+        await pdfDoc.embedJpg(
+          imageBytes
+        );
+    }
 
     page.drawImage(
       image,
@@ -64,10 +77,6 @@ async ({
         height,
       }
     );
-
-    // =====================
-    // SAVE PDF
-    // =====================
 
     const pdfBytes =
       await pdfDoc.save();
@@ -86,28 +95,22 @@ async ({
       pdfBytes
     );
 
-    // =====================
-    // CLOUDINARY UPLOAD
-    // =====================
+    console.log(
+      "Uploading PDF..."
+    );
 
     const result =
       await cloudinary.uploader.upload(
         tempPath,
         {
-          resource_type:
-            "raw",
-
-          folder:
-            "certificates",
-
+          resource_type: "raw",
+          folder: "certificates",
           public_id:
             fileName.replace(
               ".pdf",
               ""
             ),
-
-          format:
-            "pdf",
+          format: "pdf",
         }
       );
 
@@ -122,10 +125,11 @@ async ({
 
   } catch (err) {
 
-    console.log(
-      "PDF GENERATE ERROR:",
-      err
+    console.error(
+      "PDF GENERATE ERROR:"
     );
+
+    console.error(err);
 
     throw err;
   }
