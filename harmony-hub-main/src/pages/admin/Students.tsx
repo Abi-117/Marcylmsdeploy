@@ -873,7 +873,7 @@ function AdminStudents() {
         <div>
           <p className="text-xs text-muted-foreground">Payment Status</p>
           <p className="font-medium">
-            {selectedStudent.paymentStatus || "Pending"}
+            {selectedStudent.payment?.status || "Pending"}
           </p>
         </div>
 
@@ -962,9 +962,9 @@ function AdminStudents() {
 
         <div>
           <p className="text-xs text-muted-foreground">Last Payment</p>
-          <p className="font-medium">
-            ₹{selectedStudent.lastPayment || 0}
-          </p>
+         <p className="font-medium">
+  ₹{selectedStudent.lastPayment?.amount || 0}
+</p>
         </div>
 
         <div>
