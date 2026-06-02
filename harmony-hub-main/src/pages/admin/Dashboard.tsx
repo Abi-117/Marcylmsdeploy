@@ -120,12 +120,12 @@ export default function AdminOverview() {
             icon={<Award size={16} />}
             tone="amber"
           />
-          <MiniCard
+          {/* <MiniCard
             label="Pending Payments"
             value={dashboard.pendingPayments}
             icon={<Clock size={16} />}
             tone="orange"
-          />
+          /> */}
           <MiniCard
             label="Active Courses"
             value={dashboard.totalCourses}
@@ -151,9 +151,7 @@ export default function AdminOverview() {
                 Latest transactions across the academy
               </p>
             </div>
-            <button className="text-xs font-medium text-slate-600 hover:text-slate-900 flex items-center gap-1">
-              View all <ArrowUpRight size={14} />
-            </button>
+            
           </header>
 
           {recentPayments.length === 0 ? (

@@ -282,27 +282,76 @@ router.get("/dashboard", async (req, res) => {
 // GET STUDENTS
 // GET STUDENTS
 router.get("/students", async (req, res) => {
-
   try {
 
-    const students = await User.find({
-      role: "student",
-    })
+    const students =
+      await User.find({
+        role: "student",
+      })
       .populate("course")
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .lean();
 
-    res.json(students);
+    const formattedStudents =
+      await Promise.all(
 
-  } catch (error) {
+        students.map(async (student) => {
 
-    console.log(error);
+          const payments =
+            await Payment.find({
+              student: student._id,
+              status: "Paid",
+            }).sort({
+              createdAt: 1,
+            });
+
+          const feesPaid =
+            payments.reduce(
+              (sum, p) =>
+                sum + (p.amount || 0),
+              0
+            );
+
+          const lastPayment =
+            payments.length > 0
+              ? payments[
+                  payments.length - 1
+                ]
+              : null;
+
+          return {
+
+            ...student,
+
+            totalPayments:
+              payments.length,
+
+            lastPayment:
+              lastPayment || null,
+
+            feesPaid,
+
+            remainingFees: 0,
+
+          };
+
+        })
+
+      );
+
+    res.json(
+      formattedStudents
+    );
+
+  } catch (err) {
+
+    console.log(err);
 
     res.status(500).json({
-      message: "Server Error",
+      message: err.message,
     });
 
   }
-
 });
 
 // ADD OFFLINE STUDENT
@@ -388,6 +437,8 @@ router.get("/teachers", async (req, res) => {
     });
   }
 });
+
+
 
 
 // =======================

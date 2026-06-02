@@ -6,6 +6,7 @@ from "../models/CertificateRequest.js";
 import {
   generateCertificate,
 } from "../utils/generateCertificate.js";
+import User from "../models/User.js";
 
 const router =
   express.Router();
@@ -181,101 +182,50 @@ router.get(
 // =========================
 // APPROVE CERTIFICATE
 // =========================
-router.put(
-  "/approve/:id",
+router.put("/approve/:id", async (req, res) => {
+  try {
+    const cert = await CertificateRequest.findById(req.params.id);
 
-  async (
-    req,
-    res
-  ) => {
-
-    try {
-
-      console.log(
-        "APPROVE START"
-      );
-
-      const cert =
-        await CertificateRequest.findById(
-          req.params.id
-        );
-
-      if (!cert) {
-
-        return res.status(404).json({
-
-          success: false,
-
-          message:
-            "Certificate not found",
-        });
-      }
-
-      console.log(
-        "CERT FOUND:",
-        cert.studentName
-      );
-
-      // =========================
-      // GENERATE PDF
-      // =========================
-
-      const pdfUrl =
-  await generateCertificate({
-
-    studentName:
-      cert.studentName,
-
-    previewImage:
-      cert.previewImage,
-  });
-
-      console.log(
-        "PDF URL:",
-        pdfUrl
-      );
-
-      // =========================
-      // UPDATE
-      // =========================
-
-      cert.status =
-        "approved";
-
-      cert.pdfUrl =
-        pdfUrl;
-
-      await cert.save();
-
-      console.log(
-        "CERT SAVED"
-      );
-
-      res.json({
-
-        success: true,
-
-        certificate:
-          cert,
-      });
-
-    } catch (err) {
-
-      console.log(
-        "APPROVE ERROR:",
-        err
-      );
-
-      res.status(500).json({
-
+    if (!cert) {
+      return res.status(404).json({
         success: false,
-
-        message:
-          err.message,
+        message: "Certificate not found",
       });
     }
+
+    const student = await User.findById(cert.student);
+
+    if (!student) {
+      return res.status(404).json({
+        success: false,
+        message: "Student not found",
+      });
+    }
+
+    const pdfUrl = await generateCertificate({
+      studentName: cert.studentName,
+      previewImage: cert.previewImage,
+    });
+
+    cert.status = "approved";
+    cert.pdfUrl = pdfUrl;
+
+    await cert.save();
+
+    res.json({
+      success: true,
+      certificate: cert,
+    });
+
+  } catch (err) {
+    console.log("APPROVE ERROR:", err);
+
+    res.status(500).json({
+      success: false,
+      message: err.message,
+    });
   }
-);
+});
 
 // =========================
 // GET STUDENT CERTIFICATES

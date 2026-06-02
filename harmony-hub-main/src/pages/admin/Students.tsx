@@ -769,7 +769,8 @@ function AdminStudents() {
 
 {viewOpen && selectedStudent && (
   <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 overflow-y-auto">
-    <div className="w-full max-w-5xl rounded-2xl bg-white p-8 shadow-xl">
+    
+    <div className="w-full max-w-5xl max-h-[90vh] overflow-y-auto rounded-2xl bg-white p-8 shadow-xl">
 
       {/* HEADER */}
       <div className="sticky top-0 z-10 mb-6 flex items-center justify-between border-b bg-white pb-4">
@@ -818,7 +819,7 @@ function AdminStudents() {
       </div>
 
       {/* DETAILS */}
-      <div className="grid gap-5 sm:grid-cols-2">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
 
         <div>
           <p className="text-xs text-muted-foreground">Phone Number</p>
@@ -879,7 +880,7 @@ function AdminStudents() {
         <div>
           <p className="text-xs text-muted-foreground">Fees Paid</p>
           <p className="font-medium">
-            ₹{selectedStudent.feesPaid || 0}
+            ₹{selectedStudent.feesPaid?.toLocaleString() || 0}
           </p>
         </div>
 
@@ -934,24 +935,35 @@ function AdminStudents() {
 
         <div>
           <p className="text-xs text-muted-foreground">Completed Levels</p>
-          <p className="font-medium">
-            {selectedStudent.completedLevels?.join(", ") || "-"}
-          </p>
+          <div className="flex flex-wrap gap-2">
+  {selectedStudent.completedLevels?.length ? (
+    selectedStudent.completedLevels.map(
+      (level: string) => (
+        <span
+          key={level}
+          className="rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-700"
+        >
+          {level}
+        </span>
+      )
+    )
+  ) : (
+    <span>-</span>
+  )}
+</div>
         </div>
 
         <div>
           <p className="text-xs text-muted-foreground">Total Payments</p>
           <p className="font-medium">
-            {selectedStudent.payments?.length || 0}
+            {selectedStudent.totalPayments || 0}
           </p>
         </div>
 
         <div>
           <p className="text-xs text-muted-foreground">Last Payment</p>
           <p className="font-medium">
-            {selectedStudent.payments?.length
-              ? `₹${selectedStudent.payments[selectedStudent.payments.length - 1]?.amount}`
-              : "-"}
+            ₹{selectedStudent.lastPayment || 0}
           </p>
         </div>
 
