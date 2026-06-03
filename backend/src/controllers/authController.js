@@ -6,8 +6,7 @@ import jwt from "jsonwebtoken";
 import nodemailer from "nodemailer";
 
 import OTP from "../models/otpModel.js";
-import transporter from "../config/mail.js";
-
+import { sendOTPEmail } from "../utils/mailer.js";
 
 // REGISTER
 export const register = async (req, res) => {
@@ -201,6 +200,8 @@ export const forgotPassword = async (req, res) => {
 //   }
 // };
 
+
+
 export const sendOtp = async (req, res) => {
   try {
     const { email } = req.body;
@@ -224,22 +225,17 @@ export const sendOtp = async (req, res) => {
       otp,
     });
 
-    await transporter.sendMail({
-      from: process.env.EMAIL,
-      to: email,
-      subject: "Password Reset OTP",
-      text: `Your OTP is ${otp}`,
-    });
+    await sendOTPEmail(email, otp);
 
     res.json({
       message: "OTP sent successfully",
     });
 
   } catch (error) {
-    console.log(error);
+    console.log("SEND OTP ERROR:", error);
 
     res.status(500).json({
-      message: "Server error",
+      message: error.message,
     });
   }
 };

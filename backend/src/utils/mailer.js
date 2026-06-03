@@ -1,40 +1,24 @@
 import nodemailer from "nodemailer";
 
-
-console.log("EMAIL_USER =", process.env.EMAIL_USER);
-
-console.log(
-  "EMAIL_PASS =",
-  process.env.EMAIL_PASS ? "FOUND" : "NOT FOUND"
-);
 const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 587,
-  secure: false,
+  service: "gmail",
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
   },
-  tls: {
-    rejectUnauthorized: false,
-    minVersion: "TLSv1.2",
-  },
 });
 
 export const sendOTPEmail = async (email, otp) => {
-  try {
-    const info = await transporter.sendMail({
-      from: process.env.EMAIL_USER,
-      to: email,
-      subject: "OTP Verification",
-      html: `<h1>${otp}</h1>`,
-    });
-
-    console.log("MAIL SENT:", info.response);
-    return info;
-
-  } catch (err) {
-    console.log("MAIL ERROR FULL:", err);
-    throw err;
-  }
+  return await transporter.sendMail({
+    from: process.env.EMAIL_USER,
+    to: email,
+    subject: "Password Reset OTP",
+    html: `
+      <h2>Password Reset OTP</h2>
+      <h1>${otp}</h1>
+      <p>This OTP expires in 5 minutes.</p>
+    `,
+  });
 };
+
+export default transporter;

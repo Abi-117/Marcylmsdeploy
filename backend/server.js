@@ -6,6 +6,10 @@ dotenv.config();
 
 import connectDB from "./src/config/db.js";
 
+console.log("ENV PATH TEST");
+console.log("EMAIL_USER =", process.env.EMAIL_USER);
+console.log("EMAIL_PASS =", process.env.EMAIL_PASS);
+
 // routes
 import authRoutes from "./src/routes/authRoutes.js";
 import adminRoutes from "./src/routes/adminRoutes.js";
