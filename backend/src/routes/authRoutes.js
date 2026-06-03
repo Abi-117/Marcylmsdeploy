@@ -44,6 +44,14 @@ router.post("/send-otp", async (req, res) => {
     await OTP.create({ email, otp });
 
     console.log("OTP SAVED");
+    await OTP.create({ email, otp });
+
+// await sendOTPEmail(email, otp);
+
+return res.json({
+  message: "OTP sent successfully",
+  otp
+});
 
     await sendOTPEmail(email, otp);
 
