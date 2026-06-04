@@ -9,7 +9,7 @@ import Payment from "../models/Payment.js";
 import Attendance from "../models/Attendance.js";
 
 import ClassModel from "../models/Class.js";
-
+import MailLog from "../models/MailLog.js";
 import CertificateRequest from "../models/CertificateRequest.js";
 
 
