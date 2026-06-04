@@ -28,7 +28,7 @@ export function SiteHeader() {
 
     <header className="sticky top-0 z-40 border-b border-border/60 bg-background/80 backdrop-blur-xl">
 
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-6 sm:px-8 lg:px-8">
 
         {/* LOGO */}
 
@@ -37,18 +37,18 @@ export function SiteHeader() {
           <img
             src={logo}
             alt="logo"
-            className="h-10 w-10 rounded-md object-cover"
+            className="h-20 w-20 rounded-md object-cover"
           />
 
           <div className="hidden sm:block">
 
-            <div className="text-lg font-semibold text-gold">
+            <div className="text-xl font-semibold text-gold">
 
               Marcys Academy
 
             </div>
 
-            <div className="text-[10px] text-muted-foreground">
+            <div className="text-[14px] text-muted-foreground">
 
               Music & Performance Arts
 
@@ -65,7 +65,7 @@ export function SiteHeader() {
           <Button
             asChild
             variant="ghost"
-            size="sm"
+            size="lg"
           >
             <Link to="/login">
               Sign in
@@ -74,7 +74,7 @@ export function SiteHeader() {
 
           <Button
             asChild
-            size="sm"
+            size="lg"
             className="bg-gold text-gold-foreground hover:bg-gold/90"
           >
             <Link to="/signup">
