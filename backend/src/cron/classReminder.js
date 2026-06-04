@@ -1,7 +1,7 @@
 import cron from "node-cron";
 import Class from "../models/Class.js";
 import MailLog from "../models/MailLog.js";
-import { sendMail } from "../utils/sendMail.js";
+import { sendMail } from "../utils/mailer.js";
 
 cron.schedule("* * * * *", async () => {
 

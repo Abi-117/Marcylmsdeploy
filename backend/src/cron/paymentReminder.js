@@ -2,7 +2,7 @@ import cron from "node-cron";
 import Payment from "../models/Payment.js";
 import User from "../models/User.js";
 import MailLog from "../models/MailLog.js";
-import { sendMail } from "../utils/sendMail.js";
+import { sendMail } from "../utils/mailer.js";
 
 cron.schedule("0 9 * * *", async () => {
 
