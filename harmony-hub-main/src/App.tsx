@@ -27,6 +27,7 @@ import AdminCourses from "./pages/admin/Courses";
 import AdminFeedback from "./pages/admin/AdminFeedback";
 import AdminCertificates from "./pages/admin/AdminCertificates";
 import AdminEvents from "./pages/admin/Events";
+import AdminRemainder from "./pages/admin/Mail Reminders";
 import AdminReports from "./pages/admin/Reports";
 
 import TeacherDashboard from "./pages/teacher/Dashboard";
@@ -105,6 +106,7 @@ export default function App() {
         <Route path="events" element={<AdminEvents />} />
         <Route path="reports" element={<AdminReports />} />
         <Route path="feedback" element={<AdminFeedback />} />
+        <Route path="mail-logs" element={<AdminRemainder />} />
         <Route path="certificates" element={<AdminCertificates />} />
       </Route>
 

@@ -4,6 +4,7 @@ import {
   LayoutDashboard, Users, GraduationCap, CalendarDays, Wallet, Bell, Settings,
   LogOut, Music2, BookOpen, Award, BarChart3, Video, ClipboardList, Trophy,
   Search, Sun, Moon, Menu,
+  Mail,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import axios from "axios";
@@ -33,6 +34,9 @@ const navByRole: Record<Role, any[]> = {
     { to: "/admin/courses", label: "Courses", icon: BookOpen },
     { to: "/admin/certificates", label: "Certificates", icon: Award },
     { to: "/admin/feedback", label: "Feedback", icon: BarChart3 },
+    {to: "/admin/mail-logs", label: "Mail Logs",
+  icon: Mail,
+},
     { to: "/admin/reports", label: "Reports", icon: BarChart3 },
   ],
   teacher: [

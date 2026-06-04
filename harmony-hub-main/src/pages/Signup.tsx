@@ -355,6 +355,7 @@ function Signup() {
 
                         <Input
                           value={data.name}
+                          placeholder="John Doe"
                           onChange={(e) =>
                             setData({
                               ...data,
@@ -374,6 +375,7 @@ function Signup() {
 
                         <Input
                           value={data.phone}
+                          placeholder="+91 234 567 890"
                           onChange={(e) =>
                             setData({
                               ...data,
@@ -394,6 +396,7 @@ function Signup() {
                         <Input
                           type="email"
                           value={data.email}
+                          placeholder="you@example.com"
                           onChange={(e) =>
                             setData({
                               ...data,
@@ -414,6 +417,7 @@ function Signup() {
                         <Input
                           type="password"
                           value={data.password}
+                          placeholder="Create a password"
                           onChange={(e) =>
                             setData({
                               ...data,
@@ -510,7 +514,9 @@ function Signup() {
 
                 {/* STEP 3 */}
 
-               {step === 2 && (
+                {/* STEP 3 */}
+
+{step === 2 && (
   <div className="space-y-6">
 
     <div>
@@ -519,17 +525,56 @@ function Signup() {
       </div>
 
       <h1 className="mt-2 font-display text-3xl">
-        Available Schedule
+        Class Schedule & Mode
       </h1>
 
-      <p className="text-sm text-muted-foreground">
-        Select your preferred days and time slots (06:00 AM - 11:00 PM)
+      <p className="mt-2 text-sm text-muted-foreground">
+        Choose your learning mode (Online / Offline), preferred days and
+        available time slots. Each class duration is 1 Hour.
       </p>
     </div>
 
-    {/* ===================== */}
+    {/* MODE */}
+    <div>
+      <Label>Learning Mode</Label>
+
+      <div className="mt-3 grid grid-cols-2 gap-3">
+        {["Online", "Offline"].map((mode) => (
+          <button
+            key={mode}
+            type="button"
+            onClick={() =>
+              setData((prev) => ({
+                ...prev,
+                mode,
+              }))
+            }
+            className={`rounded-xl border p-4 font-medium transition-all ${
+              data.mode === mode
+                ? "border-gold bg-gold-soft"
+                : "border-border hover:border-gold/40"
+            }`}
+          >
+            {mode}
+          </button>
+        ))}
+      </div>
+    </div>
+
+    {/* CLASS DURATION */}
+    <div className="rounded-xl border border-gold/30 bg-gold-soft p-4">
+      <div className="flex items-center justify-between">
+        <span className="font-medium">
+          Class Duration
+        </span>
+
+        <span className="font-bold text-gold">
+          1 Hour
+        </span>
+      </div>
+    </div>
+
     {/* DAYS SELECTION */}
-    {/* ===================== */}
     <div>
       <Label>Available Days</Label>
 
@@ -566,13 +611,11 @@ function Signup() {
       </div>
     </div>
 
-    {/* ===================== */}
     {/* FROM TIME */}
-    {/* ===================== */}
     <div>
       <Label>Available From</Label>
 
-      <div className="mt-3 grid grid-cols-3 sm:grid-cols-6 gap-2">
+      <div className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-6">
         {Array.from({ length: 18 }, (_, i) => {
           const hour = i + 6;
           const displayHour = hour > 12 ? hour - 12 : hour;
@@ -603,13 +646,11 @@ function Signup() {
       </div>
     </div>
 
-    {/* ===================== */}
     {/* TO TIME */}
-    {/* ===================== */}
     <div>
       <Label>Available To</Label>
 
-      <div className="mt-3 grid grid-cols-3 sm:grid-cols-6 gap-2">
+      <div className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-6">
         {Array.from({ length: 18 }, (_, i) => {
           const hour = i + 6;
           const displayHour = hour > 12 ? hour - 12 : hour;

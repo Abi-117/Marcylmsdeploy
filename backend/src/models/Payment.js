@@ -43,6 +43,18 @@ const paymentSchema = new mongoose.Schema(
     paidAt: {
       type: Date,
     },
+    nextDueDate: {
+  type: Date,
+},
+
+lastReminderSent: {
+  type: Date,
+},
+
+reminderCount: {
+  type: Number,
+  default: 0,
+},
   },
   {
     timestamps: true,

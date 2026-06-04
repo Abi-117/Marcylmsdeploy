@@ -538,4 +538,22 @@ router.get("/courses", async (req, res) => {
     });
   }
 });
+
+router.get(
+  "/mail-logs",
+  async (req, res) => {
+
+    const logs =
+      await MailLog.find()
+        .populate(
+          "student",
+          "name email"
+        )
+        .sort({
+          createdAt: -1,
+        });
+
+    res.json(logs);
+  }
+);
 export default router;
