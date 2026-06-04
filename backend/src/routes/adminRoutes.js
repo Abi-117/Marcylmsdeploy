@@ -11,6 +11,7 @@ import Attendance from "../models/Attendance.js";
 import ClassModel from "../models/Class.js";
 import MailLog from "../models/MailLog.js";
 import CertificateRequest from "../models/CertificateRequest.js";
+import { sendMail } from "../utils/mailer.js";
 
 
 
@@ -556,4 +557,36 @@ router.get(
     res.json(logs);
   }
 );
+
+
+router.get("/test-mail", async (req, res) => {
+
+  try {
+
+    const info =
+      await sendMail({
+        to: process.env.EMAIL_USER,
+        subject: "Reminder Test",
+        html: `
+          <h1>Mail Working ✅</h1>
+          <p>Marcy LMS reminder system working.</p>
+        `,
+      });
+
+    res.json({
+      success: true,
+      messageId: info.messageId,
+    });
+
+  } catch (error) {
+
+    console.log(error);
+
+    res.status(500).json({
+      error: error.message,
+    });
+
+  }
+
+});
 export default router;
