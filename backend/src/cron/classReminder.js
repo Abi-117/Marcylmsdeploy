@@ -3,7 +3,7 @@ import Class from "../models/Class.js";
 import MailLog from "../models/MailLog.js";
 import { sendMail } from "../utils/mailer.js";
 
-cron.schedule("* * * * *", async () => {
+cron.schedule("0 9 * * *", async () => {
 
   const now = new Date();
 
