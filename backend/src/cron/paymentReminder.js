@@ -22,7 +22,7 @@ cron.schedule("0 9 * * *", async () => {
       (1000 * 60 * 60 * 24)
     );
 
-    if (diffDays <= 7) {
+    if (diffDays <= 365) {
 
       await sendMail({
         to: payment.student.email,
