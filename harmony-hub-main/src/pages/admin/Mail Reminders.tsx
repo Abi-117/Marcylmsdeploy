@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 
 const API =
-  "https://your-api-url.com/api/admin";
+  "https://marcylmsdeploy-2.onrender.com/api/admin";
 
 export default function MailLogs() {
 
