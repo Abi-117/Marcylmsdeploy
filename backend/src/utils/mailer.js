@@ -21,4 +21,17 @@ export const sendOTPEmail = async (email, otp) => {
   });
 };
 
+export const sendMail = async ({
+  to,
+  subject,
+  html,
+}) => {
+  return await transporter.sendMail({
+    from: process.env.EMAIL_USER,
+    to,
+    subject,
+    html,
+  });
+};
+
 export default transporter;

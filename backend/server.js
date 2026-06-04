@@ -10,6 +10,9 @@ console.log("ENV PATH TEST");
 console.log("EMAIL_USER =", process.env.EMAIL_USER);
 console.log("EMAIL_PASS =", process.env.EMAIL_PASS);
 
+import "./src/cron/paymentReminder.js";
+import "./src/cron/classReminder.js";
+
 // routes
 import authRoutes from "./src/routes/authRoutes.js";
 import adminRoutes from "./src/routes/adminRoutes.js";

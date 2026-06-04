@@ -4,7 +4,9 @@ import User from "../models/User.js";
 import MailLog from "../models/MailLog.js";
 import { sendMail } from "../utils/mailer.js";
 
-cron.schedule("0 9 * * *", async () => {
+console.log("Payment Reminder Loaded ✅");
+
+cron.schedule("* * * * *", async () => {
 
   const today = new Date();
 
@@ -22,7 +24,7 @@ cron.schedule("0 9 * * *", async () => {
       (1000 * 60 * 60 * 24)
     );
 
-    if (diffDays <= 365) {
+    if (diffDays <= 7) {
 
       await sendMail({
         to: payment.student.email,
