@@ -1,157 +1,167 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-
 import {
   ArrowRight,
   Award,
   CheckCircle2,
-  Music2,
-  Mic2,
   Sparkles,
   Star,
-  Users,
   ChevronDown,
   ChevronUp,
-  Smile,
-  Heart,
-  Music,
-  Tv
 } from "lucide-react";
-
 import { useEffect, useState } from "react";
 import axios from "axios";
 
-import {
-  SiteHeader,
-  SiteFooter,
-} from "@/components/SiteChrome";
-
+import { SiteHeader, SiteFooter } from "@/components/SiteChrome";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 
-import {
-  Card,
-  CardContent,
-} from "@/components/ui/card";
+const API = "https://marcylmsdeploy-2.onrender.com/api";
 
-const API =
-  "https://marcylmsdeploy-2.onrender.com/api";
+// Add this once in your index.html <head> OR in your global CSS:
+// <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
 // ======================================================
 // LANDING
 // ======================================================
-
 function Landing() {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-indigo-50 via-purple-50 to-pink-50 text-slate-800 overflow-x-hidden selection:bg-pink-200">
+    <div
+      className="bg-white text-black min-h-screen overflow-hidden"
+      style={{ fontFamily: "'Inter', sans-serif" }}
+    >
       <SiteHeader />
-
       <Hero />
-
       <Marquee />
-
       <Programs />
-
       <Stats />
-
       <Testimonials />
-
       <CTA />
-
       <SiteFooter />
     </div>
   );
 }
 
 // ======================================================
-// HERO
+// HERO — White / Gold / Black with handwritten accents
 // ======================================================
-
 function Hero() {
   return (
-    <section className="relative overflow-hidden pt-24 pb-20 lg:pt-32 lg:pb-28 bg-gradient-to-b from-yellow-50/60 via-purple-50/40 to-transparent">
-      {/* Playful Animated Floating Blobs for Kids */}
-      <motion.div
-        animate={{
-          y: [0, -25, 0],
-          scale: [1, 1.1, 1],
-          rotate: [0, 10, 0]
+    <section className="relative min-h-screen bg-white overflow-hidden flex items-center">
+      {/* Soft gold ambient glows */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[500px] bg-[radial-gradient(circle_at_center,#D4AF37_0%,transparent_70%)] opacity-20 blur-3xl" />
+      <div className="absolute bottom-0 left-0 w-[500px] h-[400px] bg-[radial-gradient(circle_at_center,#D4AF37_0%,transparent_70%)] opacity-[0.15] blur-3xl" />
+
+      {/* Faint gold grid */}
+      <div
+        className="absolute inset-0 opacity-[0.06]"
+        style={{
+          backgroundImage:
+            "linear-gradient(#D4AF37 1px, transparent 1px), linear-gradient(90deg, #D4AF37 1px, transparent 1px)",
+          backgroundSize: "80px 80px",
         }}
-        transition={{
-          duration: 6,
-          repeat: Infinity,
-          ease: "easeInOut"
-        }}
-        className="absolute left-[10%] top-10 h-[350px] w-[350px] rounded-full bg-pink-200/40 blur-[80px] pointer-events-none"
-      />
-      <motion.div
-        animate={{
-          y: [0, 30, 0],
-          scale: [1, 1.15, 1],
-          rotate: [0, -15, 0]
-        }}
-        transition={{
-          duration: 8,
-          repeat: Infinity,
-          ease: "easeInOut",
-          delay: 1
-        }}
-        className="absolute right-[10%] top-20 h-[400px] w-[400px] rounded-full bg-yellow-200/40 blur-[90px] pointer-events-none"
-      />
-      <motion.div
-        animate={{
-          x: [0, 20, 0],
-          y: [0, -20, 0]
-        }}
-        transition={{
-          duration: 7,
-          repeat: Infinity,
-          ease: "easeInOut"
-        }}
-        className="absolute left-1/2 bottom-0 h-[300px] w-[500px] -translate-x-1/2 rounded-full bg-indigo-200/30 blur-[100px] pointer-events-none"
       />
 
-      <div className="absolute inset-0 bg-[radial-gradient(#e2e8f0_1px,transparent_1px)] [background-size:24px_24px] opacity-60" />
+      {/* Floating gold orbs */}
+      <div className="absolute top-32 right-24 w-32 h-32 rounded-full bg-[#D4AF37] opacity-10 blur-2xl animate-pulse" />
+      <div
+        className="absolute bottom-32 left-24 w-40 h-40 rounded-full bg-[#D4AF37] opacity-[0.08] blur-3xl animate-pulse"
+        style={{ animationDelay: "1.2s" }}
+      />
 
-      <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
+      {/* Content */}
+      <div className="max-w-7xl mx-auto px-6 relative z-20 text-center">
+        {/* Badge */}
+        <motion.span
+          initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, ease: "easeOut" }}
-          className="mx-auto max-w-3xl text-center"
+          transition={{ duration: 0.6 }}
+          className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full border border-[#D4AF37]/50 bg-gradient-to-r from-[#D4AF37]/10 via-white to-[#D4AF37]/10 text-[#8B6914] text-xs md:text-sm uppercase tracking-[0.25em] font-semibold shadow-[0_5px_30px_rgba(212,175,55,0.2)]"
         >
-          {/* Fun, Colorful Badge */}
-          <div className="inline-flex items-center gap-2 rounded-full border-2 border-purple-200 bg-white px-4 py-1.5 text-xs sm:text-sm font-bold text-purple-600 shadow-sm transform hover:scale-105 transition-transform duration-300">
-            <Sparkles className="h-4 w-4 text-yellow-500 animate-spin" style={{ animationDuration: '3s' }} />
-            <span>Trinity College London & RockSchool UK Syllabus 🚀</span>
-          </div>
+          <Sparkles className="w-4 h-4 text-[#D4AF37]" />
+          Trinity College London & RockSchool UK
+        </motion.span>
 
-          <h1 className="mt-8 font-display text-4xl font-extrabold leading-[1.1] tracking-tight text-slate-900 sm:text-6xl lg:text-7xl">
-            Where every note &
-            <br />
-            <span className="relative inline-block mt-2 text-transparent bg-clip-text bg-gradient-to-r from-pink-500 via-purple-600 to-indigo-600 italic px-2">
-              every voice
-              <span className="absolute left-0 bottom-1 w-full h-2 bg-yellow-300/60 -z-10 rounded-full transform -rotate-1"></span>
-            </span>{" "}
-            finds its stage. 🎉
-          </h1>
+        {/* Handwritten kicker */}
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.2 }}
+          className="mt-8 text-3xl md:text-4xl text-[#D4AF37]"
+          style={{ fontFamily: "'Caveat', cursive" }}
+        >
+          welcome to our world ✨
+        </motion.p>
 
-          <p className="mx-auto mt-6 max-w-xl text-lg sm:text-xl font-medium text-slate-600/90 leading-relaxed">
-            India's most refined music & speech academy, made super fun for young creators! ✨
-          </p>
+        {/* Headline */}
+        <motion.h1
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.3 }}
+          className="mt-4 text-5xl md:text-7xl lg:text-8xl font-bold leading-[1.05] tracking-tight text-black"
+          style={{ fontFamily: "'Playfair Display', serif" }}
+        >
+          Where every note &
+          <br />
+          <span
+            className=" bg-gradient-to-r from-[#D4AF37] via-[#B8941F] to-[#8B6914] bg-clip-text text-transparent"
+            style={{ fontWeight: 700 }}
+          >
+            every voice
+          </span>
+          <br />
+          finds its stage.
+        </motion.h1>
 
-          <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
-            <Button
-              asChild
-              size="lg"
-              className="relative overflow-hidden rounded-full bg-gradient-to-r from-pink-500 via-purple-600 to-indigo-600 px-8 py-6 text-base font-bold text-white shadow-lg shadow-purple-200 hover:shadow-xl hover:shadow-purple-300 transform hover:-translate-y-1 transition-all duration-300 group"
-            >
-              <Link to="/signup" className="flex items-center gap-2">
-                <span>Book Your Class Now 🎒</span>
-                <ArrowRight className="h-5 w-5 transition-transform duration-300 group-hover:translate-x-1.5" />
-              </Link>
+        {/* Divider */}
+        <div className="mt-10 flex items-center justify-center gap-3">
+          <div className="h-px w-16 bg-gradient-to-r from-transparent to-[#D4AF37]" />
+          <div className="w-1.5 h-1.5 rounded-full bg-[#D4AF37]" />
+          <div className="h-px w-16 bg-gradient-to-l from-transparent to-[#D4AF37]" />
+        </div>
+
+        {/* Sub */}
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.8, delay: 0.5 }}
+          className="mt-8 text-lg md:text-xl text-black/60 max-w-2xl mx-auto leading-relaxed"
+        >
+          India's most refined music & performance academy — crafted for future
+          artists, speakers and performers.
+        </motion.p>
+
+        {/* CTAs */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.65 }}
+          className="mt-12 flex flex-col sm:flex-row items-center justify-center gap-4"
+        >
+          <Link to="/login">
+            <Button className="group bg-gradient-to-r from-[#D4AF37] via-[#B8941F] to-[#8B6914] hover:from-[#B8941F] hover:to-[#8B6914] text-white rounded-full px-10 py-7 text-base font-bold shadow-[0_10px_40px_-10px_rgba(212,175,55,0.6)] hover:shadow-[0_15px_50px_-10px_rgba(212,175,55,0.8)] transition-all duration-300">
+              Book Now            <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </Button>
-          </div>
+          </Link>
+          
         </motion.div>
+
+        {/* Trust
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.8, delay: 0.85 }}
+          className="mt-14 flex flex-wrap items-center justify-center gap-x-10 gap-y-4 text-sm text-black/50"
+        >
+          {["Globally Certified", "Master Instructors", "Since 2010"].map(
+            (t) => (
+              <div key={t} className="flex items-center gap-2">
+                <div className="w-1.5 h-1.5 rounded-full bg-[#D4AF37]" />
+                <span>{t}</span>
+              </div>
+            )
+          )}
+        </motion.div> */}
       </div>
     </section>
   );
@@ -160,31 +170,24 @@ function Hero() {
 // ======================================================
 // MARQUEE
 // ======================================================
-
 function Marquee() {
   return (
-    <div className="border-y-2 border-dashed border-purple-100 bg-white/80 backdrop-blur-sm py-5">
-      <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-center gap-x-12 gap-y-3 px-4 text-center">
-        <span className="text-xs font-bold uppercase tracking-widest text-slate-400 flex items-center gap-1">
-          🤝 In partnership with
-        </span>
-        <span className="font-display text-base sm:text-lg font-bold text-indigo-600 flex items-center gap-1.5">
-          🎵 Trinity College London
-        </span>
-        <span className="font-display text-base sm:text-lg font-bold text-pink-600 flex items-center gap-1.5">
-          🎸 RockSchool Awards
-        </span>
+    <section className="relative bg-black border-y border-[#D4AF37]/30 py-6 mt-5 overflow-hidden">
+      <div className="relative flex items-center justify-center flex-wrap gap-6 md:gap-12 text-[#D4AF37] text-sm md:text-base tracking-widest uppercase font-semibold px-4">
+        <span className="opacity-70">In partnership with</span>
+        <span>Trinity College London</span>
+        <span className="w-1 h-1 rounded-full bg-[#D4AF37]" />
+        <span>RockSchool Awards</span>
       </div>
-    </div>
+    </section>
   );
 }
 
 // ======================================================
 // PROGRAMS
 // ======================================================
-
 function Programs() {
-  const [courses, setCourses] = useState<any[]>([]);
+  const [courses, setCourses] = useState([]);
   const [selectedCourse, setSelectedCourse] = useState<string | null>(null);
 
   useEffect(() => {
@@ -200,206 +203,140 @@ function Programs() {
     }
   };
 
-  const getIcon = (category: string) => {
-    switch (category) {
-      case "Western Music":
-        return "🎸";
-      case "Performance Arts":
-        return "🎭";
-      default:
-        return "🎵";
-    }
-  };
-
-  const getCategoryColor = (category: string) => {
-    switch (category) {
-      case "Western Music":
-        return "bg-amber-100 text-amber-700 border-amber-200";
-      case "Performance Arts":
-        return "bg-pink-100 text-pink-700 border-pink-200";
-      default:
-        return "bg-indigo-100 text-indigo-700 border-indigo-200";
-    }
-  };
-
   const groupedCourses = courses.reduce((acc: any, course: any) => {
-    if (!acc[course.name]) {
-      acc[course.name] = [];
-    }
+    if (!acc[course.name]) acc[course.name] = [];
     acc[course.name].push(course);
     return acc;
   }, {});
 
   return (
-    <section className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8 relative">
-      {/* Background Decorative Shapes */}
-      <div className="absolute right-5 top-10 text-4xl opacity-20 pointer-events-none select-none animate-bounce">🎈</div>
-      <div className="absolute left-5 bottom-10 text-4xl opacity-20 pointer-events-none select-none animate-spin" style={{ animationDuration: '10s' }}>🎨</div>
+    <section className="relative bg-white py-28 overflow-hidden">
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-[radial-gradient(circle_at_center,#D4AF37_0%,transparent_70%)] opacity-[0.07] blur-3xl" />
 
-      {/* HEADER */}
-      <div className="mb-14 text-center md:text-left">
-        <div className="inline-block rounded-full bg-pink-100 px-4 py-1 text-xs sm:text-sm font-bold uppercase tracking-wider text-pink-600 shadow-sm">
-          🌟 Programs
-        </div>
-        <h2 className="mt-3 font-display text-3xl font-extrabold tracking-tight text-slate-900 sm:text-5xl">
-          Curated for every young artist within. ✨
-        </h2>
-        <p className="mt-3 text-base sm:text-lg text-slate-500 font-medium">
-          Click on any program to see exciting levels and friendly pricing!
-        </p>
-      </div>
-
-      {/* MAIN COURSE CARDS */}
-      <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-        {Object.keys(groupedCourses).map((courseName, i) => {
-          const firstCourse = groupedCourses[courseName][0];
-
-          return (
-            <motion.div
-              key={courseName}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.08, duration: 0.5 }}
+      <div className="max-w-7xl mx-auto px-6 relative z-10">
+        <div className="text-center mb-16">
+          <p
+            className="text-3xl text-[#D4AF37] mb-2"
+            style={{ fontFamily: "'Caveat', cursive" }}
+          >
+            explore our
+          </p>
+          <h2
+            className="text-4xl md:text-6xl font-bold tracking-tight text-black"
+            style={{ fontFamily: "'Playfair Display', serif" }}
+          >
+            Curated{" "}
+            <span
+              className="bg-gradient-to-r from-[#D4AF37] to-[#8B6914] bg-clip-text text-transparent"
             >
-              <Card
-                onClick={() =>
-                  setSelectedCourse(
-                    selectedCourse === courseName ? null : courseName
-                  )
-                }
-                className={`group cursor-pointer overflow-hidden rounded-3xl border-2 transition-all duration-300 transform hover:-translate-y-2 hover:shadow-xl bg-white ${
-                  selectedCourse === courseName 
-                    ? "border-purple-500 ring-4 ring-purple-100 shadow-md" 
-                    : "border-purple-100 shadow-sm hover:border-purple-300"
-                }`}
-              >
-                <CardContent className="p-6 sm:p-7">
-                  {/* TOP ICON & BADGE */}
-                  <div className="flex items-center justify-between gap-4">
-                    <div className="text-5xl p-3 bg-slate-50 rounded-2xl transition-all duration-300 group-hover:scale-110 group-hover:rotate-6 group-hover:bg-yellow-50">
-                      {getIcon(firstCourse.category)}
-                    </div>
-                    <span className={`rounded-full border px-3 py-1 text-xs font-bold uppercase tracking-wide ${getCategoryColor(firstCourse.category)}`}>
+              Programs
+            </span>
+          </h2>
+          <p className="mt-5 text-black/60 text-lg max-w-2xl mx-auto">
+            Click on any program to explore curated levels and refined pricing.
+          </p>
+        </div>
+
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {Object.keys(groupedCourses).map((courseName) => {
+            const firstCourse = groupedCourses[courseName][0];
+            const isOpen = selectedCourse === courseName;
+
+            return (
+              <div key={courseName} className="space-y-4">
+                <div
+                  onClick={() => setSelectedCourse(isOpen ? null : courseName)}
+                  className={`group cursor-pointer overflow-hidden rounded-2xl border-2 transition-all duration-300 transform hover:-translate-y-1 p-7 ${
+                    isOpen
+                      ? "border-[#D4AF37] bg-gradient-to-br from-[#D4AF37]/10 to-white shadow-[0_20px_60px_-15px_rgba(212,175,55,0.4)]"
+                      : "border-black/10 bg-white hover:border-[#D4AF37] hover:shadow-xl"
+                  }`}
+                >
+                  <div className="flex items-center justify-between mb-5">
+                    <span className="text-[10px] uppercase tracking-[0.2em] text-[#8B6914] font-semibold px-3 py-1 rounded-full border border-[#D4AF37]/40 bg-[#D4AF37]/10">
                       {firstCourse.category}
                     </span>
+                    <Sparkles className="w-4 h-4 text-[#D4AF37]" />
                   </div>
 
-                  {/* TITLE */}
-                  <div className="mt-6 font-display text-2xl font-extrabold text-slate-900 transition-all duration-300 group-hover:text-purple-600">
+                  <h3
+                    className="text-2xl font-bold text-black mb-3"
+                    style={{ fontFamily: "'Playfair Display', serif" }}
+                  >
                     {courseName}
-                  </div>
-
-                  {/* DESCRIPTION */}
-                  <p className="mt-3 text-sm sm:text-base text-slate-600 font-medium leading-relaxed line-clamp-2">
+                  </h3>
+                  <p className="text-black/60 text-sm leading-relaxed line-clamp-2 mb-6">
                     {firstCourse.description}
                   </p>
 
-                  {/* CARD FOOTER */}
-                  <div className="mt-6 flex items-center justify-between border-t-2 border-dashed border-slate-100 pt-4">
-                    <span className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-bold text-slate-500">
-                      <Users className="h-4 w-4 text-purple-500" />
+                  <div className="flex items-center justify-between pt-5 border-t border-black/10">
+                    <span className="flex items-center gap-2 text-sm text-[#8B6914] font-semibold">
+                      <CheckCircle2 className="w-4 h-4" />
                       {groupedCourses[courseName].length} Levels
                     </span>
-                    <span className="text-xs sm:text-sm font-bold text-purple-600 transition-all duration-300 group-hover:translate-x-1">
-                      Click to View
+                    <span className="flex items-center gap-1 text-xs uppercase tracking-wider text-black/50">
+                      {isOpen ? "Close" : "View"}
+                      {isOpen ? (
+                        <ChevronUp className="w-4 h-4" />
+                      ) : (
+                        <ChevronDown className="w-4 h-4" />
+                      )}
                     </span>
                   </div>
-                </CardContent>
-              </Card>
+                </div>
 
-              {/* LEVELS (Original Black/Zinc Dark Theme Style Code) */}
-              {selectedCourse === courseName && (
-                <motion.div
-                  initial={{
-                    opacity: 0,
-                    y: 10,
-                  }}
-                  animate={{
-                    opacity: 1,
-                    y: 0,
-                  }}
-                  className="mt-5 overflow-hidden rounded-3xl border border-gold/20 bg-gradient-to-br from-black via-zinc-900 to-black shadow-2xl"
-                >
-                  {/* HEADER */}
-                  <div className="border-b border-white/10 bg-white/5 px-6 py-4 backdrop-blur">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <div className="text-xs uppercase tracking-[0.3em] text-gold">
-                          Course Levels
-                        </div>
-                        <div className="mt-1 text-2xl font-bold text-white">
-                          {courseName}
-                        </div>
-                      </div>
-                      <div className="text-5xl">
-                        {getIcon(firstCourse.category)}
-                      </div>
+                {isOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="rounded-2xl border-2 border-[#D4AF37]/40 bg-black p-5 space-y-3"
+                  >
+                    <div className="flex items-center justify-between pb-3 border-b border-[#D4AF37]/30">
+                      <span className="text-xs uppercase tracking-[0.2em] text-[#D4AF37] font-semibold">
+                        Course Levels
+                      </span>
+                      <span
+                        className="text-sm text-white italic"
+                        style={{ fontFamily: "'Caveat', cursive", fontSize: "1.1rem" }}
+                      >
+                        {courseName}
+                      </span>
                     </div>
-                  </div>
 
-                  {/* LEVEL LIST */}
-                  <div className="space-y-4 p-5">
-                    {groupedCourses[courseName].map(
-                      (c: any, index: number) => (
-                        <motion.div
-                          key={c._id}
-                          initial={{
-                            opacity: 0,
-                            x: -20,
-                          }}
-                          animate={{
-                            opacity: 1,
-                            x: 0,
-                          }}
-                          transition={{
-                            delay: index * 0.08,
-                          }}
-                          className="group relative overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-5 transition-all hover:scale-[1.02] hover:border-gold/40 hover:bg-gold/10"
-                        >
-                          {/* GLOW */}
-                          <div className="absolute inset-0 bg-gradient-to-r from-gold/0 via-gold/5 to-gold/0 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-
-                          <div className="relative flex items-center justify-between">
-                            {/* LEFT */}
-                            <div>
-                              <div className="flex items-center gap-3">
-                                <div className="flex h-11 w-11 items-center justify-center rounded-full bg-gold text-lg font-bold text-black shadow-lg">
-                                  {index + 1}
-                                </div>
-                                <div>
-                                  <div className="text-xl font-semibold text-white">
-                                    {c.grade}
-                                  </div>
-                                  <div className="mt-1 text-sm text-zinc-400">
-                                    {c.mainLevel}
-                                  </div>
-                                </div>
-                              </div>
+                    {groupedCourses[courseName].map((c: any, idx: number) => (
+                      <div
+                        key={idx}
+                        className="flex items-center justify-between p-4 rounded-xl bg-white/5 border border-[#D4AF37]/20 hover:border-[#D4AF37] transition"
+                      >
+                        <div className="flex items-center gap-4">
+                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#F5E6A8] to-[#8B6914] flex items-center justify-center text-black font-bold text-sm">
+                            {idx + 1}
+                          </div>
+                          <div>
+                            <div className="text-[#D4AF37] font-semibold text-sm">
+                              {c.grade}
                             </div>
-
-                            {/* RIGHT */}
-                            <div className="text-right">
-                              <div className="text-3xl font-bold text-gold">
-                                ₹
-                                {Number(
-                                  c.fee
-                                ).toLocaleString()}
-                              </div>
-                              <div className="mt-1 text-xs uppercase tracking-wider text-zinc-400">
-                                Monthly Fee
-                              </div>
+                            <div className="text-white/60 text-xs">
+                              {c.mainLevel}
                             </div>
                           </div>
-                        </motion.div>
-                      )
-                    )}
-                  </div>
-                </motion.div>
-              )}
-            </motion.div>
-          );
-        })}
+                        </div>
+                        <div className="text-right">
+                          <div className="text-white font-bold">
+                            ₹{Number(c.fee).toLocaleString()}
+                          </div>
+                          <div className="text-white/40 text-[10px] uppercase tracking-wider">
+                            Monthly
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </motion.div>
+                )}
+              </div>
+            );
+          })}
+        </div>
       </div>
     </section>
   );
@@ -408,48 +345,33 @@ function Programs() {
 // ======================================================
 // STATS
 // ======================================================
-
 function Stats() {
   const stats = [
-    {
-      v: "100+ ⭐",
-      l: "Students Trained",
-      bg: "from-pink-100 to-pink-50 text-pink-600 border-pink-200"
-    },
-    {
-      v: "4.9 ★",
-      l: "Average Rating",
-      bg: "from-yellow-100 to-yellow-50 text-amber-600 border-yellow-200"
-    },
-    {
-      v: "100% 🎯",
-      l: "Success Rate",
-      bg: "from-indigo-100 to-indigo-50 text-indigo-600 border-indigo-200"
-    },
-    {
-      v: "20+ 🚀",
-      l: "Years Experience",
-      bg: "from-purple-100 to-purple-50 text-purple-600 border-purple-200"
-    },
+    { v: "100+", l: "Students Trained" },
+    { v: "4.9", l: "Average Rating" },
+    { v: "100%", l: "Success Rate" },
+    { v: "20+", l: "Years Experience" },
   ];
 
   return (
-    <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
-      <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-        {stats.map((s) => (
-          <motion.div
-            key={s.l}
-            whileHover={{ scale: 1.05, rotate: 1 }}
-            className={`p-6 text-center rounded-3xl bg-gradient-to-b border-2 shadow-sm transition-all duration-300 ${s.bg}`}
-          >
-            <div className="font-display text-3xl sm:text-4xl font-black tracking-tight">
-              {s.v}
+    <section className="relative bg-black py-20 border-y-2 border-[#D4AF37]/40 overflow-hidden">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,#D4AF37_0%,transparent_70%)] opacity-[0.08]" />
+      <div className="max-w-7xl mx-auto px-6 relative z-10">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+          {stats.map((s) => (
+            <div key={s.l} className="text-center">
+              <div
+                className="text-5xl md:text-7xl font-bold bg-gradient-to-b from-[#F5E6A8] via-[#D4AF37] to-[#8B6914] bg-clip-text text-transparent"
+              
+              >
+                {s.v}
+              </div>
+              <div className="mt-3 text-xs md:text-sm uppercase tracking-[0.2em] text-white/70">
+                {s.l}
+              </div>
             </div>
-            <div className="mt-2 text-xs sm:text-sm font-bold text-slate-600 uppercase tracking-wide">
-              {s.l}
-            </div>
-          </motion.div>
-        ))}
+          ))}
+        </div>
       </div>
     </section>
   );
@@ -458,76 +380,77 @@ function Stats() {
 // ======================================================
 // TESTIMONIALS
 // ======================================================
-
 function Testimonials() {
   const quotes = [
     {
-      n: "Ananya R. 👩‍🎓",
+      n: "Ananya R.",
       r: "Piano · Trinity Grade 5",
-      q: "The structured progression made me actually finish. Super interactive classes!",
+      q: "The structured progression made me actually finish. Refined and rigorous.",
     },
     {
-      n: "Kabir M. 👨‍🎓",
+      n: "Kabir M.",
       r: "Public Speaking",
-      q: "The mentors are world-class. I overcame my stage fear in just a few weeks!",
+      q: "The mentors are world-class. I overcame my stage fear in just a few weeks.",
     },
     {
-      n: "Saanvi J. 👩‍🎓",
+      n: "Saanvi J.",
       r: "Violin · Advanced",
-      q: "Perfect online + offline blend. Highly recommend for serious yet fun learning.",
+      q: "Perfect blend of online and offline. Highly recommend for serious learners.",
     },
   ];
 
   return (
-    <section className="border-t-2 border-purple-100 bg-white/60 backdrop-blur-sm relative overflow-hidden">
-      <div className="absolute right-0 top-0 text-7xl opacity-5 pointer-events-none select-none">✨</div>
-      
-      <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
-        {/* HEADER */}
-        <div className="mb-12 text-center md:text-left">
-          <div className="inline-block rounded-full bg-indigo-100 px-4 py-1 text-xs sm:text-sm font-bold uppercase tracking-wider text-indigo-600 shadow-sm">
-            ❤️ Testimonials
-          </div>
-          <h2 className="mt-3 font-display text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl">
-            Loved by super learners & parents!
+    <section className="relative bg-white py-28 overflow-hidden">
+      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[radial-gradient(circle_at_center,#D4AF37_0%,transparent_70%)] opacity-10 blur-3xl" />
+
+      <div className="max-w-7xl mx-auto px-6 relative z-10">
+        <div className="text-center mb-16">
+          <p
+            className="text-3xl text-[#D4AF37] mb-2"
+            style={{ fontFamily: "'Caveat', cursive" }}
+          >
+            our happy learners
+          </p>
+          <h2
+            className="text-4xl md:text-6xl font-bold tracking-tight text-black"
+            style={{ fontFamily: "'Playfair Display', serif" }}
+          >
+            Loved by{" "}
+            <span
+              className="bg-gradient-to-r from-[#D4AF37] to-[#8B6914] bg-clip-text text-transparent"
+             
+            >
+              true learners
+            </span>
           </h2>
         </div>
 
-        {/* TESTIMONIAL CARDS */}
-        <div className="grid gap-6 md:grid-cols-3">
+        <div className="grid md:grid-cols-3 gap-6">
           {quotes.map((q) => (
             <Card
               key={q.n}
-              className="border-2 border-purple-100 bg-white/90 shadow-sm rounded-3xl hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 overflow-hidden group"
+              className="bg-white border-2 border-black/10 rounded-2xl hover:border-[#D4AF37] transition-all hover:-translate-y-1 hover:shadow-[0_20px_60px_-15px_rgba(212,175,55,0.4)]"
             >
-              <CardContent className="p-6 sm:p-7 flex flex-col justify-between h-full">
-                <div>
-                  {/* Stars Row */}
-                  <div className="flex gap-1 text-yellow-400">
-                    {Array.from({ length: 5 }).map((_, i) => (
-                      <Star
-                        key={i}
-                        className="h-4 w-4 fill-current animate-pulse"
-                        style={{ animationDelay: `${i * 150}ms` }}
-                      />
-                    ))}
-                  </div>
-
-                  <p className="mt-4 font-medium text-base text-slate-700 leading-relaxed italic">
-                    "{q.q}"
-                  </p>
+              <CardContent className="p-8">
+                <div className="flex gap-1 mb-5">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <Star
+                      key={i}
+                      className="w-4 h-4 fill-[#D4AF37] text-[#D4AF37]"
+                    />
+                  ))}
                 </div>
-
-                <div className="mt-6 border-t-2 border-dashed border-slate-100 pt-4 flex items-center justify-between">
-                  <div>
-                    <div className="font-extrabold text-slate-900 group-hover:text-indigo-600 transition-colors">
-                      {q.n}
-                    </div>
-                    <div className="text-xs font-bold text-slate-400 mt-0.5">
-                      {q.r}
-                    </div>
+                <p
+                  className="text-black/80 leading-relaxed mb-6 text-lg"
+                  style={{ fontFamily: "'Caveat', cursive" }}
+                >
+                  "{q.q}"
+                </p>
+                <div className="pt-5 border-t border-black/10">
+                  <div className="text-black font-bold">{q.n}</div>
+                  <div className="text-[#8B6914] text-xs uppercase tracking-wider mt-1 font-semibold">
+                    {q.r}
                   </div>
-                  <div className="text-2xl bg-indigo-50 p-2 rounded-xl opacity-60 group-hover:opacity-100 transition-opacity">💬</div>
                 </div>
               </CardContent>
             </Card>
@@ -541,39 +464,40 @@ function Testimonials() {
 // ======================================================
 // CTA
 // ======================================================
-
 function CTA() {
   return (
-    <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8 relative">
-      <div className="relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-indigo-900 via-purple-900 to-purple-950 p-8 text-white sm:p-16 shadow-2xl">
-        {/* Playful Glowing Circles */}
-        <div className="absolute -right-10 -top-10 h-60 w-60 rounded-full bg-pink-500/20 blur-3xl" />
-        <div className="absolute -left-10 -bottom-10 h-60 w-60 rounded-full bg-yellow-400/10 blur-3xl" />
+    <section className="relative bg-white py-28 overflow-hidden">
+      <div className="max-w-5xl mx-auto px-6">
+        <div className="relative rounded-3xl overflow-hidden border-2 border-[#D4AF37]/40 bg-gradient-to-br from-white via-[#D4AF37]/5 to-white p-12 md:p-20 text-center shadow-[0_30px_80px_-20px_rgba(212,175,55,0.3)]">
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[500px] h-[300px] bg-[radial-gradient(circle_at_center,#D4AF37_0%,transparent_70%)] opacity-30 blur-3xl" />
+          <div className="absolute bottom-0 right-0 w-72 h-72 bg-[#D4AF37] opacity-10 blur-3xl rounded-full" />
 
-        <div className="relative grid items-center gap-8 md:grid-cols-2">
-          <div className="text-center md:text-left">
-            <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-white/10 backdrop-blur-md text-yellow-400 mb-4 animate-bounce">
-              <Mic2 className="h-6 w-6" />
-            </div>
-            <h2 className="font-display text-3xl font-black tracking-tight sm:text-4xl lg:text-5xl leading-tight">
-              Your first exciting lesson is on us! 🎁
-            </h2>
-            <p className="mt-4 text-base sm:text-lg text-purple-200 font-medium">
-              Join thousands of happy students today. No credit card required!
-            </p>
-          </div>
-
-          <div className="flex justify-center md:justify-end">
-            <Button
-              asChild
-              size="lg"
-              className="w-full sm:w-auto rounded-full bg-gradient-to-r from-yellow-400 to-amber-400 px-8 py-7 text-base font-black text-slate-900 shadow-xl shadow-yellow-950/20 hover:from-yellow-300 hover:to-amber-300 transform hover:-translate-y-1 transition-all duration-300 group"
+          <div className="relative z-10">
+            <Sparkles className="w-10 h-10 text-[#D4AF37] mx-auto mb-4" />
+            <h2
+              className="text-4xl md:text-6xl font-bold tracking-tight text-black"
+              style={{ fontFamily: "'Playfair Display', serif" }}
             >
-              <Link to="/signup" className="flex items-center justify-center gap-2">
-                <span>Start Learning Now 🚀</span>
-                <ArrowRight className="h-5 w-5 transition-transform duration-300 group-hover:translate-x-1" />
+              Your first lesson is{" "}
+              <span
+                className="italic bg-gradient-to-r from-[#D4AF37] to-[#8B6914] bg-clip-text text-transparent"
+                style={{ fontFamily: "'Caveat', cursive" }}
+              >
+                on us
+              </span>
+            </h2>
+            <p className="mt-6 text-black/70 text-lg max-w-xl mx-auto">
+              Join an academy trusted by serious learners.
+            </p>
+
+            <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
+              <Link to="/login">
+                <Button className="group bg-gradient-to-r from-[#D4AF37] via-[#B8941F] to-[#8B6914] hover:from-[#B8941F] hover:to-[#8B6914] text-white rounded-full px-10 py-7 text-base font-bold shadow-[0_10px_40px_-10px_rgba(212,175,55,0.6)] transition-all">
+                  Start Learning Now
+                  <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                </Button>
               </Link>
-            </Button>
+            </div>
           </div>
         </div>
       </div>
