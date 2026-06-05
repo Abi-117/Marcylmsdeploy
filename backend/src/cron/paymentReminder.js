@@ -1,3 +1,6 @@
+import dotenv from "dotenv";
+dotenv.config();
+
 import cron from "node-cron";
 import Payment from "../models/Payment.js";
 import User from "../models/User.js";
@@ -49,4 +52,32 @@ cron.schedule("* * * * *", async () => {
       });
     }
   }
+});
+
+// import cron from "node-cron";
+// import { sendMail } from "../utils/mailer.js";
+
+console.log("Payment Reminder Loaded ✅");
+
+cron.schedule("* * * * *", async () => {
+
+  console.log("Cron Running", new Date());
+
+  try {
+
+    const info = await sendMail({
+      to: process.env.EMAIL_USER,
+      subject: "Cron Test",
+      html: "<h1>Cron Mail Working ✅</h1>",
+    });
+
+    console.log("MAIL SENT:", info.messageId);
+
+  } catch (err) {
+
+    console.log("MAIL ERROR:");
+    console.log(err);
+
+  }
+
 });
