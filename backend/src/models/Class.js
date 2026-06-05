@@ -51,6 +51,10 @@ const classSchema = new mongoose.Schema(
 completedAt: {
   type: Date,
 },
+reminderSent: {
+  type: Boolean,
+  default: false,
+},
 
     students: [
       {

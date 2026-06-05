@@ -10,76 +10,44 @@ console.log("Class Reminder Loaded ✅");
 
 cron.schedule("* * * * *", async () => {
 
-  console.log("Checking classes...");
-
   const now = new Date();
 
   const classes = await Class.find({
     status: "Upcoming",
+    reminderSent: false,
   }).populate("students");
-
-  console.log("Classes Found:", classes.length);
 
   for (const cls of classes) {
 
-    const classTime = new Date(cls.date);
-
     const diff =
-      (classTime - now) /
+      (new Date(cls.date) - now) /
       (1000 * 60);
-
-    console.log(
-      cls.title,
-      "Minutes Left:",
-      diff
-    );
 
     if (diff <= 5 && diff >= 0) {
 
-      console.log(
-        "Sending reminder..."
-      );
-
       for (const student of cls.students) {
 
-        try {
-
-          const info =
-            await sendMail({
-              to: student.email,
-              subject: "Class Starting Soon",
-              html: `
-                <h2>Hello ${student.name}</h2>
-                <p>
-                Your class
-                ${cls.title}
-                starts in 5 minutes.
-                </p>
-              `,
-            });
-
-          console.log(
-            "MAIL SENT:",
-            student.email
-          );
-
-          await MailLog.create({
-            student: student._id,
-            type: "class-reminder",
-            subject: "Class Starting Soon",
-            email: student.email,
-          });
-
-        } catch (err) {
-
-          console.log(
-            "MAIL ERROR:",
-            err
-          );
-
-        }
+        await sendMail({
+          to: student.email,
+          subject: "Class Starting Soon",
+          html: `
+            <h2>Hello ${student.name}</h2>
+            <p>
+              Your class starts in less than 5 minutes.
+            </p>
+          `,
+        });
 
       }
+
+      // IMPORTANT
+      cls.reminderSent = true;
+      await cls.save();
+
+      console.log(
+        "Reminder Sent:",
+        cls.title
+      );
 
     }
 
