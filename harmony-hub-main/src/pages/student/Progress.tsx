@@ -45,6 +45,25 @@ function StudentProgress() {
   const [selectedCourse, setSelectedCourse] =
     useState<any>(null);
 
+
+
+  const [country, setCountry] =
+  useState("India");
+
+useEffect(() => {
+  axios
+    .get("https://ipapi.co/json/")
+    .then((res) => {
+      setCountry(
+        res.data.country_name || "India"
+      );
+    })
+    .catch(() => {
+      setCountry("India");
+    });
+}, []);
+
+
   // =====================================
   // FETCH COURSES + PAYMENTS
   // =====================================
@@ -323,6 +342,33 @@ function StudentProgress() {
 
     };
 
+
+    const handlePaypalPayment = async () => {
+
+  try {
+
+    const { data } =
+      await axios.post(
+        `${API}/payments/paypal/create-order`,
+        {
+          amount:
+            selectedCourse.fee,
+        }
+      );
+
+    window.location.href =
+      data.approvalUrl;
+
+  } catch (err) {
+
+    console.log(err);
+
+    alert("PayPal payment failed");
+
+  }
+
+};
+
   return (
 
     <div>
@@ -579,16 +625,26 @@ function StudentProgress() {
 
               </div>
 
-              <Button
-                onClick={
-                  handleRazorpayPayment
-                }
-                className="mt-6 w-full bg-gold text-black"
-              >
+              {country === "India" ? (
 
-                Pay with Razorpay
+  <Button
+    onClick={handleRazorpayPayment}
+    className="mt-6 w-full bg-gold text-black"
+  >
+    Pay with Razorpay
+  </Button>
 
-              </Button>
+) : (
+
+ <Button
+  onClick={handlePaypalPayment}
+  className="mt-6 w-full bg-blue-600 text-white"
+>
+  Pay with PayPal
+</Button>
+
+)}
+
 
               <Button
                 variant="outline"

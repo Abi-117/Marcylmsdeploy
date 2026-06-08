@@ -11,6 +11,11 @@ import path from "path";
 import User from "../models/User.js";
 import Payment from "../models/Payment.js";
 import Course from "../models/Course.js";
+import paypalClient
+from "../config/paypal.js";
+
+import checkoutNodeJssdk
+from "@paypal/checkout-server-sdk";
 
 const router = express.Router();
 
@@ -691,6 +696,136 @@ router.get(
         success: false,
         message:
           "Invoice generation failed",
+      });
+
+    }
+
+  }
+);
+
+router.post(
+  "/paypal/create-order",
+  async (req, res) => {
+
+    try {
+
+      const { amount } =
+        req.body;
+
+      const request =
+        new checkoutNodeJssdk.orders.OrdersCreateRequest();
+
+      request.prefer(
+        "return=representation"
+      );
+
+      request.requestBody({
+        intent: "CAPTURE",
+
+        purchase_units: [
+          {
+            amount: {
+              currency_code: "USD",
+
+              value:
+                Number(amount).toFixed(
+                  2
+                ),
+            },
+          },
+        ],
+      });
+
+      const order =
+        await paypalClient.execute(
+          request
+        );
+
+      res.json(order.result);
+
+    } catch (err) {
+
+      console.log(err);
+
+      res.status(500).json({
+        message:
+          "PayPal order failed",
+      });
+
+    }
+
+  }
+);
+
+router.post(
+  "/paypal/capture-order",
+  async (req, res) => {
+
+    try {
+
+      const {
+        orderId,
+        userId,
+        courseId,
+        amount,
+        country,
+      } = req.body;
+
+      const request =
+        new checkoutNodeJssdk.orders.OrdersCaptureRequest(
+          orderId
+        );
+
+      request.requestBody({});
+
+      const capture =
+        await paypalClient.execute(
+          request
+        );
+
+      const course =
+        await Course.findById(
+          courseId
+        );
+
+      const payment =
+        await Payment.create({
+
+          student: userId,
+
+          course: courseId,
+
+          amount,
+
+          status: "Paid",
+
+          paymentId:
+            capture.result.id,
+
+          orderId,
+
+          paymentGateway:
+            "paypal",
+
+          paymentCountry:
+            country,
+
+          paidAt:
+            new Date(),
+
+        });
+
+      res.json({
+        success: true,
+        payment,
+      });
+
+    } catch (err) {
+
+      console.log(err);
+
+      res.status(500).json({
+        success: false,
       });
 
     }

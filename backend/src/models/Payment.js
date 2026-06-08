@@ -55,6 +55,16 @@ reminderCount: {
   type: Number,
   default: 0,
 },
+paymentGateway: {
+  type: String,
+  enum: ["razorpay", "paypal"],
+  default: "razorpay",
+},
+
+paymentCountry: {
+  type: String,
+  default: "India",
+},
   },
   {
     timestamps: true,
