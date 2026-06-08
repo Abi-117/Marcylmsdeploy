@@ -34,9 +34,9 @@ const navByRole: Record<Role, any[]> = {
     { to: "/admin/courses", label: "Courses", icon: BookOpen },
     { to: "/admin/certificates", label: "Certificates", icon: Award },
     { to: "/admin/feedback", label: "Feedback", icon: BarChart3 },
-    {to: "/admin/mail-logs", label: "Mail Logs",
-  icon: Mail,
-},
+//     {to: "/admin/mail-logs", label: "Mail Logs",
+//   icon: Mail,
+// },
     { to: "/admin/reports", label: "Reports", icon: BarChart3 },
   ],
   teacher: [

@@ -165,14 +165,68 @@ function Signup() {
   // ====================================
   // NEXT / BACK
   // ====================================
+const next = () => {
 
-  const next = () =>
-    setStep((s) =>
-      Math.min(
-        s + 1,
-        steps.length - 1
-      )
-    );
+  // STEP 1
+  if (step === 0) {
+
+    if (
+      !data.name.trim() ||
+      !data.phone.trim() ||
+      !data.email.trim() ||
+      !data.password.trim()
+    ) {
+      alert("Please fill all personal details");
+      return;
+    }
+
+  }
+
+  // STEP 2
+  if (step === 1) {
+
+    if (!data.course) {
+      alert("Please select a course");
+      return;
+    }
+
+  }
+
+  // STEP 3
+  if (step === 2) {
+
+    if (
+      !data.mode ||
+      data.availableDays.length === 0 ||
+      !data.fromTime ||
+      !data.toTime
+    ) {
+      alert(
+        "Please complete schedule details"
+      );
+      return;
+    }
+
+  }
+
+  // STEP 4
+  if (step === 3) {
+
+    if (!data.selectedLevel) {
+      alert("Please select a level");
+      return;
+    }
+
+  }
+
+  setStep((s) =>
+    Math.min(
+      s + 1,
+      steps.length - 1
+    )
+  );
+
+};
 
   const back = () =>
     setStep((s) =>
@@ -186,6 +240,18 @@ function Signup() {
   const finish = async () => {
   try {
     let imageUrl = "";
+    if (
+  !data.name ||
+  !data.phone ||
+  !data.email ||
+  !data.password ||
+  !data.course ||
+  !data.selectedLevel ||
+  data.availableDays.length === 0
+) {
+  alert("Please complete all required fields");
+  return;
+}
 
     if (image) {
       imageUrl = await uploadImage();
