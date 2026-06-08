@@ -38,6 +38,8 @@ type Payment = {
   date: string;
   invoiceUrl?: string;
   paymentId: string;
+  paymentGateway?: string;
+paymentCountry?: string;
 };
 
 function AdminPayments() {
@@ -182,6 +184,13 @@ function AdminPayments() {
                     <th className="px-5 py-3">
                       Date
                     </th>
+                    <th className="px-5 py-3">
+  Gateway
+</th>
+
+<th className="px-5 py-3">
+  Country
+</th>
 
                     <th />
 
@@ -246,6 +255,26 @@ function AdminPayments() {
                         {new Date((p as any).createdAt).toLocaleDateString()}
 
                       </td>
+                      <td className="px-5 py-3.5">
+
+  <Badge
+    variant="outline"
+    className={
+      (p as any).paymentGateway === "paypal"
+        ? "bg-blue-50 text-blue-700 border-blue-200"
+        : "bg-green-50 text-green-700 border-green-200"
+    }
+  >
+    {(p as any).paymentGateway || "Razorpay"}
+  </Badge>
+
+</td>
+
+<td className="px-5 py-3.5">
+
+  {(p as any).paymentCountry || "India"}
+
+</td>
 
                       <td className="px-5 py-3.5">
 

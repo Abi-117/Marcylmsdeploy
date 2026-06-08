@@ -49,6 +49,8 @@ function StudentProgress() {
 
   const [country, setCountry] =
   useState("India");
+  // const [country, setCountry] =
+  // useState("United States");
 
 useEffect(() => {
   axios
