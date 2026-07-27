@@ -15,6 +15,8 @@ function generateOTP() {
 }
 
 // ================= SEND OTP =================
+
+// ================= SEND OTP =================
 router.post("/send-otp", async (req, res) => {
   try {
     console.log("API HIT");
@@ -37,22 +39,20 @@ router.post("/send-otp", async (req, res) => {
 
     console.log("OTP:", otp);
 
+    // Delete old OTP
     await OTP.deleteMany({ email });
 
     console.log("OLD OTP DELETED");
 
-    await OTP.create({ email, otp });
+    // Save new OTP
+    await OTP.create({
+      email,
+      otp,
+    });
 
     console.log("OTP SAVED");
-    await OTP.create({ email, otp });
 
-// await sendOTPEmail(email, otp);
-
-return res.json({
-  message: "OTP sent successfully",
-  otp
-});
-
+    // Send mail
     await sendOTPEmail(email, otp);
 
     console.log("MAIL SENT SUCCESS");
@@ -64,7 +64,6 @@ return res.json({
   } catch (err) {
     console.log("SEND OTP ERROR:");
     console.log(err);
-    console.log(err.message);
 
     return res.status(500).json({
       message: "Failed to send OTP",
@@ -72,7 +71,6 @@ return res.json({
     });
   }
 });
-
 
 // ================= RESET PASSWORD =================
 router.post("/reset-password", async (req, res) => {

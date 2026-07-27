@@ -59,25 +59,25 @@ cron.schedule("* * * * *", async () => {
 
 console.log("Payment Reminder Loaded ✅");
 
-cron.schedule("* * * * *", async () => {
+// cron.schedule("* * * * *", async () => {
 
-  console.log("Cron Running", new Date());
+//   console.log("Cron Running", new Date());
 
-  try {
+//   try {
 
-    const info = await sendMail({
-      to: process.env.EMAIL_USER,
-      subject: "Cron Test",
-      html: "<h1>Cron Mail Working ✅</h1>",
-    });
+//     const info = await sendMail({
+//       to: process.env.EMAIL_USER,
+//       subject: "Cron Test",
+//       html: "<h1>Cron Mail Working ✅</h1>",
+//     });
 
-    console.log("MAIL SENT:", info.messageId);
+//     console.log("MAIL SENT:", info.messageId);
 
-  } catch (err) {
+//   } catch (err) {
 
-    console.log("MAIL ERROR:");
-    console.log(err);
+//     console.log("MAIL ERROR:");
+//     console.log(err);
 
-  }
+//   }
 
-});
+// });
