@@ -62,14 +62,16 @@ router.post("/send-otp", async (req, res) => {
     });
 
   } catch (err) {
-    console.log("SEND OTP ERROR:");
-    console.log(err);
+  console.error("========== SEND OTP ERROR ==========");
+  console.error(err);
+  console.error(err.stack);
 
-    return res.status(500).json({
-      message: "Failed to send OTP",
-      error: err.message,
-    });
-  }
+  return res.status(500).json({
+    success: false,
+    message: err.message,
+    stack: err.stack,
+  });
+}
 });
 
 // ================= RESET PASSWORD =================
