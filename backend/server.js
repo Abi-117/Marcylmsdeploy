@@ -53,7 +53,9 @@ const allowedOrigins = [
   "http://localhost:8080",
   "http://localhost:5173",
   "https://marcylmsdeploy-3.onrender.com",
+  "https://marcyslearn.com/",
   "https://marcyslearn.com/"
+
 ];
 
 app.use(
