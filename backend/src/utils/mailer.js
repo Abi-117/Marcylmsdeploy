@@ -22,17 +22,39 @@ transporter.verify((err, success) => {
 
 
 export const sendOTPEmail = async (email, otp) => {
-  return await transporter.sendMail({
-    from: process.env.EMAIL_USER,
-    to: email,
-    subject: "Password Reset OTP",
-    html: `
-      <h2>Password Reset OTP</h2>
-      <h1>${otp}</h1>
-      <p>This OTP expires in 5 minutes.</p>
-    `,
-  });
+  console.log("========== MAIL START ==========");
+  console.log("TO:", email);
+  console.log("OTP:", otp);
+
+  try {
+    const info = await transporter.sendMail({
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: "Password Reset OTP",
+      html: `
+        <h2>Password Reset OTP</h2>
+        <h1>${otp}</h1>
+        <p>This OTP expires in 5 minutes.</p>
+      `,
+    });
+
+    console.log("MAIL SUCCESS");
+    console.log(info);
+
+    return info;
+
+  } catch (err) {
+
+    console.log("MAIL FAILED");
+    console.log(err);
+    console.log(err.response);
+    console.log(err.responseCode);
+    console.log(err.command);
+
+    throw err;
+  }
 };
+
 
 export const sendMail = async ({
   to,
