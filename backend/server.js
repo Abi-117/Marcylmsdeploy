@@ -54,7 +54,7 @@ const allowedOrigins = [
   "http://localhost:5173",
   "https://marcylmsdeploy-3.onrender.com",
   "https://marcyslearn.com/",
-  "https://marcyslearn.com/"
+  "https://marcyslearn.com"
 
 ];
 
