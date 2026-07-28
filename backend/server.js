@@ -81,12 +81,12 @@ app.options(/.*/, cors());
 app.get("/", (req, res) => {
   res.send("Marcy Academy Backend Running");
 });
-app.post("/api/auth/send-otp", (req, res) => {
-  console.log("DIRECT TEST ROUTE");
-  res.json({
-    message: "DIRECT ROUTE OK"
-  });
-});
+// app.post("/api/auth/send-otp", (req, res) => {
+//   console.log("DIRECT TEST ROUTE");
+//   res.json({
+//     message: "DIRECT ROUTE OK"
+//   });
+// });
 
 // =====================
 // ROUTES
