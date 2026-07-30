@@ -43,6 +43,15 @@ function Signup() {
   const data = await res.json();
   return data.secure_url;
 };
+const getNextHour = (time: string) => {
+  const index = timeSlots.indexOf(time);
+
+  if (index !== -1 && index < timeSlots.length - 1) {
+    return timeSlots[index + 1];
+  }
+
+  return time;
+};
 
   const login = useAuth((s) => s.login);
 
@@ -694,11 +703,12 @@ const next = () => {
               key={time}
               type="button"
               onClick={() =>
-                setData((prev) => ({
-                  ...prev,
-                  fromTime: time,
-                }))
-              }
+  setData((prev) => ({
+    ...prev,
+    fromTime: time,
+    toTime: getNextHour(time),
+  }))
+}
               className={`rounded-xl border p-3 text-xs transition-all ${
                 data.fromTime === time
                   ? "border-gold bg-gold-soft"
@@ -714,38 +724,12 @@ const next = () => {
 
     {/* TO TIME */}
     <div>
-      <Label>Available To</Label>
+  <Label>Available To</Label>
 
-      <div className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-6">
-        {Array.from({ length: 18 }, (_, i) => {
-          const hour = i + 6;
-          const displayHour = hour > 12 ? hour - 12 : hour;
-          const ampm = hour >= 12 ? "PM" : "AM";
-
-          const time = `${String(displayHour).padStart(2, "0")}:00 ${ampm}`;
-
-          return (
-            <button
-              key={time}
-              type="button"
-              onClick={() =>
-                setData((prev) => ({
-                  ...prev,
-                  toTime: time,
-                }))
-              }
-              className={`rounded-xl border p-3 text-xs transition-all ${
-                data.toTime === time
-                  ? "border-gold bg-gold-soft"
-                  : "border-border hover:border-gold/40"
-              }`}
-            >
-              {time}
-            </button>
-          );
-        })}
-      </div>
-    </div>
+  <div className="mt-3 rounded-xl border bg-muted p-4 font-medium">
+    {data.toTime}
+  </div>
+</div>
 
   </div>
 )}
