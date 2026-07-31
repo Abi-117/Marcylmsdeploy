@@ -534,9 +534,13 @@ const next = () => {
 
     <div className="grid gap-4 sm:grid-cols-2">
   {uniqueCourses.map((courseName) => {
-    const courseTypes = courses.filter(
-      (c: any) => c.name === courseName
-    );
+    const courseTypes = [
+  ...new Map(
+    courses
+      .filter((c) => c.name === courseName)
+      .map((c) => [c.classMode, c])
+  ).values(),
+];
 
     return (
       <div
