@@ -634,8 +634,7 @@ useEffect(() => {
         ✔ Personal Teacher
         <br />
         ✔ Flexible Schedule
-        <br />
-        ✔ Admin will assign your teacher and class timing after payment.
+       
       </div>
     </>
   )}

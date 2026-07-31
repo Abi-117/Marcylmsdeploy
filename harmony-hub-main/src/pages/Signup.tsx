@@ -517,102 +517,110 @@ const next = () => {
                 {/* STEP 2 */}
 
                 {step === 1 && (
-
-                  <div className="space-y-5">
-
-                    <div>
-
-                      <div className="text-xs font-semibold uppercase tracking-wider text-gold">
-
-                        Step 2 of 5
-
-                      </div>
-
-                      <h1 className="mt-2 font-display text-3xl">
-
-                        Pick your course
-
-                      </h1>
-
-                    </div>
-
-                    <div className="grid gap-3 sm:grid-cols-3">
-                      <div className="space-y-5">
-  {uniqueCourses.map((courseName) => {
-
-    const courseTypes = courses.filter(
-      (c: any) => c.name === courseName
-    );
-
-    return (
-      <div
-        key={courseName}
-        className="rounded-2xl border p-5"
-      >
-        <h2 className="text-xl font-bold mb-4">
-          {courseName}
-        </h2>
-
-        <div className="grid gap-3 sm:grid-cols-2">
-
-          {courseTypes.map((course: any) => (
-
-            <button
-              key={course._id}
-              type="button"
-              onClick={() =>
-                setData({
-                  ...data,
-                  course: course._id,
-                  classType: course.classMode,
-                  selectedLevel: "",
-                })
-              }
-              className={`rounded-xl border p-4 text-left transition ${
-                data.course === course._id
-                  ? "border-gold bg-gold-soft"
-                  : "border-border hover:border-gold/40"
-              }`}
-            >
-              <div className="flex justify-between">
-
-                <div>
-                  <div className="font-semibold">
-                    {course.classMode}
-                  </div>
-
-                  <div className="text-sm text-muted-foreground">
-                    ₹{course.fee}/month
-                  </div>
-                </div>
-
-                {course.classMode === "Group" && (
-                  <div className="text-xs text-right">
-                    Seats Left
-                    <br />
-                    {course.maxStudents - course.students}/
-                    {course.maxStudents}
-                  </div>
-                )}
-
-              </div>
-
-            </button>
-
-          ))}
-
-        </div>
-
+  <div className="space-y-8">
+    <div>
+      <div className="text-xs font-semibold uppercase tracking-wider text-gold">
+        Step 2 of 5
       </div>
-    );
 
-  })}
-</div>
+      <h1 className="mt-2 font-display text-3xl">
+        Choose Your Course
+      </h1>
 
+      <p className="mt-2 text-muted-foreground">
+        Select your favourite course and learning type.
+      </p>
     </div>
 
-  </div> 
+    <div className="space-y-8">
+      {uniqueCourses.map((courseName) => {
+        const courseTypes = courses.filter(
+          (c: any) => c.name === courseName
+        );
 
+        return (
+          <div
+            key={courseName}
+            className="rounded-3xl border border-border bg-card p-6 shadow-sm"
+          >
+            <h2 className="mb-6 text-2xl font-bold">
+              {courseName}
+            </h2>
+
+            <div className="grid gap-5 md:grid-cols-2">
+              {courseTypes.map((course: any) => (
+                <button
+                  key={course._id}
+                  type="button"
+                  onClick={() =>
+                    setData({
+                      ...data,
+                      course: course._id,
+                      classType: course.classMode,
+                      selectedLevel: "",
+                    })
+                  }
+                  className={`rounded-2xl border p-6 text-left transition-all duration-300 hover:-translate-y-1 hover:shadow-xl ${
+                    data.course === course._id
+                      ? "border-gold bg-gold-soft ring-2 ring-gold"
+                      : "border-border bg-background"
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-xl font-bold">
+                        {course.classMode}
+                      </h3>
+
+                      <p className="mt-2 text-3xl font-bold text-gold">
+                        ₹{course.fee}
+                      </p>
+
+                      <p className="text-sm text-muted-foreground">
+                        Per Month
+                      </p>
+                    </div>
+
+                    {data.course === course._id && (
+                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gold text-white">
+                        <Check className="h-5 w-5" />
+                      </div>
+                    )}
+                  </div>
+
+                  {course.classMode === "Group" && (
+                    <div className="mt-5 rounded-xl bg-muted p-3">
+                      <div className="flex justify-between text-sm">
+                        <span>Seats Left</span>
+
+                        <span className="font-bold">
+                          {course.maxStudents - course.students}/
+                          {course.maxStudents}
+                        </span>
+                      </div>
+
+                      <div className="mt-2 h-2 overflow-hidden rounded-full bg-border">
+                        <div
+                          className="h-full rounded-full bg-gold"
+                          style={{
+                            width: `${
+                              ((course.maxStudents - course.students) /
+                                course.maxStudents) *
+                              100
+                            }%`,
+                          }}
+                        />
+                      </div>
+                    </div>
+                  )}
+                </button>
+              ))}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  </div>
 )} 
 
        
