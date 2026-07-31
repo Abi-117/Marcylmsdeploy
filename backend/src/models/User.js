@@ -184,6 +184,21 @@ profileImage: {
   type: String,
   default: "",
 },
+classType: {
+  type: String,
+  enum: ["Individual", "Group"],
+  default: "Individual",
+},
+groupName: {
+  type: String,
+  default: "",
+},
+
+groupId: {
+  type: mongoose.Schema.Types.ObjectId,
+  ref: "GroupClass",
+  default: null,
+},
 
     // =========================
     // TEACHER

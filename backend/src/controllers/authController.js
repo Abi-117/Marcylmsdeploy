@@ -1,5 +1,5 @@
 // src/controllers/authController.js
-
+import Course from "../models/Course.js";
 import User from "../models/User.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
@@ -42,6 +42,26 @@ export const register = async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
+    // =========================
+// COURSE SEAT CHECK
+// =========================
+
+if (role === "student" && course) {
+  const selectedCourse = await Course.findById(course);
+
+  if (!selectedCourse) {
+    return res.status(404).json({
+      message: "Course not found",
+    });
+  }
+
+  if (selectedCourse.students >= selectedCourse.maxStudents) {
+    return res.status(400).json({
+      message: "This course is already full.",
+    });
+  }
+}
+
     const user = await User.create({
   name,
   email,
@@ -65,7 +85,17 @@ export const register = async (req, res) => {
 
   profileImage: image,
 });
+// =========================
+// INCREASE STUDENT COUNT
+// =========================
 
+if (role === "student" && course) {
+  await Course.findByIdAndUpdate(course, {
+    $inc: {
+      students: 1,
+    },
+  });
+}
     res.status(201).json({
       message: "Register Success",
       user,

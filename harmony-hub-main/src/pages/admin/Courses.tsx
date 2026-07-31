@@ -43,6 +43,8 @@ function AdminCourses() {
     fee: "",
 
     description: "",
+    classMode: "Both",
+  maxStudents: 3,
   });
 
   // ====================================
@@ -115,6 +117,8 @@ function AdminCourses() {
         grade: "Initial",
         fee: "",
         description: "",
+        classMode: "Both",
+        maxStudents: 3,
       });
 
       fetchCourses();
@@ -170,6 +174,8 @@ function AdminCourses() {
         grade: "Initial",
         fee: "",
         description: "",
+        classMode: "Both",
+        maxStudents: 3,
       });
 
       fetchCourses();
@@ -240,6 +246,9 @@ function AdminCourses() {
       fee: String(c.fee),
 
       description: c.description,
+     classMode: c.classMode || "Both",
+
+maxStudents: c.maxStudents || 3,
     });
 
     window.scrollTo({
@@ -449,6 +458,59 @@ function AdminCourses() {
             </div>
 
           </div>
+          
+          {/* CLASS MODE */}
+
+<div className="space-y-1.5">
+  <Label>Class Mode</Label>
+
+  <select
+    value={data.classMode}
+    className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+    onChange={(e) =>
+      setData({
+        ...data,
+        classMode: e.target.value,
+      })
+    }
+  >
+    <option value="Individual">
+      Individual
+    </option>
+
+    <option value="Group">
+      Group
+    </option>
+
+    <option value="Both">
+      Both
+    </option>
+  </select>
+</div>
+{/* MAX STUDENTS */}
+{
+  data.classMode !== "Individual" && (
+
+    <div className="space-y-1.5">
+
+      <Label>Maximum Students</Label>
+
+      <Input
+        type="number"
+        min={2}
+        value={data.maxStudents}
+        onChange={(e)=>
+          setData({
+            ...data,
+            maxStudents:Number(e.target.value)
+          })
+        }
+      />
+
+    </div>
+
+  )
+}
 
           {/* DESCRIPTION */}
 
@@ -510,6 +572,8 @@ function AdminCourses() {
                     grade: "Initial",
                     fee: "",
                     description: "",
+                    classMode: "Both",
+                    maxStudents: 3,
                   });
 
                 }}
@@ -625,6 +689,36 @@ function AdminCourses() {
                 </div>
 
               </div>
+              <div className="flex items-center justify-between">
+
+  <span className="text-muted-foreground">
+    Class Mode
+  </span>
+
+  <Badge variant="secondary">
+   {c.classMode}
+</Badge>
+
+</div>
+{
+  c.classMode !== "Individual" && (
+
+    <div className="flex items-center justify-between">
+
+      <span className="text-muted-foreground">
+        Max Students
+      </span>
+
+      <span className="font-medium">
+
+        {c.maxStudents}
+
+      </span>
+
+    </div>
+
+  )
+}
 
               {/* DESCRIPTION */}
 

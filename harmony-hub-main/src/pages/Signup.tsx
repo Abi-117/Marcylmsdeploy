@@ -79,6 +79,7 @@ const getNextHour = (time: string) => {
 
     // selected level
     selectedLevel: "",
+    classType: "",
   });
 
   // ====================================
@@ -205,11 +206,12 @@ const next = () => {
   if (step === 2) {
 
     if (
-      !data.mode ||
-      data.availableDays.length === 0 ||
-      !data.fromTime ||
-      !data.toTime
-    ) {
+  !data.mode ||
+  !data.classType ||
+  data.availableDays.length === 0 ||
+  !data.fromTime ||
+  !data.toTime
+) {
       alert(
         "Please complete schedule details"
       );
@@ -284,6 +286,7 @@ const next = () => {
           level: data.selectedLevel,
           batch: selectedGradeCourse?.grade,
           mode: data.mode,
+          classType: data.classType,
           fromTime: data.fromTime,
           toTime: data.toTime,
           availableDays: data.availableDays,
@@ -635,6 +638,38 @@ const next = () => {
         ))}
       </div>
     </div>
+    {/* CLASS TYPE */}
+
+<div>
+  <Label>Class Type</Label>
+
+  <div className="mt-3 grid grid-cols-2 gap-3">
+
+    {["Individual", "Group"].map((type) => (
+
+      <button
+        key={type}
+        type="button"
+        onClick={() =>
+          setData((prev) => ({
+            ...prev,
+            classType: type,
+          }))
+        }
+        className={`rounded-xl border p-4 transition-all ${
+          data.classType === type
+            ? "border-gold bg-gold-soft"
+            : "border-border"
+        }`}
+      >
+        {type}
+      </button>
+
+    ))}
+
+  </div>
+
+</div>
 
     {/* CLASS DURATION */}
     <div className="rounded-xl border border-gold/30 bg-gold-soft p-4">

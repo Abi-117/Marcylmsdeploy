@@ -28,54 +28,63 @@ router.get("/", async (req, res) => {
 
 // CREATE COURSE
 
+// CREATE COURSE
+
 router.post("/", async (req, res) => {
-
   try {
+    const courseData = {
+      ...req.body,
+    };
 
-    const newCourse = new Course(
-      req.body
-    );
+    // Individual course = only 1 student
+    if (courseData.classMode === "Individual") {
+      courseData.maxStudents = 1;
+    }
+
+    const newCourse = new Course(courseData);
 
     await newCourse.save();
 
     res.json({
       message: "Course Added",
+      course: newCourse,
     });
-
   } catch (error) {
+    console.log(error);
 
     res.status(500).json({
       message: "Server Error",
     });
-
   }
-
 });
-
 
 // UPDATE COURSE
 
 router.put("/:id", async (req, res) => {
-
   try {
+    const updateData = {
+      ...req.body,
+    };
 
-    const updatedCourse =
-      await Course.findByIdAndUpdate(
-        req.params.id,
-        req.body,
-        { new: true }
-      );
+    // Individual course = only 1 student
+    if (updateData.classMode === "Individual") {
+      updateData.maxStudents = 1;
+    }
+
+    const updatedCourse = await Course.findByIdAndUpdate(
+      req.params.id,
+      updateData,
+      { new: true }
+    );
 
     res.json(updatedCourse);
-
   } catch (error) {
+    console.log(error);
 
     res.status(500).json({
       message: "Server Error",
     });
-
   }
-
 });
 
 
