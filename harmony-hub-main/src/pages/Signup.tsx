@@ -120,16 +120,19 @@ const getNextHour = (time: string) => {
   const selectedCourse = courses.find(
     (c: any) => c._id === data.course
   );
-
+const uniqueCourses = [
+  ...new Set(courses.map((c: any) => c.name)),
+];
   // ====================================
   // SELECTED LEVEL COURSE
   // ====================================
 
   const selectedGradeCourse = courses.find(
-    (c: any) =>
-      c.name === selectedCourse?.name &&
-      c.mainLevel === data.selectedLevel
-  );
+  (c: any) =>
+    c.name === selectedCourse?.name &&
+    c.classMode === selectedCourse?.classMode &&
+    c.mainLevel === data.selectedLevel
+);
 
   // ====================================
   // DAYS
@@ -286,7 +289,7 @@ const next = () => {
           level: data.selectedLevel,
           batch: selectedGradeCourse?.grade,
           mode: data.mode,
-          classType: data.classType,
+          classType: selectedGradeCourse?.classMode,
           fromTime: data.fromTime,
           toTime: data.toTime,
           availableDays: data.availableDays,
@@ -536,60 +539,86 @@ const next = () => {
                     </div>
 
                     <div className="grid gap-3 sm:grid-cols-3">
+                      <div className="space-y-5">
+  {uniqueCourses.map((courseName) => {
 
-                      {[
-                        ...new Map(
-                          courses.map(
-                            (c: any) => [
-                              c.name,
-                              c,
-                            ]
-                          )
-                        ).values(),
-                      ].map((c: any) => (
+    const courseTypes = courses.filter(
+      (c: any) => c.name === courseName
+    );
 
-                        <button
-                          key={c._id}
-                          type="button"
-                          onClick={() =>
-                            setData({
-                              ...data,
-                              course:
-                                c._id,
-                              selectedLevel:
-                                "",
-                            })
-                          }
-                          className={`rounded-xl border p-5 text-left transition-all ${
-                            data.course ===
-                            c._id
-                              ? "border-gold bg-gold-soft"
-                              : "border-border hover:border-gold/40"
-                          }`}
-                        >
+    return (
+      <div
+        key={courseName}
+        className="rounded-2xl border p-5"
+      >
+        <h2 className="text-xl font-bold mb-4">
+          {courseName}
+        </h2>
 
-                          <div className="font-medium text-lg">
+        <div className="grid gap-3 sm:grid-cols-2">
 
-                            {c.name}
+          {courseTypes.map((course: any) => (
 
-                          </div>
+            <button
+              key={course._id}
+              type="button"
+              onClick={() =>
+                setData({
+                  ...data,
+                  course: course._id,
+                  classType: course.classMode,
+                  selectedLevel: "",
+                })
+              }
+              className={`rounded-xl border p-4 text-left transition ${
+                data.course === course._id
+                  ? "border-gold bg-gold-soft"
+                  : "border-border hover:border-gold/40"
+              }`}
+            >
+              <div className="flex justify-between">
 
-                          <div className="mt-1 text-xs text-muted-foreground">
-
-                            {c.category}
-
-                          </div>
-
-                        </button>
-
-                      ))}
-
-                    </div>
-
+                <div>
+                  <div className="font-semibold">
+                    {course.classMode}
                   </div>
 
+                  <div className="text-sm text-muted-foreground">
+                    ₹{course.fee}/month
+                  </div>
+                </div>
+
+                {course.classMode === "Group" && (
+                  <div className="text-xs text-right">
+                    Seats Left
+                    <br />
+                    {course.maxStudents - course.students}/
+                    {course.maxStudents}
+                  </div>
                 )}
 
+              </div>
+
+            </button>
+
+          ))}
+
+        </div>
+
+      </div>
+    );
+
+  })}
+</div>
+
+           
+
+                  
+
+
+                        
+
+     
                 {/* STEP 3 */}
 
                 {/* STEP 3 */}
@@ -638,38 +667,9 @@ const next = () => {
         ))}
       </div>
     </div>
-    {/* CLASS TYPE */}
+ 
 
-<div>
-  <Label>Class Type</Label>
 
-  <div className="mt-3 grid grid-cols-2 gap-3">
-
-    {["Individual", "Group"].map((type) => (
-
-      <button
-        key={type}
-        type="button"
-        onClick={() =>
-          setData((prev) => ({
-            ...prev,
-            classType: type,
-          }))
-        }
-        className={`rounded-xl border p-4 transition-all ${
-          data.classType === type
-            ? "border-gold bg-gold-soft"
-            : "border-border"
-        }`}
-      >
-        {type}
-      </button>
-
-    ))}
-
-  </div>
-
-</div>
 
     {/* CLASS DURATION */}
     <div className="rounded-xl border border-gold/30 bg-gold-soft p-4">
@@ -785,14 +785,12 @@ const next = () => {
                       "Advanced",
                     ].map((level) => {
 
-                      const levelCourses =
-                        courses.filter(
-                          (c: any) =>
-                            c.name ===
-                              selectedCourse?.name &&
-                            c.mainLevel ===
-                              level
-                        );
+                      const levelCourses = courses.filter(
+  (c: any) =>
+    c.name === selectedCourse?.name &&
+    c.classMode === selectedCourse?.classMode &&
+    c.mainLevel === level
+);
 
                       if (
                         levelCourses.length ===
