@@ -43,7 +43,7 @@ function AdminCourses() {
     fee: "",
 
     description: "",
-    classMode: "Both",
+    classMode: "Individual",
   maxStudents: 3,
   });
 
@@ -117,7 +117,7 @@ function AdminCourses() {
         grade: "Initial",
         fee: "",
         description: "",
-        classMode: "Both",
+        classMode: "Individual",
         maxStudents: 3,
       });
 
@@ -174,7 +174,7 @@ function AdminCourses() {
         grade: "Initial",
         fee: "",
         description: "",
-        classMode: "Both",
+        classMode: "Individual",
         maxStudents: 3,
       });
 
@@ -246,7 +246,7 @@ function AdminCourses() {
       fee: String(c.fee),
 
       description: c.description,
-     classMode: c.classMode || "Both",
+     classMode: c.classMode || "Individual",
 
 maxStudents: c.maxStudents || 3,
     });
@@ -465,27 +465,23 @@ maxStudents: c.maxStudents || 3,
   <Label>Class Mode</Label>
 
   <select
-    value={data.classMode}
-    className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-    onChange={(e) =>
-      setData({
-        ...data,
-        classMode: e.target.value,
-      })
-    }
-  >
-    <option value="Individual">
-      Individual
-    </option>
+  value={data.classMode}
+  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+  onChange={(e) =>
+    setData({
+      ...data,
+      classMode: e.target.value,
+    })
+  }
+>
+  <option value="Individual">
+    Individual
+  </option>
 
-    <option value="Group">
-      Group
-    </option>
-
-    <option value="Both">
-      Both
-    </option>
-  </select>
+  <option value="Group">
+    Group
+  </option>
+</select>
 </div>
 {/* MAX STUDENTS */}
 {
@@ -572,7 +568,7 @@ maxStudents: c.maxStudents || 3,
                     grade: "Initial",
                     fee: "",
                     description: "",
-                    classMode: "Both",
+                    classMode: "Individual",
                     maxStudents: 3,
                   });
 

@@ -532,94 +532,54 @@ const next = () => {
       </p>
     </div>
 
-    <div className="space-y-8">
-      {uniqueCourses.map((courseName) => {
-        const courseTypes = courses.filter(
-          (c: any) => c.name === courseName
-        );
+    <div className="grid gap-4 sm:grid-cols-2">
+  {uniqueCourses.map((courseName) => {
+    const courseTypes = courses.filter(
+      (c: any) => c.name === courseName
+    );
 
-        return (
-          <div
-            key={courseName}
-            className="rounded-3xl border border-border bg-card p-6 shadow-sm"
-          >
-            <h2 className="mb-6 text-2xl font-bold">
-              {courseName}
-            </h2>
+    return (
+      <div
+        key={courseName}
+        className="rounded-xl border border-border bg-card p-5"
+      >
+        <h2 className="mb-4 text-lg font-semibold">
+          {courseName}
+        </h2>
 
-            <div className="grid gap-5 md:grid-cols-2">
-              {courseTypes.map((course: any) => (
-                <button
-                  key={course._id}
-                  type="button"
-                  onClick={() =>
-                    setData({
-                      ...data,
-                      course: course._id,
-                      classType: course.classMode,
-                      selectedLevel: "",
-                    })
-                  }
-                  className={`rounded-2xl border p-6 text-left transition-all duration-300 hover:-translate-y-1 hover:shadow-xl ${
-                    data.course === course._id
-                      ? "border-gold bg-gold-soft ring-2 ring-gold"
-                      : "border-border bg-background"
-                  }`}
-                >
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h3 className="text-xl font-bold">
-                        {course.classMode}
-                      </h3>
+        <div className="space-y-2">
+          {courseTypes.map((course: any) => (
+            <button
+              key={course._id}
+              type="button"
+              onClick={() =>
+                setData({
+                  ...data,
+                  course: course._id,
+                  classType: course.classMode,
+                  selectedLevel: "",
+                })
+              }
+              className={`flex w-full items-center justify-between rounded-lg border px-4 py-3 transition-all ${
+                data.course === course._id
+                  ? "border-gold bg-gold-soft"
+                  : "border-border hover:border-gold hover:bg-muted/40"
+              }`}
+            >
+              <span className="font-medium">
+                {course.classMode}
+              </span>
 
-                      <p className="mt-2 text-3xl font-bold text-gold">
-                        ₹{course.fee}
-                      </p>
-
-                      <p className="text-sm text-muted-foreground">
-                        Per Month
-                      </p>
-                    </div>
-
-                    {data.course === course._id && (
-                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gold text-white">
-                        <Check className="h-5 w-5" />
-                      </div>
-                    )}
-                  </div>
-
-                  {course.classMode === "Group" && (
-                    <div className="mt-5 rounded-xl bg-muted p-3">
-                      <div className="flex justify-between text-sm">
-                        <span>Seats Left</span>
-
-                        <span className="font-bold">
-                          {course.maxStudents - course.students}/
-                          {course.maxStudents}
-                        </span>
-                      </div>
-
-                      <div className="mt-2 h-2 overflow-hidden rounded-full bg-border">
-                        <div
-                          className="h-full rounded-full bg-gold"
-                          style={{
-                            width: `${
-                              ((course.maxStudents - course.students) /
-                                course.maxStudents) *
-                              100
-                            }%`,
-                          }}
-                        />
-                      </div>
-                    </div>
-                  )}
-                </button>
-              ))}
-            </div>
-          </div>
-        );
-      })}
-    </div>
+              {data.course === course._id && (
+                <Check className="h-4 w-4 text-gold" />
+              )}
+            </button>
+          ))}
+        </div>
+      </div>
+    );
+  })}
+</div>
   </div>
 )} 
 
