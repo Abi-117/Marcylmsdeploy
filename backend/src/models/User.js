@@ -1,43 +1,43 @@
 import mongoose from "mongoose";
 
-const paymentSchema = new mongoose.Schema(
-  {
-    level: {
-      type: String,
-    },
-    courseId: {
-      type: String, // 🔥 ADD THIS (IMPORTANT)
-      required: true,
-    },
+// const paymentSchema = new mongoose.Schema(
+//   {
+//     level: {
+//       type: String,
+//     },
+//     courseId: {
+//       type: String, // 🔥 ADD THIS (IMPORTANT)
+//       required: true,
+//     },
 
 
-    amount: {
-      type: Number,
-    },
+//     amount: {
+//       type: Number,
+//     },
 
-    paymentId: {
-      type: String,
-    },
+//     paymentId: {
+//       type: String,
+//     },
 
-    orderId: {
-      type: String,
-    },
+//     orderId: {
+//       type: String,
+//     },
 
-    status: {
-      type: String,
-      enum: ["Pending", "Paid"],
-      default: "Pending",
-    },
+//     status: {
+//       type: String,
+//       enum: ["Pending", "Paid"],
+//       default: "Pending",
+//     },
 
-    createdAt: {
-      type: Date,
-      default: Date.now,
-    },
-  },
-  {
-    _id: false,
-  }
-);
+//     createdAt: {
+//       type: Date,
+//       default: Date.now,
+//     },
+//   },
+//   {
+//     _id: false,
+//   }
+// );
 
 const userSchema = new mongoose.Schema(
   {
@@ -71,15 +71,29 @@ const userSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
+    levelHistory: [
+  {
+    course: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Course",
+    },
+    grade: String,
+    paidAt: {
+      type: Date,
+      default: Date.now,
+    },
+  },
+],
 
     // =========================
     // STUDENT
     // =========================
 
     course: {
-      type: String,
-      default: "",
-    },
+  type: mongoose.Schema.Types.ObjectId,
+  ref: "Course",
+  default: null,
+},
 
     selectedLevel: {
   type: String,
@@ -160,10 +174,6 @@ lastReminderSent: {
 feesReminderSent: {
   type: Boolean,
   default: false,
-},
-profileImage: {
-  type: String,
-  default: ""
 },
 
 parentName: {

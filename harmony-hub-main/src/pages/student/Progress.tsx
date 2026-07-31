@@ -253,33 +253,16 @@ useEffect(() => {
 
               try {
 
-                await axios.post(
-                  `${API}/payments/verify`,
-                  {
-
-                    razorpay_order_id:
-                      response.razorpay_order_id,
-
-                    razorpay_payment_id:
-                      response.razorpay_payment_id,
-
-                    razorpay_signature:
-                      response.razorpay_signature,
-
-                    userId:
-                      user?._id,
-
-                    courseId:
-                      selectedCourse._id,
-
-                    amount:
-                      selectedCourse.fee,
-
-                    level:
-                      selectedCourse.mainLevel,
-
-                  }
-                );
+                await axios.post(`${API}/payments/verify`, {
+  razorpay_order_id: response.razorpay_order_id,
+  razorpay_payment_id: response.razorpay_payment_id,
+  razorpay_signature: response.razorpay_signature,
+  userId: user?._id,
+  courseId: selectedCourse._id,
+  amount: selectedCourse.fee,
+  level: selectedCourse.mainLevel,
+  classType: user?.classType,
+});
 
                 alert(
   user?.classType === "Group"

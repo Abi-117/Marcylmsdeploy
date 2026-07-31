@@ -77,14 +77,14 @@ router.post("/verify", async (req, res) => {
   try {
 
     const {
-      razorpay_order_id,
-      razorpay_payment_id,
-      razorpay_signature,
-      userId,
-      courseId,
-      amount,
-    } = req.body;
-
+  razorpay_order_id,
+  razorpay_payment_id,
+  razorpay_signature,
+  userId,
+  courseId,
+  amount,
+  classType,
+} = req.body;
     // ====================================
     // VALIDATION
     // ====================================
@@ -186,19 +186,21 @@ if (existingPayment) {
     // ====================================
     // CREATE PAYMENT
     // ====================================
+const payment = await Payment.create({
+  student: userId,
+  course: courseId,
+  level: course.mainLevel,
+  amount: Number(amount),
 
-   const payment =
-  await Payment.create({
-    student: userId,
-    course: courseId,
-    level: course.mainLevel,
-    amount: Number(amount),
-    status: "Paid",
-    paidAt: new Date(),
+  paymentId: razorpay_payment_id,
+  orderId: razorpay_order_id,
 
-    paymentId: razorpay_payment_id,
-    orderId: razorpay_order_id,
-  });
+  status: "Paid",
+  paidAt: new Date(),
+
+  paymentGateway: "razorpay",
+  classType: req.body.classType || "Individual",
+});
 
     // ====================================
     // UPDATE USER
@@ -788,32 +790,18 @@ router.post(
           courseId
         );
 
-      const payment =
-        await Payment.create({
-
-          student: userId,
-
-          course: courseId,
-
-          amount,
-
-          status: "Paid",
-
-          paymentId:
-            capture.result.id,
-
-          orderId,
-
-          paymentGateway:
-            "paypal",
-
-          paymentCountry:
-            country,
-
-          paidAt:
-            new Date(),
-
-        });
+        const payment = await Payment.create({
+  student: userId,
+  course: courseId,
+  amount,
+  status: "Paid",
+  paymentId: capture.result.id,
+  orderId,
+  paymentGateway: "paypal",
+  paymentCountry: country,
+  classType: classType || "Individual",
+  paidAt: new Date(),
+});
 
       res.json({
         success: true,
