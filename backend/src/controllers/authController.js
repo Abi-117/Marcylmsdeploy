@@ -12,17 +12,25 @@ import { sendOTPEmail } from "../utils/mailer.js";
 export const register = async (req, res) => {
   try {
     const {
-      name,
-      email,
-      password,
-      role,
-      phone,
-      course,
-      timing,
-      mode,
-      exp,
-      qualification,
-    } = req.body;
+  name,
+  email,
+  password,
+  role,
+  phone,
+  course,
+  mode,
+  exp,
+  qualification,
+
+  level,
+  batch,
+  fromTime,
+  toTime,
+  availableDays,
+  parentName,
+  address,
+  image,
+} = req.body;
 
     const existingUser = await User.findOne({ email });
 
@@ -35,17 +43,28 @@ export const register = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const user = await User.create({
-      name,
-      email,
-      password: hashedPassword,
-      role,
-      phone,
-      course,
-      timing,
-      mode,
-      exp,
-      qualification,
-    });
+  name,
+  email,
+  password: hashedPassword,
+  role,
+  phone,
+  course,
+
+  mode,
+  exp,
+  qualification,
+
+  level,
+  batch,
+  fromTime,
+  toTime,
+  availableDays,
+
+  parentName,
+  address,
+
+  profileImage: image,
+});
 
     res.status(201).json({
       message: "Register Success",
