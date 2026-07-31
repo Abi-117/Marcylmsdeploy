@@ -189,7 +189,7 @@ function Marquee() {
 function Programs() {
   const [courses, setCourses] = useState([]);
   const [selectedCourse, setSelectedCourse] = useState<string | null>(null);
-  const [selectedCourse, setSelectedCourse] = useState<string | null>(null);
+  
 
 const [selectedMode, setSelectedMode] = useState<{
   [key: string]: string;
