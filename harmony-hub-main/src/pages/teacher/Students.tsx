@@ -167,6 +167,25 @@ export default function TeacherStudents() {
                     </span>
                   </div>
                 </div>
+                <div className="mt-1 flex flex-wrap gap-2">
+  <span
+    className={`rounded-full px-2 py-1 text-xs font-medium ${
+      s.classType === "Group"
+        ? "bg-blue-100 text-blue-700"
+        : "bg-green-100 text-green-700"
+    }`}
+  >
+    {s.classType === "Group"
+      ? "👥 Group Student"
+      : "👤 Individual Student"}
+  </span>
+
+  {s.classType === "Group" && s.groupName && (
+    <span className="rounded-full bg-purple-100 px-2 py-1 text-xs font-medium text-purple-700">
+      {s.groupName}
+    </span>
+  )}
+</div>
 
                 {/* ========================= */}
                 {/* LEVEL HISTORY (REAL DATA) */}

@@ -150,7 +150,24 @@ export default function TeacherSchedule() {
                         s.fromTime === hour
 
                     );
+                    const groupedStudents = matchedStudents.reduce(
+  (acc: any, student: any) => {
+    if (student.classType === "Group") {
+      const group = student.groupName || "Group";
 
+      if (!acc[group]) acc[group] = [];
+
+      acc[group].push(student);
+    }
+
+    return acc;
+  },
+  {}
+);
+
+const individualStudents = matchedStudents.filter(
+  (s: any) => s.classType !== "Group"
+);
                   return (
 
                     <div
@@ -160,44 +177,95 @@ export default function TeacherSchedule() {
 
                       <div className="space-y-2">
 
-                        {matchedStudents.map(
-                          (s: any) => (
+  {/* GROUP CLASSES */}
 
-                            <div
-                              key={s._id}
-                              className="rounded-lg border border-gold/30 bg-gold-soft p-2 text-[11px]"
-                            >
+  {Object.entries(groupedStudents).map(
+    ([groupName, members]: any) => (
 
-                              <div className="font-semibold">
+      <div
+        key={groupName}
+        className="rounded-lg border border-blue-300 bg-blue-50 p-2"
+      >
+        <div className="flex items-center justify-between">
 
-                                {s.name}
+          <div className="font-semibold text-blue-700">
+            👥 {groupName}
+          </div>
 
-                              </div>
+          <span className="rounded bg-blue-600 px-2 py-0.5 text-[9px] text-white">
+            {members.length} Students
+          </span>
 
-                              <div className="text-muted-foreground">
+        </div>
 
-                                {s.courseName}
+        <div className="mt-2 space-y-1">
 
-                              </div>
+          {members.map((student: any) => (
 
-                              <div className="text-muted-foreground">
+            <div
+              key={student._id}
+              className="rounded bg-white p-1 text-[10px]"
+            >
+              <div className="font-medium">
+                {student.name}
+              </div>
 
-                                {s.selectedLevel}
+              <div className="text-gray-500">
+                {student.selectedLevel}
+              </div>
+            </div>
 
-                              </div>
+          ))}
 
-                              <div className="mt-1 text-[10px]">
+        </div>
 
-                                {s.fromTime} - {s.toTime}
+        <div className="mt-2 text-[10px] text-gray-500">
+          {members[0].fromTime} - {members[0].toTime}
+        </div>
 
-                              </div>
+      </div>
 
-                            </div>
+    )
+  )}
 
-                          )
-                        )}
+  {/* INDIVIDUAL CLASSES */}
 
-                      </div>
+  {individualStudents.map((s: any) => (
+
+    <div
+      key={s._id}
+      className="rounded-lg border border-gold/30 bg-gold-soft p-2"
+    >
+
+      <div className="flex items-center justify-between">
+
+        <div className="font-semibold">
+          {s.name}
+        </div>
+
+        <span className="rounded bg-green-600 px-2 py-0.5 text-[9px] text-white">
+          Individual
+        </span>
+
+      </div>
+
+      <div className="text-muted-foreground">
+        {s.courseName}
+      </div>
+
+      <div className="text-muted-foreground">
+        {s.selectedLevel}
+      </div>
+
+      <div className="mt-1 text-[10px]">
+        {s.fromTime} - {s.toTime}
+      </div>
+
+    </div>
+
+  ))}
+
+</div>
 
                     </div>
 

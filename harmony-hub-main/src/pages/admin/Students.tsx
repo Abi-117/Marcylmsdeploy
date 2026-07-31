@@ -610,6 +610,13 @@ function AdminStudents() {
                   <th className="px-5 py-3">
                     Grade
                   </th>
+                  <th className="px-5 py-3">
+  Type
+</th>
+
+<th className="px-5 py-3">
+  Group
+</th>
 
                   <th className="px-5 py-3">
                     Phone
@@ -630,7 +637,7 @@ function AdminStudents() {
                   <tr>
 
                     <td
-                      colSpan={6}
+                      colSpan={8}
                       className="px-5 py-10 text-center text-muted-foreground"
                     >
                       Loading students...
@@ -643,7 +650,7 @@ function AdminStudents() {
                   <tr>
 
                     <td
-                      colSpan={6}
+                      colSpan={8}
                       className="px-5 py-10 text-center text-muted-foreground"
                     >
                       No students found
@@ -724,6 +731,27 @@ function AdminStudents() {
                         <td className="px-5 py-4 text-muted-foreground">
                           {s.batch || "-"}
                         </td>
+                        {/* CLASS TYPE */}
+
+<td className="px-5 py-4">
+  <span
+    className={`rounded-full px-3 py-1 text-xs font-semibold ${
+      s.classType === "Group"
+        ? "bg-blue-100 text-blue-700"
+        : "bg-green-100 text-green-700"
+    }`}
+  >
+    {s.classType || "Individual"}
+  </span>
+</td>
+
+{/* GROUP */}
+
+<td className="px-5 py-4">
+  {s.classType === "Group"
+    ? s.groupName || "-"
+    : "-"}
+</td>
 
                         {/* PHONE */}
 
@@ -848,6 +876,27 @@ function AdminStudents() {
             {selectedStudent.batch || "-"}
           </p>
         </div>
+        <div>
+  <p className="text-xs text-muted-foreground">
+    Student Type
+  </p>
+
+  <p className="font-medium">
+    {selectedStudent.classType || "Individual"}
+  </p>
+</div>
+
+<div>
+  <p className="text-xs text-muted-foreground">
+    Group Name
+  </p>
+
+  <p className="font-medium">
+    {selectedStudent.classType === "Group"
+      ? selectedStudent.groupName || "-"
+      : "-"}
+  </p>
+</div>
 
         <div>
           <p className="text-xs text-muted-foreground">Parent Name</p>
