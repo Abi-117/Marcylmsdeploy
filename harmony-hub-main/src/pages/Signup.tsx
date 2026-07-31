@@ -297,8 +297,6 @@ const next = () => {
           // 👇 NEW CLOUD IMAGE
           image: imageUrl,
 
-          address: data.address,
-          parentName: data.parentName,
         }),
       }
     );
@@ -611,9 +609,13 @@ const next = () => {
   })}
 </div>
 
-           
+    </div>
 
-                  
+  </div> 
+
+)} 
+
+       
 
 
                         
