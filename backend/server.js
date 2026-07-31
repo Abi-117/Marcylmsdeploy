@@ -32,7 +32,7 @@ import feedbackRouter from "./src/routes/feedback.js";
 import certificateRoutes from "./src/routes/certificate.routes.js";
 import notificationRoutes from "./src/routes/notificationRoutes.js";
 import profileRoutes from "./src/routes/profileRoutes.js";
-import timeSlotRoutes from "./routes/timeSlotRoutes.js";
+import timeSlotRoutes from "./src/routes/timeSlotRoutes.js";
 
 const app = express();
 
