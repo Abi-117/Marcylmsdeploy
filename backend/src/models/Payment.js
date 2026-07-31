@@ -65,6 +65,11 @@ paymentCountry: {
   type: String,
   default: "India",
 },
+classType: {
+  type: String,
+  enum: ["Individual", "Group"],
+  required: true,
+},
 
   },
   {

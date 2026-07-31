@@ -13,7 +13,130 @@ const router = express.Router();
 // ======================================
 // TEACHER DASHBOARD
 // ======================================
+router.get("/teacher/dashboard/:teacherId", async (req, res) => {
+  try {
+    const teacher = await Teacher.findById(req.params.teacherId);
 
+    if (!teacher) {
+      return res.status(404).json({ message: "Teacher not found" });
+    }
+
+    const students = await Student.find({
+      teacher: teacher._id,
+      paymentStatus: "Paid",
+      classType: teacher.classType,
+    }).populate("payments");
+
+    const classes = await Class.find({
+      teacher: teacher._id,
+    })
+      .populate("students")
+      .sort({ date: 1 });
+
+    res.json({
+      students,
+      classes,
+      stats: {
+        students: students.length,
+        totalClasses: classes.length,
+        todayClasses: classes.filter(
+          (c) =>
+            new Date(c.date).toDateString() ===
+            new Date().toDateString()
+        ).length,
+        completedClasses: classes.filter(
+          (c) => c.status === "Completed"
+        ).length,
+        pendingReviews: 0,
+        certificates: 0,
+      },
+    });
+  } catch (err) {
+    res.status(500).json(err);
+  }
+});
+router.get("/student/teacher/:teacherId", async (req, res) => {
+  try {
+    const teacher = await Teacher.findById(req.params.teacherId);
+
+    if (!teacher) {
+      return res.status(404).json({
+        message: "Teacher not found",
+      });
+    }
+
+    const query = {
+      teacher: teacher._id,
+      classType: teacher.classType,
+    };
+
+    if (
+      req.query.status &&
+      req.query.status !== "all"
+    ) {
+      query.paymentStatus =
+        req.query.status === "paid"
+          ? "Paid"
+          : "Pending";
+    }
+
+    const students = await Student.find(query)
+      .populate({
+        path: "payments",
+        populate: {
+          path: "course",
+        },
+      });
+
+    res.json(students);
+  } catch (err) {
+    res.status(500).json(err);
+  }
+});
+
+router.get("/classes/teacher/:teacherId", async (req, res) => {
+  try {
+    const teacher = await Teacher.findById(
+      req.params.teacherId
+    );
+
+    let classes = await Class.find({
+      teacher: teacher._id,
+    })
+      .populate("teacher")
+      .populate("students");
+
+    classes = classes.map((cls) => ({
+      ...cls.toObject(),
+      students: cls.students.filter(
+        (s) =>
+          s.classType === teacher.classType &&
+          s.paymentStatus === "Paid"
+      ),
+    }));
+
+    res.json(classes);
+  } catch (err) {
+    res.status(500).json(err);
+  }
+});
+
+router.get("/teacher-attendance/:teacherId", async (req, res) => {
+  try {
+    const teacher = await Teacher.findById(
+      req.params.teacherId
+    );
+
+    const attendance = await Attendance.find({
+      teacher: teacher._id,
+      classType: teacher.classType,
+    });
+
+    res.json(attendance);
+  } catch (err) {
+    res.status(500).json(err);
+  }
+});
 router.get(
   "/dashboard/:teacherId",
   async (req, res) => {

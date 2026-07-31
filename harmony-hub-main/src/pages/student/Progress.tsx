@@ -32,6 +32,7 @@ function StudentProgress() {
 
   const user =
     useAuth((s) => s.user);
+    const isGroupStudent = user?.classType === "Group";
 
   const [courses, setCourses] =
     useState<any[]>([]);
@@ -281,8 +282,10 @@ useEffect(() => {
                 );
 
                 alert(
-                  "Payment Successful"
-                );
+  user?.classType === "Group"
+    ? "Payment Successful.\nYou have been added to the Group Batch waiting list."
+    : "Payment Successful.\nAdmin will assign your teacher and schedule soon."
+);
                 localStorage.removeItem("ms-auth");
                 window.location.reload();
 
@@ -351,12 +354,12 @@ useEffect(() => {
 
     const { data } =
       await axios.post(
-        `${API}/payments/paypal/create-order`,
-        {
-          amount:
-            selectedCourse.fee,
-        }
-      );
+  `${API}/payments/paypal/create-order`,
+  {
+    amount: selectedCourse.fee,
+    classType: user?.classType,
+  }
+);
 
     window.location.href =
       data.approvalUrl;
@@ -597,35 +600,74 @@ useEffect(() => {
               </div>
 
               <div className="mt-2 text-sm text-muted-foreground">
+  {user?.classType === "Group"
+    ? "Complete payment to reserve your seat in the group batch."
+    : "Complete payment to book your individual one-to-one class."}
+</div>
 
-                Complete payment to unlock this course
+<div className="mt-6 rounded-xl border p-4 space-y-3">
 
-              </div>
+  <div className="flex items-center justify-between">
+    <span className="font-medium">
+      Course
+    </span>
 
-              <div className="mt-6 rounded-xl border p-4">
+    <span>
+      {selectedCourse.grade}
+    </span>
+  </div>
 
-                <div className="flex items-center justify-between">
+  <div className="flex items-center justify-between">
+    <span className="font-medium">
+      Class Type
+    </span>
 
-                  <span className="font-medium">
+    <Badge>
+      {user?.classType}
+    </Badge>
+  </div>
 
-                    {
-                      selectedCourse.grade
-                    }
+  {user?.classType === "Group" ? (
+    <>
+      <div className="flex items-center justify-between">
+        <span>Maximum Students</span>
 
-                  </span>
+        <span>
+          {selectedCourse.maxStudents}
+        </span>
+      </div>
 
-                  <span className="font-bold">
+      <div className="rounded-lg bg-muted p-3 text-xs text-muted-foreground">
+        ✔ You will be added to a Group Batch after payment.
+        <br />
+        ✔ Admin will assign the batch, teacher and meeting link.
+      </div>
+    </>
+  ) : (
+    <>
+      <div className="rounded-lg bg-muted p-3 text-xs text-muted-foreground">
+        ✔ One-to-One Live Classes
+        <br />
+        ✔ Personal Teacher
+        <br />
+        ✔ Flexible Schedule
+        <br />
+        ✔ Admin will assign your teacher and class timing after payment.
+      </div>
+    </>
+  )}
 
-                    ₹
-                    {
-                      selectedCourse.fee
-                    }
+  <div className="flex items-center justify-between border-t pt-3">
+    <span className="font-semibold">
+      Monthly Fee
+    </span>
 
-                  </span>
+    <span className="text-xl font-bold">
+      ₹{selectedCourse.fee}
+    </span>
+  </div>
 
-                </div>
-
-              </div>
+</div>
 
               {country === "India" ? (
 
