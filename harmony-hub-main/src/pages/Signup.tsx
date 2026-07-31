@@ -27,6 +27,7 @@ function Signup() {
 
   const navigate = useNavigate();
   const [image, setImage] = useState<File | null>(null);
+  const [slots, setSlots] = useState([]);
   const uploadImage = async () => {
   const formData = new FormData();
   formData.append("file", image as any);
@@ -43,15 +44,15 @@ function Signup() {
   const data = await res.json();
   return data.secure_url;
 };
-const getNextHour = (time: string) => {
-  const index = timeSlots.indexOf(time);
+// const getNextHour = (time: string) => {
+//   const index = timeSlots.indexOf(time);
 
-  if (index !== -1 && index < timeSlots.length - 1) {
-    return timeSlots[index + 1];
-  }
+//   if (index !== -1 && index < timeSlots.length - 1) {
+//     return timeSlots[index + 1];
+//   }
 
-  return time;
-};
+//   return time;
+// };
 
   const login = useAuth((s) => s.login);
 
@@ -76,10 +77,12 @@ const getNextHour = (time: string) => {
     toTime: "07:00 AM",
 
     availableDays: [] as string[],
+     slotId: "",
 
     // selected level
     selectedLevel: "",
     classType: "",
+    
   });
 
   // ====================================
@@ -106,6 +109,15 @@ const getNextHour = (time: string) => {
     }
 
   };
+  useEffect(() => {
+
+   if(!data.course) return;
+
+   fetch(`/api/timeslots/${data.course}`)
+      .then(res=>res.json())
+      .then(setSlots);
+
+},[data.course]);
 
   useEffect(() => {
 
@@ -152,28 +164,28 @@ const uniqueCourses = [
   // TIMESLOTS
   // ====================================
 
-  const timeSlots = Array.from(
-    { length: 18 },
-    (_, i) => {
+  // const timeSlots = Array.from(
+  //   { length: 18 },
+  //   (_, i) => {
 
-      const hour = i + 6;
+  //     const hour = i + 6;
 
-      const displayHour =
-        hour > 12
-          ? hour - 12
-          : hour;
+  //     const displayHour =
+  //       hour > 12
+  //         ? hour - 12
+  //         : hour;
 
-      const ampm =
-        hour >= 12
-          ? "PM"
-          : "AM";
+  //     const ampm =
+  //       hour >= 12
+  //         ? "PM"
+  //         : "AM";
 
-      return `${String(
-        displayHour
-      ).padStart(2, "0")}:00 ${ampm}`;
+  //     return `${String(
+  //       displayHour
+  //     ).padStart(2, "0")}:00 ${ampm}`;
 
-    }
-  );
+  //   }
+  // );
 
   // ====================================
   // NEXT / BACK
@@ -211,9 +223,10 @@ const next = () => {
     if (
   !data.mode ||
   !data.classType ||
-  data.availableDays.length === 0 ||
+  !data.availableDays.length ||
   !data.fromTime ||
   !data.toTime
+  
 ) {
       alert(
         "Please complete schedule details"
@@ -261,7 +274,7 @@ const next = () => {
   !data.password ||
   !data.course ||
   !data.selectedLevel ||
-  data.availableDays.length === 0
+  !data.availableDays.length
 ) {
   alert("Please complete all required fields");
   return;
@@ -279,25 +292,24 @@ const next = () => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          name: data.name,
-          email: data.email,
-          password: data.password,
-          phone: data.phone,
-          role: "student",
+  name: data.name,
+  email: data.email,
+  password: data.password,
+  phone: data.phone,
+  role: "student",
 
-          course: selectedGradeCourse?._id,
-          level: data.selectedLevel,
-          batch: selectedGradeCourse?.grade,
-          mode: data.mode,
-          classType: selectedGradeCourse?.classMode,
-          fromTime: data.fromTime,
-          toTime: data.toTime,
-          availableDays: data.availableDays,
+  course: selectedGradeCourse?._id,
+  level: data.selectedLevel,
+  batch: selectedGradeCourse?.grade,
 
-          // 👇 NEW CLOUD IMAGE
-          image: imageUrl,
+  mode: data.mode,
+  classType: selectedGradeCourse?.classMode,
 
-        }),
+  // Student selected slot
+  slotId: data.slotId,
+
+  image: imageUrl,
+}),
       }
     );
 
@@ -595,9 +607,7 @@ const next = () => {
      
                 {/* STEP 3 */}
 
-                {/* STEP 3 */}
-
-{step === 2 && (
+                {step === 2 && (
   <div className="space-y-6">
 
     <div>
@@ -606,16 +616,15 @@ const next = () => {
       </div>
 
       <h1 className="mt-2 font-display text-3xl">
-        Class Schedule & Mode
+        Class Schedule
       </h1>
 
       <p className="mt-2 text-sm text-muted-foreground">
-        Choose your learning mode (Online / Offline), preferred days and
-        available time slots. Each class duration is 1 Hour.
+        Select learning mode and available slot.
       </p>
     </div>
 
-    {/* MODE */}
+    {/* Learning Mode */}
     <div>
       <Label>Learning Mode</Label>
 
@@ -630,10 +639,10 @@ const next = () => {
                 mode,
               }))
             }
-            className={`rounded-xl border p-4 font-medium transition-all ${
+            className={`rounded-xl border p-4 ${
               data.mode === mode
                 ? "border-gold bg-gold-soft"
-                : "border-border hover:border-gold/40"
+                : "border-border"
             }`}
           >
             {mode}
@@ -641,104 +650,105 @@ const next = () => {
         ))}
       </div>
     </div>
- 
 
+    {/* Time Slots */}
 
-
-    {/* CLASS DURATION */}
-    <div className="rounded-xl border border-gold/30 bg-gold-soft p-4">
-      <div className="flex items-center justify-between">
-        <span className="font-medium">
-          Class Duration
-        </span>
-
-        <span className="font-bold text-gold">
-          1 Hour
-        </span>
-      </div>
-    </div>
-
-    {/* DAYS SELECTION */}
     <div>
-      <Label>Available Days</Label>
 
-      <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
-        {[
-          "Monday",
-          "Tuesday",
-          "Wednesday",
-          "Thursday",
-          "Friday",
-          "Saturday",
-          "Sunday",
-        ].map((day) => (
-          <button
-            key={day}
-            type="button"
-            onClick={() => {
-              setData((prev) => ({
-                ...prev,
-                availableDays: prev.availableDays.includes(day)
-                  ? prev.availableDays.filter((d) => d !== day)
-                  : [...prev.availableDays, day],
-              }));
-            }}
-            className={`rounded-xl border p-4 text-sm transition-all ${
-              data.availableDays.includes(day)
-                ? "border-gold bg-gold-soft"
-                : "border-border hover:border-gold/40"
-            }`}
-          >
-            {day}
-          </button>
-        ))}
-      </div>
-    </div>
+      <Label>Select Time Slot</Label>
 
-    {/* FROM TIME */}
-    <div>
-      <Label>Available From</Label>
+      <div className="mt-4 grid gap-3">
 
-      <div className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-6">
-        {Array.from({ length: 18 }, (_, i) => {
-          const hour = i + 6;
-          const displayHour = hour > 12 ? hour - 12 : hour;
-          const ampm = hour >= 12 ? "PM" : "AM";
+        {slots.length === 0 && (
+          <div className="rounded-xl border p-5 text-center">
+            No Slots Available
+          </div>
+        )}
 
-          const time = `${String(displayHour).padStart(2, "0")}:00 ${ampm}`;
+        {slots.map((slot: any) => {
+
+          const full =
+            slot.students.length >= slot.maxStudents;
 
           return (
+
             <button
-              key={time}
+              key={slot._id}
               type="button"
+              disabled={full}
               onClick={() =>
-  setData((prev) => ({
-    ...prev,
-    fromTime: time,
-    toTime: getNextHour(time),
-  }))
-}
-              className={`rounded-xl border p-3 text-xs transition-all ${
-                data.fromTime === time
+                setData((prev) => ({
+                  ...prev,
+                  fromTime: slot.fromTime,
+                  toTime: slot.toTime,
+                  availableDays: [slot.day],
+                }))
+              }
+              className={`rounded-xl border p-5 text-left transition
+
+              ${
+                data.fromTime === slot.fromTime &&
+                data.availableDays[0] === slot.day
                   ? "border-gold bg-gold-soft"
-                  : "border-border hover:border-gold/40"
-              }`}
+                  : "border-border"
+              }
+
+              ${
+                full
+                  ? "opacity-50 cursor-not-allowed"
+                  : "hover:border-gold"
+              }
+
+              `}
             >
-              {time}
+
+              <div className="flex justify-between">
+
+                <div>
+
+                  <h3 className="font-semibold">
+
+                    {slot.day}
+
+                  </h3>
+
+                  <p className="text-sm text-muted-foreground">
+
+                    {slot.fromTime} - {slot.toTime}
+
+                  </p>
+
+                </div>
+
+                <div className="text-right">
+
+                  <div>
+
+                    {slot.students.length} / {slot.maxStudents}
+
+                  </div>
+
+                  <div className="text-xs">
+
+                    {full
+                      ? "FULL"
+                      : `${slot.maxStudents - slot.students.length} Seats Left`}
+
+                  </div>
+
+                </div>
+
+              </div>
+
             </button>
+
           );
+
         })}
+
       </div>
+
     </div>
-
-    {/* TO TIME */}
-    <div>
-  <Label>Available To</Label>
-
-  <div className="mt-3 rounded-xl border bg-muted p-4 font-medium">
-    {data.toTime}
-  </div>
-</div>
 
   </div>
 )}
