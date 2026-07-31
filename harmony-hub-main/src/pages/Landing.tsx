@@ -189,6 +189,11 @@ function Marquee() {
 function Programs() {
   const [courses, setCourses] = useState([]);
   const [selectedCourse, setSelectedCourse] = useState<string | null>(null);
+  const [selectedCourse, setSelectedCourse] = useState<string | null>(null);
+
+const [selectedMode, setSelectedMode] = useState<{
+  [key: string]: string;
+}>({});
 
   useEffect(() => {
     fetchCourses();
@@ -303,34 +308,74 @@ function Programs() {
                       </span>
                     </div>
 
-                    {groupedCourses[courseName].map((c: any, idx: number) => (
-                      <div
-                        key={idx}
-                        className="flex items-center justify-between p-4 rounded-xl bg-white/5 border border-[#D4AF37]/20 hover:border-[#D4AF37] transition"
-                      >
-                        <div className="flex items-center gap-4">
-                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#F5E6A8] to-[#8B6914] flex items-center justify-center text-black font-bold text-sm">
-                            {idx + 1}
-                          </div>
-                          <div>
-                            <div className="text-[#D4AF37] font-semibold text-sm">
-                              {c.grade}
-                            </div>
-                            <div className="text-white/60 text-xs">
-                              {c.mainLevel}
-                            </div>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <div className="text-white font-bold">
-                            ₹{Number(c.fee).toLocaleString()}
-                          </div>
-                          <div className="text-white/40 text-[10px] uppercase tracking-wider">
-                            Monthly
-                          </div>
-                        </div>
-                      </div>
-                    ))}
+                    {["Individual", "Group"].map((mode) => {
+  const modeCourses = groupedCourses[courseName].filter(
+    (c: any) => c.classMode === mode
+  );
+
+  if (modeCourses.length === 0) return null;
+
+  const open = selectedMode[courseName] === mode;
+
+  return (
+    <div key={mode} className="mb-4">
+
+      <button
+        onClick={() =>
+          setSelectedMode((prev) => ({
+            ...prev,
+            [courseName]: open ? "" : mode,
+          }))
+        }
+        className="flex w-full items-center justify-between rounded-xl border border-[#D4AF37]/30 bg-white/5 px-4 py-3 hover:border-[#D4AF37]"
+      >
+        <span className="font-semibold text-[#D4AF37]">
+          {mode}
+        </span>
+
+        {open ? (
+          <ChevronUp className="h-5 w-5 text-[#D4AF37]" />
+        ) : (
+          <ChevronDown className="h-5 w-5 text-[#D4AF37]" />
+        )}
+      </button>
+
+      {open && (
+        <div className="mt-3 space-y-3">
+
+          {modeCourses.map((c: any, idx: number) => (
+            <div
+              key={c._id}
+              className="flex items-center justify-between rounded-xl border border-[#D4AF37]/20 bg-white/5 p-4"
+            >
+              <div>
+                <div className="font-semibold text-[#D4AF37]">
+                  {c.grade}
+                </div>
+
+                <div className="text-xs text-white/60">
+                  {c.mainLevel}
+                </div>
+              </div>
+
+              <div className="text-right">
+                <div className="text-lg font-bold text-white">
+                  ₹{Number(c.fee).toLocaleString()}
+                </div>
+
+                <div className="text-[10px] uppercase text-white/50">
+                  Monthly
+                </div>
+              </div>
+            </div>
+          ))}
+
+        </div>
+      )}
+
+    </div>
+  );
+})}
                   </motion.div>
                 )}
               </div>

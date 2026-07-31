@@ -56,9 +56,10 @@ if (role === "student" && course) {
   }
 
   if (selectedCourse.students >= selectedCourse.maxStudents) {
-    return res.status(400).json({
-      message: "This course is already full.",
-    });
+   return res.status(400).json({
+  message:
+    "The selected day and time slot is already full. Please choose another available time slot.",
+});
   }
 }
 

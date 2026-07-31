@@ -125,13 +125,27 @@ export default function TeacherSchedule() {
                 {/* TIME */}
 
                 <div
-                  key={hour}
-                  className="border-b border-r border-border p-3 text-xs text-muted-foreground"
-                >
+  key={hour}
+  className="flex flex-col items-center justify-center border-b border-r border-border p-3 text-xs font-semibold"
+>
+  <span>{hour}</span>
 
-                  {hour}
+  <span className="text-muted-foreground text-[10px]">
+    ↓
+  </span>
 
-                </div>
+  <span className="text-[10px] text-muted-foreground">
+    {
+      hours[
+        Math.min(
+          hours.indexOf(hour) + 1,
+          hours.length - 1
+        )
+      ]
+    }
+  </span>
+</div>
+
 
                 {/* DAYS */}
 
@@ -172,7 +186,7 @@ const individualStudents = matchedStudents.filter(
 
                     <div
                       key={`${day}-${hour}`}
-                      className="min-h-[90px] border-b border-r border-border p-2"
+                      className="h-36 overflow-y-auto border-b border-r border-border p-2"
                     >
 
                       <div className="space-y-2">
@@ -249,13 +263,19 @@ const individualStudents = matchedStudents.filter(
 
       </div>
 
-      <div className="text-muted-foreground">
-        {s.courseName}
-      </div>
+      <div className="text-[11px] font-bold text-gold">
+    {s.courseName}
+</div>
 
-      <div className="text-muted-foreground">
-        {s.selectedLevel}
-      </div>
+<div className="font-semibold">
+    {s.name}
+</div>
+
+<div className="text-[10px] text-muted-foreground">
+    {s.selectedLevel}
+</div>
+
+      
 
       <div className="mt-1 text-[10px]">
         {s.fromTime} - {s.toTime}
