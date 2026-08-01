@@ -113,7 +113,9 @@ function Signup() {
 
    if(!data.course) return;
 
-   fetch(`/api/timeslots/${data.course}`)
+   fetch(
+  `https://marcylmsdeploy-2.onrender.com/api/timeslots/${data.course}`
+)
       .then(res=>res.json())
       .then(setSlots);
 

@@ -253,10 +253,6 @@ const individualStudents = matchedStudents.filter(
 
       <div className="flex items-center justify-between">
 
-        <div className="font-semibold">
-          {s.name}
-        </div>
-
         <span className="rounded bg-green-600 px-2 py-0.5 text-[9px] text-white">
           Individual
         </span>
