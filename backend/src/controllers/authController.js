@@ -1,6 +1,7 @@
 // src/controllers/authController.js
 import Course from "../models/Course.js";
 import User from "../models/User.js";
+import TimeSlot from "../models/TimeSlot.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import nodemailer from "nodemailer";
@@ -46,21 +47,23 @@ export const register = async (req, res) => {
 // COURSE SEAT CHECK
 // =========================
 
-if (role === "student" && course) {
-  const selectedCourse = await Course.findById(course);
+if (role === "student") {
 
-  if (!selectedCourse) {
+  const slot = await TimeSlot.findById(slotId);
+
+  if (!slot) {
     return res.status(404).json({
-      message: "Course not found",
+      message: "Time slot not found",
     });
   }
 
-  if (selectedCourse.students >= selectedCourse.maxStudents) {
-   return res.status(400).json({
-  message:
-    "The selected day and time slot is already full. Please choose another available time slot.",
-});
+  if (slot.students.length >= slot.maxStudents) {
+    return res.status(400).json({
+      message:
+        "The selected day and time slot is already full. Please choose another available time slot.",
+    });
   }
+
 }
 
     const user = await User.create({
@@ -86,6 +89,8 @@ if (role === "student" && course) {
 
   profileImage: image,
 });
+
+
 // =========================
 // INCREASE STUDENT COUNT
 // =========================
