@@ -37,11 +37,6 @@ const fetchCourses = async () => {
   }
 };
 
-useEffect(() => {
-
-  fetchCourses();
-
-}, []);
 
 useEffect(() => {
 
@@ -49,16 +44,17 @@ useEffect(() => {
 
 }, []);
 
-  const [data, setData] = useState({
+const [data, setData] = useState({
   name: "",
   email: "",
   phone: "",
   password: "",
 
-  subject: "Piano",
+  subject: "",
+  course: "",
 
-  fromTime: "06:00",
-  toTime: "23:00",
+  fromTime: "06:00 AM",
+  toTime: "11:00 PM",
 
   availableDays: [] as string[],
 
@@ -95,6 +91,7 @@ useEffect(() => {
           role: "teacher",
 
           // TEACHER
+           course: data.course,
           subject: data.subject,
           experience: data.experience,
           customExperience: data.customExperience,
@@ -283,9 +280,10 @@ useEffect(() => {
       key={course._id}
       onClick={() =>
         setData({
-          ...data,
-          subject: course.name,
-        })
+  ...data,
+  subject: course.name,
+  course: course._id,
+})
       }
       className={`rounded-xl border p-5 text-left transition-all ${
         data.subject === course.name
