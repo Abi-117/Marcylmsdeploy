@@ -109,17 +109,33 @@ function Signup() {
     }
 
   };
-  useEffect(() => {
+useEffect(() => {
+  if (!data.course) return;
 
-   if(!data.course) return;
+  const loadSlots = async () => {
+    try {
+      console.log("Course ID:", data.course);
 
-   fetch(
-  `https://marcylmsdeploy-2.onrender.com/api/timeslots/${data.course}`
-)
-      .then(res=>res.json())
-      .then(setSlots);
+      const res = await fetch(
+        `https://marcylmsdeploy-2.onrender.com/api/timeslots/${data.course}`
+      );
 
-},[data.course]);
+      console.log("Status:", res.status);
+
+      const text = await res.text();
+
+      console.log("Response:", text);
+
+      const json = JSON.parse(text);
+
+      setSlots(json);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  loadSlots();
+}, [data.course]);
 
   useEffect(() => {
 
