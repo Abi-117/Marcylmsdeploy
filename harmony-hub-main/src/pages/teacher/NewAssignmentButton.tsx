@@ -24,13 +24,28 @@ function NewAssignmentButton({ onRefresh }: any) {
   // FETCH STUDENTS
   // =========================
   const fetchStudents = async () => {
-    try {
-      const res = await axios.get(`${API}/admin/students`);
-      setStudents(res.data || []);
-    } catch (err) {
-      console.log(err);
-    }
-  };
+  try {
+
+    const authData = JSON.parse(
+      localStorage.getItem("ms-auth") || "{}"
+    );
+
+    const teacher = authData?.state?.user;
+
+    const teacherId = teacher?._id || teacher?.id;
+
+    const res = await axios.get(
+      `${API}/admin/teacher/${teacherId}/students`
+    );
+
+    setStudents(res.data || []);
+
+  } catch (err) {
+
+    console.log(err);
+
+  }
+};
 
   useEffect(() => {
     fetchStudents();
