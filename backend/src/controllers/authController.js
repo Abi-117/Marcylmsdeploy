@@ -1,4 +1,3 @@
-// src/controllers/authController.js
 import Course from "../models/Course.js";
 import User from "../models/User.js";
 import bcrypt from "bcryptjs";
@@ -8,7 +7,6 @@ import nodemailer from "nodemailer";
 import OTP from "../models/otpModel.js";
 import { sendOTPEmail } from "../utils/mailer.js";
 
-// REGISTER
 // =========================
 // REGISTER
 // =========================
@@ -34,12 +32,12 @@ export const register = async (req, res) => {
       address,
       image,
       classType,
+      subject,
+      experience,
+      customExperience,
     } = req.body;
 
-    // =========================
-    // EMAIL CHECK
-    // =========================
-
+    // Email exists
     const existingUser = await User.findOne({ email });
 
     if (existingUser) {
@@ -48,10 +46,7 @@ export const register = async (req, res) => {
       });
     }
 
-    // =========================
-    // COURSE CHECK
-    // =========================
-
+    // Student seat check
     if (role === "student") {
       const selectedCourse = await Course.findById(course);
 
@@ -60,8 +55,6 @@ export const register = async (req, res) => {
           message: "Course not found",
         });
       }
-
-      // Count students already in same slot
 
       const totalStudents = await User.countDocuments({
         role: "student",
@@ -72,8 +65,6 @@ export const register = async (req, res) => {
           $in: availableDays,
         },
       });
-
-      // Individual = only 1 student
 
       const maxStudents =
         selectedCourse.classMode === "Individual"
@@ -88,15 +79,7 @@ export const register = async (req, res) => {
       }
     }
 
-    // =========================
-    // HASH PASSWORD
-    // =========================
-
     const hashedPassword = await bcrypt.hash(password, 10);
-
-    // =========================
-    // CREATE USER
-    // =========================
 
     const user = await User.create({
       name,
@@ -117,6 +100,9 @@ export const register = async (req, res) => {
       address,
       profileImage: image,
       classType,
+      subject,
+      experience,
+      customExperience,
     });
 
     return res.status(201).json({
@@ -132,124 +118,10 @@ export const register = async (req, res) => {
   }
 };
 
-    const existingUser = await User.findOne({ email });
-
-    if (existingUser) {
-      return res.status(400).json({
-        message: "User already exists",
-      });
-    }
-    if (role === "student") {
-  const selectedCourse = await Course.findById(course);
-
-  if (!selectedCourse) {
-    return res.status(404).json({
-      message: "Course not found",
-    });
-  }
-
-  const totalStudents = await User.countDocuments({
-    role: "student",
-    course,
-    fromTime,
-    toTime,
-    availableDays: { $in: availableDays },
-  });
-
-  const maxStudents =
-    selectedCourse.classMode === "Individual"
-      ? 1
-      : selectedCourse.maxStudents;
-
-  if (totalStudents >= maxStudents) {
-    return res.status(400).json({
-      message:
-        "The selected day and time slot is already full.",
-    });
-  }
-}
-
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    // =========================
-// COURSE SEAT CHECK
+// =========================
+// LOGIN
 // =========================
 
-// if (role === "student") {
-
-//   const slot = await TimeSlot.findById(slotId);
-
-//   if (!slot) {
-//     return res.status(404).json({
-//       message: "Time slot not found",
-//     });
-//   }
-
-//   if (slot.students.length >= slot.maxStudents) {
-//     return res.status(400).json({
-//       message:
-//         "The selected day and time slot is already full. Please choose another available time slot.",
-//     });
-//   }
-
-// }
-
-const user = await User.create({
-  name,
-  email,
-  password: hashedPassword,
-  role,
-  phone,
-  course,
-  mode,
-  exp,
-  qualification,
-  level,
-  batch,
-  fromTime,
-  toTime,
-  availableDays,
-  parentName,
-  address,
-  profileImage: image,
-});
-
-return res.status(201).json({
-  message: "Register Success",
-  user,
-});
-
-
-if (role === "student") {
-  const selectedCourse = await Course.findById(course);
-
-  if (!selectedCourse) {
-    return res.status(404).json({
-      message: "Course not found",
-    });
-  }
-
-  const totalStudents = await User.countDocuments({
-    role: "student",
-    course,
-    fromTime,
-    toTime,
-    availableDays: { $in: availableDays },
-  });
-
-  const maxStudents =
-    selectedCourse.classMode === "Individual"
-      ? 1
-      : selectedCourse.maxStudents;
-
-  if (totalStudents >= maxStudents) {
-    return res.status(400).json({
-      message:
-        "The selected day and time slot is already full. Please choose another available time slot.",
-    });
-  }
-}
-// LOGIN
 export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -296,8 +168,10 @@ export const login = async (req, res) => {
   }
 };
 
-
+// =========================
 // FORGOT PASSWORD
+// =========================
+
 export const forgotPassword = async (req, res) => {
   try {
     const { email } = req.body;
@@ -321,7 +195,6 @@ export const forgotPassword = async (req, res) => {
 
     const transporter = nodemailer.createTransport({
       service: "gmail",
-
       auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS,
@@ -345,52 +218,9 @@ export const forgotPassword = async (req, res) => {
   }
 };
 
-
-// // RESET PASSWORD
-// export const resetPassword = async (req, res) => {
-//   try {
-//     const { email, otp, password } = req.body;
-
-//     const user = await User.findOne({
-//       email,
-//       otp,
-//     });
-
-//     if (!user) {
-//       return res.status(400).json({
-//         message: "Invalid OTP",
-//       });
-//     }
-
-//     if (user.otpExpire < Date.now()) {
-//       return res.status(400).json({
-//         message: "OTP expired",
-//       });
-//     }
-
-//     const hashedPassword = await bcrypt.hash(
-//       password,
-//       10
-//     );
-
-//     user.password = hashedPassword;
-
-//     user.otp = null;
-//     user.otpExpire = null;
-
-//     await user.save();
-
-//     res.json({
-//       message: "Password reset successful",
-//     });
-//   } catch (error) {
-//     res.status(500).json({
-//       message: error.message,
-//     });
-//   }
-// };
-
-
+// =========================
+// SEND OTP
+// =========================
 
 export const sendOtp = async (req, res) => {
   try {
@@ -420,7 +250,6 @@ export const sendOtp = async (req, res) => {
     res.json({
       message: "OTP sent successfully",
     });
-
   } catch (error) {
     console.log("SEND OTP ERROR:", error);
 
@@ -430,9 +259,10 @@ export const sendOtp = async (req, res) => {
   }
 };
 
-
-
+// =========================
 // RESET PASSWORD
+// =========================
+
 export const resetPassword = async (req, res) => {
   try {
     const { email, otp, password } = req.body;
@@ -448,10 +278,7 @@ export const resetPassword = async (req, res) => {
       });
     }
 
-    const hashedPassword = await bcrypt.hash(
-      password,
-      10
-    );
+    const hashedPassword = await bcrypt.hash(password, 10);
 
     await User.findOneAndUpdate(
       { email },
@@ -465,7 +292,6 @@ export const resetPassword = async (req, res) => {
     res.json({
       message: "Password reset successful",
     });
-
   } catch (error) {
     console.log(error);
 
