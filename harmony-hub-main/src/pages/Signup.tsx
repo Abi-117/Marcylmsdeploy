@@ -12,7 +12,6 @@ import { Logo } from "@/components/Logo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-
 import { useAuth } from "@/store/auth";
 
 const steps = [
@@ -23,991 +22,953 @@ const steps = [
   "Profile",
 ];
 
+const days = [
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+  "Sunday",
+];
+
+const timeSlots = [
+  { from: "06:00 AM", to: "07:00 AM" },
+  { from: "07:00 AM", to: "08:00 AM" },
+  { from: "08:00 AM", to: "09:00 AM" },
+  { from: "09:00 AM", to: "10:00 AM" },
+  { from: "10:00 AM", to: "11:00 AM" },
+  { from: "11:00 AM", to: "12:00 PM" },
+  { from: "12:00 PM", to: "01:00 PM" },
+  { from: "01:00 PM", to: "02:00 PM" },
+  { from: "02:00 PM", to: "03:00 PM" },
+  { from: "03:00 PM", to: "04:00 PM" },
+  { from: "04:00 PM", to: "05:00 PM" },
+  { from: "05:00 PM", to: "06:00 PM" },
+  { from: "06:00 PM", to: "07:00 PM" },
+  { from: "07:00 PM", to: "08:00 PM" },
+  { from: "08:00 PM", to: "09:00 PM" },
+  { from: "09:00 PM", to: "10:00 PM" },
+  { from: "10:00 PM", to: "11:00 PM" },
+];
+
 function Signup() {
-
   const navigate = useNavigate();
-  const [image, setImage] = useState<File | null>(null);
-  const [slots, setSlots] = useState([]);
-  const uploadImage = async () => {
-  const formData = new FormData();
-  formData.append("file", image as any);
-  formData.append("upload_preset", "your_upload_preset");
-
-  const res = await fetch(
-    "https://api.cloudinary.com/v1_1/YOUR_CLOUD_NAME/image/upload",
-    {
-      method: "POST",
-      body: formData,
-    }
-  );
-
-  const data = await res.json();
-  return data.secure_url;
-};
-// const getNextHour = (time: string) => {
-//   const index = timeSlots.indexOf(time);
-
-//   if (index !== -1 && index < timeSlots.length - 1) {
-//     return timeSlots[index + 1];
-//   }
-
-//   return time;
-// };
-
   const login = useAuth((s) => s.login);
 
   const [step, setStep] = useState(0);
 
-  const [courses, setCourses] =
-    useState<any[]>([]);
+  const [courses, setCourses] = useState<any[]>([]);
+  const [image, setImage] = useState<File | null>(null);
 
   const [data, setData] = useState({
-
     name: "",
     email: "",
     phone: "",
     password: "",
 
-    // selected course id
     course: "",
 
     mode: "Online",
 
-    fromTime: "06:00 AM",
-    toTime: "07:00 AM",
-
     availableDays: [] as string[],
-     slotId: "",
 
-    // selected level
+    fromTime: "",
+    toTime: "",
+
     selectedLevel: "",
+
     classType: "",
-    
   });
 
-  // ====================================
-  // FETCH COURSES
-  // ====================================
+  // ===============================
+  // CLOUDINARY
+  // ===============================
+
+  const uploadImage = async () => {
+    if (!image) return "";
+
+    const formData = new FormData();
+
+    formData.append("file", image);
+    formData.append(
+      "upload_preset",
+      "your_upload_preset"
+    );
+
+    const res = await fetch(
+      "https://api.cloudinary.com/v1_1/YOUR_CLOUD_NAME/image/upload",
+      {
+        method: "POST",
+        body: formData,
+      }
+    );
+
+    const json = await res.json();
+
+    return json.secure_url;
+  };
+
+  // ===============================
+  // LOAD COURSES
+  // ===============================
 
   const fetchCourses = async () => {
-
     try {
-
-      const response = await fetch(
+      const res = await fetch(
         "https://marcylmsdeploy-2.onrender.com/api/courses"
       );
 
-      const result =
-        await response.json();
+      const json = await res.json();
 
-      setCourses(result);
-
-    } catch (error) {
-
-      console.log(error);
-
-    }
-
-  };
-useEffect(() => {
-  if (!data.course) return;
-
-  const loadSlots = async () => {
-    try {
-      console.log("Course ID:", data.course);
-
-      const res = await fetch(
-        `https://marcylmsdeploy-2.onrender.com/api/timeslots/${data.course}`
-      );
-
-      console.log("Status:", res.status);
-
-      const text = await res.text();
-
-      console.log("Response:", text);
-
-      const json = JSON.parse(text);
-
-      setSlots(json);
+      setCourses(json);
     } catch (err) {
-      console.error(err);
+      console.log(err);
     }
   };
-
-  loadSlots();
-}, [data.course]);
 
   useEffect(() => {
-
     fetchCourses();
-
   }, []);
 
-  // ====================================
+  // ===============================
   // SELECTED COURSE
-  // ====================================
+  // ===============================
 
   const selectedCourse = courses.find(
     (c: any) => c._id === data.course
   );
-const uniqueCourses = [
-  ...new Set(courses.map((c: any) => c.name)),
-];
-  // ====================================
-  // SELECTED LEVEL COURSE
-  // ====================================
 
-  const selectedGradeCourse = courses.find(
-  (c: any) =>
-    c.name === selectedCourse?.name &&
-    c.classMode === selectedCourse?.classMode &&
-    c.mainLevel === data.selectedLevel
-);
-
-  // ====================================
-  // DAYS
-  // ====================================
-
-  const days = [
-    "Monday",
-    "Tuesday",
-    "Wednesday",
-    "Thursday",
-    "Friday",
-    "Saturday",
-    "Sunday",
+  const uniqueCourses = [
+    ...new Set(courses.map((c: any) => c.name)),
   ];
 
-  // ====================================
-  // TIMESLOTS
-  // ====================================
-
-  // const timeSlots = Array.from(
-  //   { length: 18 },
-  //   (_, i) => {
-
-  //     const hour = i + 6;
-
-  //     const displayHour =
-  //       hour > 12
-  //         ? hour - 12
-  //         : hour;
-
-  //     const ampm =
-  //       hour >= 12
-  //         ? "PM"
-  //         : "AM";
-
-  //     return `${String(
-  //       displayHour
-  //     ).padStart(2, "0")}:00 ${ampm}`;
-
-  //   }
-  // );
-
-  // ====================================
-  // NEXT / BACK
-  // ====================================
-const next = () => {
-
-  // STEP 1
-  if (step === 0) {
-
-    if (
-      !data.name.trim() ||
-      !data.phone.trim() ||
-      !data.email.trim() ||
-      !data.password.trim()
-    ) {
-      alert("Please fill all personal details");
-      return;
-    }
-
-  }
-
-  // STEP 2
-  if (step === 1) {
-
-    if (!data.course) {
-      alert("Please select a course");
-      return;
-    }
-
-  }
-
-  // STEP 3
-  if (step === 2) {
-
-    if (
-  !data.mode ||
-  !data.classType ||
-  !data.availableDays.length ||
-  !data.fromTime ||
-  !data.toTime
-  
-) {
-      alert(
-        "Please complete schedule details"
-      );
-      return;
-    }
-
-  }
-
-  // STEP 4
-  if (step === 3) {
-
-    if (!data.selectedLevel) {
-      alert("Please select a level");
-      return;
-    }
-
-  }
-
-  setStep((s) =>
-    Math.min(
-      s + 1,
-      steps.length - 1
-    )
+  const selectedGradeCourse = courses.find(
+    (c: any) =>
+      c.name === selectedCourse?.name &&
+      c.classMode === selectedCourse?.classMode &&
+      c.mainLevel === data.selectedLevel
   );
 
-};
+  // ===============================
+  // NEXT
+  // ===============================
 
-  const back = () =>
-    setStep((s) =>
-      Math.max(s - 1, 0)
+  const next = () => {
+    if (step === 0) {
+      if (
+        !data.name ||
+        !data.phone ||
+        !data.email ||
+        !data.password
+      ) {
+        alert("Please fill all details");
+        return;
+      }
+    }
+
+    if (step === 1) {
+      if (!data.course) {
+        alert("Please select a course");
+        return;
+      }
+    }
+
+    if (step === 2) {
+      if (
+        !data.mode ||
+        data.availableDays.length === 0 ||
+        !data.fromTime ||
+        !data.toTime
+      ) {
+        alert("Please select day and time");
+        return;
+      }
+    }
+
+    if (step === 3) {
+      if (!data.selectedLevel) {
+        alert("Please select level");
+        return;
+      }
+    }
+
+    setStep((prev) =>
+      Math.min(prev + 1, steps.length - 1)
     );
+  };
 
-  // ====================================
-  // FINISH
-  // ====================================
+  // ===============================
+  // BACK
+  // ===============================
+
+  const back = () => {
+    setStep((prev) => Math.max(prev - 1, 0));
+  };
+
+  // ===============================
+  // REGISTER
+  // ===============================
 
   const finish = async () => {
-  try {
-    let imageUrl = "";
-    if (
-  !data.name ||
-  !data.phone ||
-  !data.email ||
-  !data.password ||
-  !data.course ||
-  !data.selectedLevel ||
-  !data.availableDays.length
-) {
-  alert("Please complete all required fields");
-  return;
-}
+    try {
+      let imageUrl = "";
 
-    if (image) {
-      imageUrl = await uploadImage();
-    }
-
-    const response = await fetch(
-      "https://marcylmsdeploy-2.onrender.com/api/auth/register",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-  name: data.name,
-  email: data.email,
-  password: data.password,
-  phone: data.phone,
-  role: "student",
-
-  course: selectedGradeCourse?._id,
-  level: data.selectedLevel,
-  batch: selectedGradeCourse?.grade,
-
-  mode: data.mode,
-  classType: selectedGradeCourse?.classMode,
-
-  // Student selected slot
-  slotId: data.slotId,
-
-  image: imageUrl,
-}),
+      if (image) {
+        imageUrl = await uploadImage();
       }
-    );
 
-    const result = await response.json();
+      const res = await fetch(
+        "https://marcylmsdeploy-2.onrender.com/api/auth/register",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            name: data.name,
+            email: data.email,
+            phone: data.phone,
+            password: data.password,
 
-    if (!response.ok) {
-      alert(result.message);
-      return;
+            role: "student",
+
+            course: selectedGradeCourse?._id,
+
+            level: data.selectedLevel,
+
+            batch: selectedGradeCourse?.grade,
+
+            mode: data.mode,
+
+            classType: selectedGradeCourse?.classMode,
+
+            availableDays: data.availableDays,
+
+            fromTime: data.fromTime,
+
+            toTime: data.toTime,
+
+            image: imageUrl,
+          }),
+        }
+      );
+
+      const result = await res.json();
+
+      if (!res.ok) {
+        alert(result.message);
+        return;
+      }
+
+      localStorage.setItem(
+        "token",
+        result.token
+      );
+
+      login(result.user);
+
+      navigate("/student");
+    } catch (err) {
+      console.log(err);
+      alert("Something went wrong");
     }
-
-    localStorage.setItem("token", result.token);
-    login(result.user);
-
-    navigate("/student");
-  } catch (err) {
-    console.log(err);
-    alert("Error occurred");
-  }
-};
-
+  };
   return (
+  <div className="min-h-screen bg-background">
+    <div className="mx-auto flex max-w-3xl flex-col px-4 py-10 sm:px-6">
+      <Logo />
 
-    <div className="min-h-screen bg-background">
+      <div className="mt-10">
 
-      <div className="mx-auto flex max-w-3xl flex-col px-4 py-10 sm:px-6">
+        {/* Progress */}
 
-        <Logo />
-
-        <div className="mt-10">
-
-          {/* PROGRESS */}
-
-          <div className="mb-8 flex items-center gap-2">
-
-            {steps.map((s, i) => (
-
+        <div className="mb-8 flex items-center gap-2">
+          {steps.map((s, i) => (
+            <div
+              key={s}
+              className="flex flex-1 items-center gap-2"
+            >
               <div
-                key={s}
-                className="flex flex-1 items-center gap-2"
+                className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-semibold
+                ${
+                  i < step
+                    ? "bg-gold text-white"
+                    : i === step
+                    ? "bg-foreground text-background"
+                    : "bg-muted text-muted-foreground"
+                }`}
               >
-
-                <div
-                  className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-semibold ${
-                    i < step
-                      ? "bg-gold text-gold-foreground"
-                      : i === step
-                      ? "bg-foreground text-background"
-                      : "bg-muted text-muted-foreground"
-                  }`}
-                >
-
-                  {i < step ? (
-
-                    <Check className="h-3.5 w-3.5" />
-
-                  ) : (
-
-                    i + 1
-
-                  )}
-
-                </div>
-
-                {i < steps.length - 1 && (
-
-                  <div
-                    className={`h-px flex-1 ${
-                      i < step
-                        ? "bg-gold"
-                        : "bg-border"
-                    }`}
-                  />
-
+                {i < step ? (
+                  <Check className="h-4 w-4" />
+                ) : (
+                  i + 1
                 )}
-
               </div>
 
-            ))}
-
-          </div>
-
-          <div className="rounded-3xl border border-border bg-card p-8 shadow-luxe">
-
-            <AnimatePresence mode="wait">
-
-              <motion.div
-                key={step}
-                initial={{
-                  opacity: 0,
-                  x: 20,
-                }}
-                animate={{
-                  opacity: 1,
-                  x: 0,
-                }}
-                exit={{
-                  opacity: 0,
-                  x: -20,
-                }}
-                transition={{
-                  duration: 0.25,
-                }}
-              >
-
-                {/* STEP 1 */}
-
-                {step === 0 && (
-
-                  <div className="space-y-5">
-
-                    <div>
-
-                      <div className="text-xs font-semibold uppercase tracking-wider text-gold">
-
-                        Step 1 of 5
-
-                      </div>
-
-                      <h1 className="mt-2 font-display text-3xl">
-
-                        Tell us about you
-
-                      </h1>
-
-                    </div>
-
-                    <div className="grid gap-4 sm:grid-cols-2">
-
-                      <div className="space-y-1.5">
-
-                        <Label>
-                          Full Name
-                        </Label>
-
-                        <Input
-                          value={data.name}
-                          placeholder="John Doe"
-                          onChange={(e) =>
-                            setData({
-                              ...data,
-                              name:
-                                e.target.value,
-                            })
-                          }
-                        />
-
-                      </div>
-
-                      <div className="space-y-1.5">
-
-                        <Label>
-                          Phone
-                        </Label>
-
-                        <Input
-                          value={data.phone}
-                          placeholder="+91 234 567 890"
-                          onChange={(e) =>
-                            setData({
-                              ...data,
-                              phone:
-                                e.target.value,
-                            })
-                          }
-                        />
-
-                      </div>
-
-                      <div className="sm:col-span-2 space-y-1.5">
-
-                        <Label>
-                          Email
-                        </Label>
-
-                        <Input
-                          type="email"
-                          value={data.email}
-                          placeholder="you@example.com"
-                          onChange={(e) =>
-                            setData({
-                              ...data,
-                              email:
-                                e.target.value,
-                            })
-                          }
-                        />
-
-                      </div>
-
-                      <div className="sm:col-span-2 space-y-1.5">
-
-                        <Label>
-                          Password
-                        </Label>
-
-                        <Input
-                          type="password"
-                          value={data.password}
-                          placeholder="Create a password"
-                          onChange={(e) =>
-                            setData({
-                              ...data,
-                              password:
-                                e.target.value,
-                            })
-                          }
-                        />
-
-                      </div>
-
-                    </div>
-
-                  </div>
-
-                )}
-
-                {/* STEP 2 */}
-
-                {step === 1 && (
-  <div className="space-y-8">
-    <div>
-      <div className="text-xs font-semibold uppercase tracking-wider text-gold">
-        Step 2 of 5
-      </div>
-
-      <h1 className="mt-2 font-display text-3xl">
-        Choose Your Course
-      </h1>
-
-      <p className="mt-2 text-muted-foreground">
-        Select your favourite course and learning type.
-      </p>
-    </div>
-
-    <div className="grid gap-4 sm:grid-cols-2">
-  {uniqueCourses.map((courseName) => {
-    const courseTypes = [
-  ...new Map(
-    courses
-      .filter((c) => c.name === courseName)
-      .map((c) => [c.classMode, c])
-  ).values(),
-];
-
-    return (
-      <div
-        key={courseName}
-        className="rounded-xl border border-border bg-card p-5"
-      >
-        <h2 className="mb-4 text-lg font-semibold">
-          {courseName}
-        </h2>
-
-        <div className="space-y-2">
-          {courseTypes.map((course: any) => (
-            <button
-              key={course._id}
-              type="button"
-              onClick={() =>
-                setData({
-                  ...data,
-                  course: course._id,
-                  classType: course.classMode,
-                  selectedLevel: "",
-                })
-              }
-              className={`flex w-full items-center justify-between rounded-lg border px-4 py-3 transition-all ${
-                data.course === course._id
-                  ? "border-gold bg-gold-soft"
-                  : "border-border hover:border-gold hover:bg-muted/40"
-              }`}
-            >
-              <span className="font-medium">
-                {course.classMode}
-              </span>
-
-              {data.course === course._id && (
-                <Check className="h-4 w-4 text-gold" />
+              {i < steps.length - 1 && (
+                <div
+                  className={`h-px flex-1 ${
+                    i < step
+                      ? "bg-gold"
+                      : "bg-border"
+                  }`}
+                />
               )}
-            </button>
+            </div>
           ))}
         </div>
-      </div>
-    );
-  })}
+
+        <div className="rounded-3xl border bg-card p-8 shadow-luxe">
+
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={step}
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+            >
+
+{/* =========================
+STEP 1
+========================= */}
+
+{step === 0 && (
+
+<div className="space-y-5">
+
+<div>
+
+<div className="text-xs uppercase font-semibold tracking-wider text-gold">
+
+Step 1 of 5
+
 </div>
-  </div>
-)} 
 
-       
+<h1 className="mt-2 font-display text-3xl">
 
+Tell us about yourself
 
-                        
+</h1>
 
-     
-                {/* STEP 3 */}
+</div>
 
-                {step === 2 && (
+<div className="grid gap-4 sm:grid-cols-2">
+
+<div>
+
+<Label>Full Name</Label>
+
+<Input
+value={data.name}
+onChange={(e)=>
+setData({
+...data,
+name:e.target.value,
+})
+}
+/>
+
+</div>
+
+<div>
+
+<Label>Phone</Label>
+
+<Input
+value={data.phone}
+onChange={(e)=>
+setData({
+...data,
+phone:e.target.value,
+})
+}
+/>
+
+</div>
+
+<div className="sm:col-span-2">
+
+<Label>Email</Label>
+
+<Input
+type="email"
+value={data.email}
+onChange={(e)=>
+setData({
+...data,
+email:e.target.value,
+})
+}
+/>
+
+</div>
+
+<div className="sm:col-span-2">
+
+<Label>Password</Label>
+
+<Input
+type="password"
+value={data.password}
+onChange={(e)=>
+setData({
+...data,
+password:e.target.value,
+})
+}
+/>
+
+</div>
+
+</div>
+
+</div>
+
+)}
+
+{/* =========================
+STEP 2
+========================= */}
+
+{step===1 && (
+
+<div className="space-y-8">
+
+<div>
+
+<div className="text-xs uppercase font-semibold tracking-wider text-gold">
+
+Step 2 of 5
+
+</div>
+
+<h1 className="mt-2 font-display text-3xl">
+
+Choose Course
+
+</h1>
+
+</div>
+
+<div className="grid gap-4 sm:grid-cols-2">
+
+{uniqueCourses.map((courseName)=>{
+
+const courseTypes=[
+...new Map(
+courses
+.filter((c:any)=>c.name===courseName)
+.map((c:any)=>[c.classMode,c])
+).values()
+];
+
+return(
+
+<div
+key={courseName}
+className="rounded-xl border p-5"
+>
+
+<h2 className="mb-4 text-lg font-semibold">
+
+{courseName}
+
+</h2>
+
+<div className="space-y-3">
+
+{courseTypes.map((course:any)=>(
+
+<button
+
+key={course._id}
+
+type="button"
+
+onClick={()=>
+
+setData({
+
+...data,
+
+course:course._id,
+
+classType:course.classMode,
+
+selectedLevel:"",
+
+})
+
+}
+
+className={`w-full rounded-xl border p-4 flex justify-between
+
+${
+
+data.course===course._id
+
+?
+
+"border-gold bg-gold-soft"
+
+:
+
+"border-border"
+
+}
+
+`}
+
+>
+
+<span>
+
+{course.classMode}
+
+</span>
+
+{data.course===course._id && (
+
+<Check className="h-4 w-4"/>
+
+)}
+
+</button>
+
+))}
+
+</div>
+
+</div>
+
+);
+
+})}
+
+</div>
+
+</div>
+
+)}
+
+{/* =========================
+STEP 3
+========================= */}
+
+{step===2 && (
+
+<div className="space-y-8">
+
+<div>
+
+<div className="text-xs uppercase tracking-wider text-gold font-semibold">
+
+Step 3 of 5
+
+</div>
+
+<h1 className="mt-2 text-3xl font-display">
+
+Choose Schedule
+
+</h1>
+
+<p className="text-muted-foreground mt-2">
+
+Select Mode, Day and Time
+
+</p>
+
+</div>
+
+{/* MODE */}
+
+<div>
+
+<Label>
+
+Learning Mode
+
+</Label>
+
+<div className="mt-3 grid grid-cols-2 gap-3">
+
+{["Online","Offline"].map((mode)=>(
+
+<button
+
+key={mode}
+
+type="button"
+
+onClick={()=>
+
+setData({
+
+...data,
+
+mode,
+
+})
+
+}
+
+className={`rounded-xl border p-4
+
+${
+
+data.mode===mode
+
+?
+
+"border-gold bg-gold-soft"
+
+:
+
+"border-border"
+
+}
+
+`}
+
+>
+
+{mode}
+
+</button>
+
+))}
+
+</div>
+
+</div>
+
+{/* DAYS */}
+
+<div>
+
+<Label>
+
+Select Day
+
+</Label>
+
+<div className="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-3">
+
+{days.map((day)=>(
+
+<button
+
+key={day}
+
+type="button"
+
+onClick={()=>
+
+setData({
+
+...data,
+
+availableDays:[day],
+
+})
+
+}
+
+className={`rounded-xl border p-3
+
+${
+
+data.availableDays.includes(day)
+
+?
+
+"border-gold bg-gold-soft"
+
+:
+
+"border-border"
+
+}
+
+`}
+
+>
+
+{day}
+
+</button>
+
+))}
+
+</div>
+
+</div>
+
+{/* TIMES */}
+
+<div>
+
+<Label>
+
+Select Time
+
+</Label>
+
+<div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
+
+{timeSlots.map((slot)=>(
+
+<button
+
+key={slot.from}
+
+type="button"
+
+onClick={()=>
+
+setData({
+
+...data,
+
+fromTime:slot.from,
+
+toTime:slot.to,
+
+})
+
+}
+
+className={`rounded-xl border p-4 text-left
+
+${
+
+data.fromTime===slot.from
+
+?
+
+"border-gold bg-gold-soft"
+
+:
+
+"border-border"
+
+}
+
+`}
+
+>
+
+<div className="font-semibold">
+
+{slot.from}
+
+</div>
+
+<div className="text-sm text-muted-foreground">
+
+to {slot.to}
+
+</div>
+
+</button>
+
+))}
+
+</div>
+
+</div>
+
+</div>
+
+)}
+
+{/* =========================
+STEP 4
+========================= */}
+
+{step === 3 && (
   <div className="space-y-6">
-
     <div>
       <div className="text-xs font-semibold uppercase tracking-wider text-gold">
-        Step 3 of 5
+        Step 4 of 5
       </div>
 
       <h1 className="mt-2 font-display text-3xl">
-        Class Schedule
+        Select Your Level
       </h1>
-
-      <p className="mt-2 text-sm text-muted-foreground">
-        Select learning mode and available slot.
-      </p>
     </div>
 
-    {/* Learning Mode */}
-    <div>
-      <Label>Learning Mode</Label>
+    {["Basic", "Intermediate", "Advanced"].map((level) => {
+      const levelCourses = courses.filter(
+        (c: any) =>
+          c.name === selectedCourse?.name &&
+          c.classMode === selectedCourse?.classMode &&
+          c.mainLevel === level
+      );
 
-      <div className="mt-3 grid grid-cols-2 gap-3">
-        {["Online", "Offline"].map((mode) => (
-          <button
-            key={mode}
-            type="button"
-            onClick={() =>
-              setData((prev) => ({
-                ...prev,
-                mode,
-              }))
-            }
-            className={`rounded-xl border p-4 ${
-              data.mode === mode
-                ? "border-gold bg-gold-soft"
-                : "border-border"
-            }`}
-          >
-            {mode}
-          </button>
-        ))}
-      </div>
-    </div>
+      if (levelCourses.length === 0) return null;
 
-    {/* Time Slots */}
+      return (
+        <button
+          key={level}
+          type="button"
+          onClick={() =>
+            setData({
+              ...data,
+              selectedLevel: level,
+            })
+          }
+          className={`w-full rounded-2xl border p-5 text-left transition ${
+            data.selectedLevel === level
+              ? "border-gold bg-gold-soft"
+              : "border-border hover:border-gold"
+          }`}
+        >
+          <div className="flex items-center justify-between">
+            <div className="text-xl font-semibold">
+              {level}
+            </div>
 
-    <div>
-
-      <Label>Select Time Slot</Label>
-
-      <div className="mt-4 grid gap-3">
-
-        {slots.length === 0 && (
-          <div className="rounded-xl border p-5 text-center">
-            No Slots Available
+            <div className="font-bold text-gold">
+              ₹{levelCourses[0].fee}
+            </div>
           </div>
-        )}
 
-        {slots.map((slot: any) => {
-
-          const full =
-            slot.students.length >= slot.maxStudents;
-
-          return (
-
-            <button
-              key={slot._id}
-              type="button"
-              disabled={full}
-              onClick={() =>
-                setData((prev) => ({
-                  ...prev,
-                  fromTime: slot.fromTime,
-                  toTime: slot.toTime,
-                  availableDays: [slot.day],
-                }))
-              }
-              className={`rounded-xl border p-5 text-left transition
-
-              ${
-                data.fromTime === slot.fromTime &&
-                data.availableDays[0] === slot.day
-                  ? "border-gold bg-gold-soft"
-                  : "border-border"
-              }
-
-              ${
-                full
-                  ? "opacity-50 cursor-not-allowed"
-                  : "hover:border-gold"
-              }
-
-              `}
-            >
-
-              <div className="flex justify-between">
-
-                <div>
-
-                  <h3 className="font-semibold">
-
-                    {slot.day}
-
-                  </h3>
-
-                  <p className="text-sm text-muted-foreground">
-
-                    {slot.fromTime} - {slot.toTime}
-
-                  </p>
-
+          <div className="mt-4 grid gap-3 sm:grid-cols-3">
+            {levelCourses.map((course: any) => (
+              <div
+                key={course._id}
+                className="rounded-xl border bg-muted/30 p-3"
+              >
+                <div className="font-semibold">
+                  {course.grade}
                 </div>
 
-                <div className="text-right">
-
-                  <div>
-
-                    {slot.students.length} / {slot.maxStudents}
-
-                  </div>
-
-                  <div className="text-xs">
-
-                    {full
-                      ? "FULL"
-                      : `${slot.maxStudents - slot.students.length} Seats Left`}
-
-                  </div>
-
+                <div className="text-gold font-bold">
+                  ₹{course.fee}
                 </div>
-
               </div>
-
-            </button>
-
-          );
-
-        })}
-
-      </div>
-
-    </div>
-
+            ))}
+          </div>
+        </button>
+      );
+    })}
   </div>
 )}
 
-                {/* STEP 4 */}
+{/* =========================
+STEP 5
+========================= */}
 
-                {step === 3 && (
+{step === 4 && (
+  <div className="space-y-6 text-center">
+    <div>
+      <div className="text-xs font-semibold uppercase tracking-wider text-gold">
+        Step 5 of 5
+      </div>
 
-                  <div className="space-y-6">
+      <h1 className="mt-2 font-display text-3xl">
+        Upload Profile Photo
+      </h1>
+    </div>
 
-                    <h1 className="font-display text-3xl">
-                      Select Your Level
-                    </h1>
+    <label className="mx-auto flex h-40 w-40 cursor-pointer flex-col items-center justify-center rounded-full border-2 border-dashed border-gold/50 bg-gold-soft">
+      <Upload className="h-6 w-6" />
 
-                    {[
-                      "Basic",
-                      "Intermediate",
-                      "Advanced",
-                    ].map((level) => {
+      <span className="text-xs mt-2">
+        Upload Photo
+      </span>
 
-                      const levelCourses = courses.filter(
-  (c: any) =>
-    c.name === selectedCourse?.name &&
-    c.classMode === selectedCourse?.classMode &&
-    c.mainLevel === level
-);
+      <input
+        hidden
+        type="file"
+        accept="image/*"
+        onChange={(e) =>
+          setImage(e.target.files?.[0] || null)
+        }
+      />
+    </label>
 
-                      if (
-                        levelCourses.length ===
-                        0
-                      )
-                        return null;
+    <div className="rounded-2xl bg-muted p-5 text-left space-y-2">
+      <p>
+        <strong>Course :</strong>{" "}
+        {selectedCourse?.name}
+      </p>
 
-                      return (
+      <p>
+        <strong>Class :</strong>{" "}
+        {selectedCourse?.classMode}
+      </p>
 
-                        <button
-                          key={level}
-                          type="button"
-                          onClick={() =>
-                            setData({
-                              ...data,
-                              selectedLevel:
-                                level,
-                            })
-                          }
-                          className={`w-full rounded-2xl border p-5 text-left ${
-                            data.selectedLevel ===
-                            level
-                              ? "border-gold bg-gold-soft"
-                              : "border-border"
-                          }`}
-                        >
+      <p>
+        <strong>Level :</strong>{" "}
+        {data.selectedLevel}
+      </p>
 
-                          <div className="flex items-center justify-between">
+      <p>
+        <strong>Grade :</strong>{" "}
+        {selectedGradeCourse?.grade}
+      </p>
 
-                            <div className="text-xl font-semibold">
+      <p>
+        <strong>Mode :</strong>{" "}
+        {data.mode}
+      </p>
 
-                              {level}
+      <p>
+        <strong>Day :</strong>{" "}
+        {data.availableDays.join(", ")}
+      </p>
 
-                            </div>
+      <p>
+        <strong>Time :</strong>{" "}
+        {data.fromTime} - {data.toTime}
+      </p>
+    </div>
+  </div>
+)}
 
-                            <div className="text-sm font-bold text-gold">
+            </motion.div>
+          </AnimatePresence>
 
-                              Starting ₹
-                              {
-                                levelCourses[0]
-                                  ?.fee
-                              }
+          {/* Bottom Buttons */}
 
-                            </div>
+          <div className="mt-8 flex items-center justify-between">
+            <Button
+              variant="ghost"
+              disabled={step === 0}
+              onClick={back}
+            >
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back
+            </Button>
 
-                          </div>
-
-                          <div className="mt-4 grid gap-3 sm:grid-cols-3">
-
-                            {levelCourses.map(
-                              (c: any) => (
-
-                                <div
-                                  key={c._id}
-                                  className="rounded-xl border bg-black/5 p-3"
-                                >
-
-                                  <div className="text-sm font-semibold">
-
-                                    {c.grade}
-
-                                  </div>
-
-                                  <div className="text-sm font-bold text-gold">
-
-                                    ₹{c.fee}
-
-                                  </div>
-
-                                </div>
-
-                              )
-                            )}
-
-                          </div>
-
-                        </button>
-
-                      );
-
-                    })}
-
-                  </div>
-
-                )}
-
-                {/* STEP 5 */}
-
-                {step === 4 && (
-
-                  <div className="space-y-5 text-center">
-
-                    <h1 className="font-display text-3xl">
-                      Upload Your Photo
-                    </h1>
-
-                    <label className="mx-auto flex h-40 w-40 cursor-pointer flex-col items-center justify-center gap-2 rounded-full border-2 border-dashed border-gold/40 bg-gold-soft">
-
-                      <Upload className="h-6 w-6" />
-
-                      <span className="text-xs">
-                        Upload
-                      </span>
-
-                      <input
-  type="file"
-  accept="image/*"
-  onChange={(e) => setImage(e.target.files?.[0] || null)}
-/>
-
-                    </label>
-
-                    <div className="rounded-2xl bg-muted p-4 text-sm">
-
-                      <p>
-
-                        Course:
-                        {" "}
-
-                        <strong>
-
-                          {
-                            selectedCourse?.name
-                          }
-
-                        </strong>
-
-                      </p>
-
-                      <p className="mt-1">
-
-                        Level:
-                        {" "}
-                        {
-                          data.selectedLevel
-                        }
-
-                      </p>
-
-                      <p className="mt-1">
-
-                        Grade:
-                        {" "}
-                        {
-                          selectedGradeCourse?.grade
-                        }
-
-                      </p>
-
-                    </div>
-
-                  </div>
-
-                )}
-
-              </motion.div>
-
-            </AnimatePresence>
-
-            {/* BUTTONS */}
-
-            <div className="mt-8 flex items-center justify-between">
-
+            {step < steps.length - 1 ? (
               <Button
-                variant="ghost"
-                onClick={back}
-                disabled={step === 0}
+                onClick={next}
+                className="bg-gold text-gold-foreground"
               >
-
-                <ArrowLeft className="mr-1 h-4 w-4" />
-
-                Back
-
+                Continue
+                <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
-
-              {step <
-              steps.length - 1 ? (
-
-                <Button
-                  onClick={next}
-                  className="bg-gold text-gold-foreground"
-                >
-
-                  Continue
-
-                  <ArrowRight className="ml-1 h-4 w-4" />
-
-                </Button>
-
-              ) : (
-
-                <Button
-                  onClick={finish}
-                  className="bg-foreground text-background"
-                >
-
-                  Enter Dashboard
-
-                  <ArrowRight className="ml-1 h-4 w-4" />
-
-                </Button>
-
-              )}
-
-            </div>
-
+            ) : (
+              <Button
+                onClick={finish}
+                className="bg-foreground text-background"
+              >
+                Create Account
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            )}
           </div>
 
         </div>
-
       </div>
-
     </div>
-
-  );
+  </div>
+);
 
 }
 
