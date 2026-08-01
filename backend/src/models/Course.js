@@ -44,10 +44,10 @@ const courseSchema = new mongoose.Schema(
       min: 1,
     },
 
-    students: {
-      type: Number,
-      default: 0,
-    },
+    // students: {
+    //   type: Number,
+    //   default: 0,
+    // },
 
     courseName: String,
 

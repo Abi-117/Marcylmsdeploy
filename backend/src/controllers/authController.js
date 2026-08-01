@@ -9,27 +9,128 @@ import OTP from "../models/otpModel.js";
 import { sendOTPEmail } from "../utils/mailer.js";
 
 // REGISTER
+// =========================
+// REGISTER
+// =========================
+
 export const register = async (req, res) => {
   try {
-const {
-  name,
-  email,
-  password,
-  role,
-  phone,
-  course,
-  mode,
-  exp,
-  qualification,
-  level,
-  batch,
-  fromTime,
-  toTime,
-  availableDays,
-  parentName,
-  address,
-  image,
-} = req.body;
+    const {
+      name,
+      email,
+      password,
+      role,
+      phone,
+      course,
+      mode,
+      exp,
+      qualification,
+      level,
+      batch,
+      fromTime,
+      toTime,
+      availableDays,
+      parentName,
+      address,
+      image,
+      classType,
+    } = req.body;
+
+    // =========================
+    // EMAIL CHECK
+    // =========================
+
+    const existingUser = await User.findOne({ email });
+
+    if (existingUser) {
+      return res.status(400).json({
+        message: "User already exists",
+      });
+    }
+
+    // =========================
+    // COURSE CHECK
+    // =========================
+
+    if (role === "student") {
+      const selectedCourse = await Course.findById(course);
+
+      if (!selectedCourse) {
+        return res.status(404).json({
+          message: "Course not found",
+        });
+      }
+
+      // Count students already in same slot
+
+      const totalStudents = await User.countDocuments({
+        role: "student",
+        course,
+        fromTime,
+        toTime,
+        availableDays: {
+          $in: availableDays,
+        },
+      });
+
+      // Individual = only 1 student
+
+      const maxStudents =
+        selectedCourse.classMode === "Individual"
+          ? 1
+          : selectedCourse.maxStudents;
+
+      if (totalStudents >= maxStudents) {
+        return res.status(400).json({
+          message:
+            "The selected day and time slot is already full. Please choose another available time slot.",
+        });
+      }
+    }
+
+    // =========================
+    // HASH PASSWORD
+    // =========================
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // =========================
+    // CREATE USER
+    // =========================
+
+    const user = await User.create({
+      name,
+      email,
+      password: hashedPassword,
+      role,
+      phone,
+      course,
+      mode,
+      exp,
+      qualification,
+      level,
+      batch,
+      fromTime,
+      toTime,
+      availableDays,
+      parentName,
+      address,
+      profileImage: image,
+      classType,
+    });
+
+    return res.status(201).json({
+      message: "Register Success",
+      user,
+    });
+  } catch (error) {
+    console.error(error);
+
+    return res.status(500).json({
+      message: error.message,
+    });
+  }
+};
 
     const existingUser = await User.findOne({ email });
 
@@ -118,28 +219,6 @@ return res.status(201).json({
   user,
 });
 
-
-// =========================
-// INCREASE STUDENT COUNT
-// =========================
-
-// if (role === "student" && course) {
-//   await Course.findByIdAndUpdate(course, {
-//     $inc: {
-//       students: 1,
-//     },
-//   });
-// }
-//     res.status(201).json({
-//       message: "Register Success",
-//       user,
-//     });
-//   } catch (error) {
-//     res.status(500).json({
-//       message: error.message,
-//     });
-//   }
-// };
 
 if (role === "student") {
   const selectedCourse = await Course.findById(course);
