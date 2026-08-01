@@ -1,7 +1,6 @@
 // src/controllers/authController.js
 import Course from "../models/Course.js";
 import User from "../models/User.js";
-import TimeSlot from "../models/TimeSlot.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import nodemailer from "nodemailer";
@@ -12,7 +11,7 @@ import { sendOTPEmail } from "../utils/mailer.js";
 // REGISTER
 export const register = async (req, res) => {
   try {
-    const {
+const {
   name,
   email,
   password,
@@ -22,7 +21,6 @@ export const register = async (req, res) => {
   mode,
   exp,
   qualification,
-
   level,
   batch,
   fromTime,
@@ -31,7 +29,6 @@ export const register = async (req, res) => {
   parentName,
   address,
   image,
-  slotId,
 } = req.body;
 
     const existingUser = await User.findOne({ email });
@@ -41,6 +38,35 @@ export const register = async (req, res) => {
         message: "User already exists",
       });
     }
+    if (role === "student") {
+  const selectedCourse = await Course.findById(course);
+
+  if (!selectedCourse) {
+    return res.status(404).json({
+      message: "Course not found",
+    });
+  }
+
+  const totalStudents = await User.countDocuments({
+    role: "student",
+    course,
+    fromTime,
+    toTime,
+    availableDays: { $in: availableDays },
+  });
+
+  const maxStudents =
+    selectedCourse.classMode === "Individual"
+      ? 1
+      : selectedCourse.maxStudents;
+
+  if (totalStudents >= maxStudents) {
+    return res.status(400).json({
+      message:
+        "The selected day and time slot is already full.",
+    });
+  }
+}
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -48,47 +74,48 @@ export const register = async (req, res) => {
 // COURSE SEAT CHECK
 // =========================
 
-if (role === "student") {
+// if (role === "student") {
 
-  const slot = await TimeSlot.findById(slotId);
+//   const slot = await TimeSlot.findById(slotId);
 
-  if (!slot) {
-    return res.status(404).json({
-      message: "Time slot not found",
-    });
-  }
+//   if (!slot) {
+//     return res.status(404).json({
+//       message: "Time slot not found",
+//     });
+//   }
 
-  if (slot.students.length >= slot.maxStudents) {
-    return res.status(400).json({
-      message:
-        "The selected day and time slot is already full. Please choose another available time slot.",
-    });
-  }
+//   if (slot.students.length >= slot.maxStudents) {
+//     return res.status(400).json({
+//       message:
+//         "The selected day and time slot is already full. Please choose another available time slot.",
+//     });
+//   }
 
-}
+// }
 
-    const user = await User.create({
+const user = await User.create({
   name,
   email,
   password: hashedPassword,
   role,
   phone,
   course,
-
   mode,
   exp,
   qualification,
-
   level,
   batch,
   fromTime,
   toTime,
   availableDays,
-
   parentName,
   address,
-
   profileImage: image,
+});
+
+return res.status(201).json({
+  message: "Register Success",
+  user,
 });
 
 
@@ -96,25 +123,53 @@ if (role === "student") {
 // INCREASE STUDENT COUNT
 // =========================
 
-if (role === "student" && course) {
-  await Course.findByIdAndUpdate(course, {
-    $inc: {
-      students: 1,
-    },
-  });
-}
-    res.status(201).json({
-      message: "Register Success",
-      user,
-    });
-  } catch (error) {
-    res.status(500).json({
-      message: error.message,
+// if (role === "student" && course) {
+//   await Course.findByIdAndUpdate(course, {
+//     $inc: {
+//       students: 1,
+//     },
+//   });
+// }
+//     res.status(201).json({
+//       message: "Register Success",
+//       user,
+//     });
+//   } catch (error) {
+//     res.status(500).json({
+//       message: error.message,
+//     });
+//   }
+// };
+
+if (role === "student") {
+  const selectedCourse = await Course.findById(course);
+
+  if (!selectedCourse) {
+    return res.status(404).json({
+      message: "Course not found",
     });
   }
-};
 
+  const totalStudents = await User.countDocuments({
+    role: "student",
+    course,
+    fromTime,
+    toTime,
+    availableDays: { $in: availableDays },
+  });
 
+  const maxStudents =
+    selectedCourse.classMode === "Individual"
+      ? 1
+      : selectedCourse.maxStudents;
+
+  if (totalStudents >= maxStudents) {
+    return res.status(400).json({
+      message:
+        "The selected day and time slot is already full. Please choose another available time slot.",
+    });
+  }
+}
 // LOGIN
 export const login = async (req, res) => {
   try {
