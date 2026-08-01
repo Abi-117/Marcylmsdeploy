@@ -466,4 +466,43 @@ router.get(
   }
 );
 
+router.get(
+  "/teacher/:teacherId/students",
+  async (req, res) => {
+    try {
+      const teacher = await User.findById(req.params.teacherId);
+
+      if (!teacher || teacher.role !== "teacher") {
+        return res.status(404).json({
+          message: "Teacher not found",
+        });
+      }
+
+      const matchingCourses = await Course.find({
+        name: teacher.subject,
+      }).select("_id name");
+
+      const courseIds = matchingCourses.map((c) => c._id);
+
+      const students = await User.find({
+        role: "student",
+        course: {
+          $in: courseIds,
+        },
+      }).select("_id name email course");
+
+      res.json(students);
+
+    } catch (err) {
+
+      console.log(err);
+
+      res.status(500).json({
+        message: err.message,
+      });
+
+    }
+  }
+);
+
 export default router;
