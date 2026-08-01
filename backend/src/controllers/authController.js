@@ -31,6 +31,7 @@ export const register = async (req, res) => {
   parentName,
   address,
   image,
+  slotId,
 } = req.body;
 
     const existingUser = await User.findOne({ email });
