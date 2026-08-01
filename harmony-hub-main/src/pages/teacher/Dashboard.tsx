@@ -419,13 +419,13 @@ function TeacherOverview() {
 
               <div className="font-display text-xl">
 
-                Paid Students
+                All Students
 
               </div>
 
               <div className="text-sm text-muted-foreground">
 
-                Active enrolled students
+                All enrolled students
 
               </div>
 

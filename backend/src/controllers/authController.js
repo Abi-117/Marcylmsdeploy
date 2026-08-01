@@ -47,37 +47,67 @@ export const register = async (req, res) => {
     }
 
     // Student seat check
-    if (role === "student") {
-      const selectedCourse = await Course.findById(course);
+    // =========================
+// COURSE CHECK
+// =========================
 
-      if (!selectedCourse) {
-        return res.status(404).json({
-          message: "Course not found",
-        });
-      }
+if (role === "student") {
 
-      const totalStudents = await User.countDocuments({
-        role: "student",
-        course,
-        fromTime,
-        toTime,
-        availableDays: {
-          $in: availableDays,
-        },
+  const selectedCourse = await Course.findById(course);
+
+  if (!selectedCourse) {
+    return res.status(404).json({
+      message: "Course not found",
+    });
+  }
+
+  // Individual = only one student
+  if (selectedCourse.classMode === "Individual") {
+
+    const totalStudents = await User.countDocuments({
+      role: "student",
+      course,
+      fromTime,
+      toTime,
+      availableDays: { $in: availableDays },
+    });
+
+    if (totalStudents >= 1) {
+      return res.status(400).json({
+        message:
+          "The selected day and time slot is already full. Please choose another available time slot.",
       });
-
-      const maxStudents =
-        selectedCourse.classMode === "Individual"
-          ? 1
-          : selectedCourse.maxStudents;
-
-      if (totalStudents >= maxStudents) {
-        return res.status(400).json({
-          message:
-            "The selected day and time slot is already full. Please choose another available time slot.",
-        });
-      }
     }
+
+  } else {
+
+    // Group
+    // Get every grade under the same course + level
+
+    const groupCourseIds = await Course.find({
+      name: selectedCourse.name,
+      classMode: "Group",
+      mainLevel: selectedCourse.mainLevel,
+    }).distinct("_id");
+
+    const totalStudents = await User.countDocuments({
+      role: "student",
+      course: { $in: groupCourseIds },
+      fromTime,
+      toTime,
+      availableDays: { $in: availableDays },
+    });
+
+    if (totalStudents >= selectedCourse.maxStudents) {
+      return res.status(400).json({
+        message:
+          "This group batch is full. Please choose another day or time.",
+      });
+    }
+
+  }
+
+}
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
