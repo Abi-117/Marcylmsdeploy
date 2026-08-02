@@ -175,16 +175,16 @@ const fetchStudents = async () => {
 
     const teacherId = teacher?._id || teacher?.id;
 
+    if (!teacherId) return;
+
     const res = await axios.get(
-      `${API}/teacher/${teacherId}/students`
+      `${API}/teacher/students/${teacherId}`
     );
 
     setStudents(res.data);
 
   } catch (err) {
-
     console.log(err);
-
   }
 };
 
