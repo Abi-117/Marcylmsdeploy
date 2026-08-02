@@ -120,37 +120,7 @@ router.get("/classes/teacher/:teacherId", async (req, res) => {
     res.status(500).json(err);
   }
 });
-router.get("/teacher/:teacherId/students", async (req, res) => {
-  try {
-    const teacher = await User.findById(req.params.teacherId);
 
-    console.log("Teacher Subject:", teacher.subject);
-
-    const matchingCourses = await Course.find({
-      name: teacher.subject,
-    });
-
-    console.log("Matching Courses:", matchingCourses);
-
-    const courseIds = matchingCourses.map(c => c._id);
-
-    console.log("Course IDs:", courseIds);
-
-    const students = await User.find({
-      role: "student",
-      course: {
-        $in: courseIds,
-      },
-    });
-
-    console.log("Students:", students);
-
-    res.json(students);
-
-  } catch (err) {
-    console.log(err);
-  }
-});
 
 router.get("/teacher-attendance/:teacherId", async (req, res) => {
   try {
