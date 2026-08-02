@@ -349,6 +349,41 @@ router.get(
   }
 );
 
+router.get("/teacher/:teacherId/students", async (req, res) => {
+  try {
+    const teacher = await User.findById(req.params.teacherId);
+
+    if (!teacher || teacher.role !== "teacher") {
+      return res.status(404).json({
+        message: "Teacher not found",
+      });
+    }
+
+    // Teacher subject-க்கு match ஆகும் course
+    const course = await Course.findOne({
+      name: teacher.subject,
+    });
+
+    if (!course) {
+      return res.json([]);
+    }
+
+    const students = await User.find({
+      role: "student",
+      course: course._id,
+      paymentStatus: "Paid",
+    }).select("_id name email course");
+
+    res.json(students);
+
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({
+      message: err.message,
+    });
+  }
+});
+
 // ======================================
 // COMPLETE COURSE
 // ======================================
