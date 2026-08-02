@@ -438,54 +438,54 @@ router.get("/teachers", async (req, res) => {
     });
   }
 });
-router.get(
-  "/teacher/:teacherId/students",
-  async (req, res) => {
+// router.get(
+//   "/teacher/:teacherId/students",
+//   async (req, res) => {
 
-    try {
+//     try {
 
-      const teacher = await User.findById(
-        req.params.teacherId
-      );
+//       const teacher = await User.findById(
+//         req.params.teacherId
+//       );
 
-      if (!teacher) {
-        return res.status(404).json({
-          message: "Teacher not found",
-        });
-      }
+//       if (!teacher) {
+//         return res.status(404).json({
+//           message: "Teacher not found",
+//         });
+//       }
 
-      const matchingCourses =
-        await Course.find({
-          name: teacher.subject,
-        }).select("_id");
+//       const matchingCourses =
+//         await Course.find({
+//           name: teacher.subject,
+//         }).select("_id");
 
-      const courseIds =
-        matchingCourses.map(
-          (c) => c._id
-        );
+//       const courseIds =
+//         matchingCourses.map(
+//           (c) => c._id
+//         );
 
-      const students =
-        await User.find({
-          role: "student",
-          course: {
-            $in: courseIds,
-          },
-        }).select(
-          "_id name email"
-        );
+//       const students =
+//         await User.find({
+//           role: "student",
+//           course: {
+//             $in: courseIds,
+//           },
+//         }).select(
+//           "_id name email"
+//         );
 
-      res.json(students);
+//       res.json(students);
 
-    } catch (err) {
+//     } catch (err) {
 
-      res.status(500).json({
-        message: err.message,
-      });
+//       res.status(500).json({
+//         message: err.message,
+//       });
 
-    }
+//     }
 
-  }
-);
+//   }
+// );
 
 
 
