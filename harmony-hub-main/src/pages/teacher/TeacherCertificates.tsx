@@ -164,29 +164,26 @@ const fetchCertificates = async () => {
 
   }, []);
 
-const fetchStudents = async () => {
-  try {
+  const fetchStudents =
+    async () => {
 
-    const authData = JSON.parse(
-      localStorage.getItem("ms-auth") || "{}"
-    );
+      try {
 
-    const teacher = authData?.state?.user;
+        const res =
+          await axios.get(
+            `${API}/teacher/students`
+          );
 
-    const teacherId = teacher?._id || teacher?.id;
+        setStudents(
+          res.data
+        );
 
-    if (!teacherId) return;
+      } catch (err) {
 
-    const res = await axios.get(
-      `${API}/teacher/students/${teacherId}`
-    );
+        console.log(err);
 
-    setStudents(res.data);
-
-  } catch (err) {
-    console.log(err);
-  }
-};
+      }
+    };
 
   // =========================
   // HANDLE CHANGE
