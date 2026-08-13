@@ -2,10 +2,18 @@ import mongoose from "mongoose";
 
 const groupClassSchema = new mongoose.Schema(
   {
+    // =========================
+    // GROUP NAME
+    // =========================
+
     groupName: {
       type: String,
       required: true,
     },
+
+    // =========================
+    // COURSE
+    // =========================
 
     course: {
       type: mongoose.Schema.Types.ObjectId,
@@ -13,11 +21,19 @@ const groupClassSchema = new mongoose.Schema(
       required: true,
     },
 
+    // =========================
+    // TEACHER
+    // =========================
+
     teacher: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       default: null,
     },
+
+    // =========================
+    // CLASS DETAILS
+    // =========================
 
     level: {
       type: String,
@@ -49,6 +65,10 @@ const groupClassSchema = new mongoose.Schema(
       default: [],
     },
 
+    // =========================
+    // STUDENTS
+    // =========================
+
     students: [
       {
         type: mongoose.Schema.Types.ObjectId,
@@ -56,10 +76,18 @@ const groupClassSchema = new mongoose.Schema(
       },
     ],
 
+    // =========================
+    // MAX STUDENTS
+    // =========================
+
     maxStudents: {
       type: Number,
       default: 3,
     },
+
+    // =========================
+    // STATUS
+    // =========================
 
     status: {
       type: String,
@@ -72,4 +100,7 @@ const groupClassSchema = new mongoose.Schema(
   }
 );
 
-export default mongoose.model("GroupClass", groupClassSchema);
+export default mongoose.model(
+  "GroupClass",
+  groupClassSchema
+);

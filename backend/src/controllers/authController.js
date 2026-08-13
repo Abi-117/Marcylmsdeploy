@@ -42,7 +42,9 @@ export const register = async (req, res) => {
     // EMAIL EXISTS
     // =========================
 
-    const existingUser = await User.findOne({ email });
+    const existingUser = await User.findOne({
+      email,
+    });
 
     if (existingUser) {
       return res.status(400).json({
@@ -51,13 +53,22 @@ export const register = async (req, res) => {
     }
 
     // =========================
-    // GROUP INFORMATION
+    // GROUP
     // =========================
 
     let assignedGroup = null;
 
+    // =========================
+    // STUDENT REGISTRATION
+    // =========================
+
     if (role === "student") {
-      const selectedCourse = await Course.findById(course);
+      // =========================
+      // FIND COURSE
+      // =========================
+
+      const selectedCourse =
+        await Course.findById(course);
 
       if (!selectedCourse) {
         return res.status(404).json({
@@ -65,92 +76,55 @@ export const register = async (req, res) => {
         });
       }
 
-      // ==========================================
+      // =====================================================
       // INDIVIDUAL CLASS
-      // ==========================================
+      // =====================================================
 
-      if (selectedCourse.classMode === "Individual") {
-        const totalStudents = await User.countDocuments({
-          role: "student",
-          course,
-          fromTime,
-          toTime,
-          availableDays: {
-            $in: availableDays,
-          },
-        });
+      if (
+        selectedCourse.classMode ===
+        "Individual"
+      ) {
+        const totalStudents =
+          await User.countDocuments({
+            role: "student",
 
+            course: selectedCourse._id,
+
+            level: level,
+
+            batch: batch,
+
+            mode: mode,
+
+            fromTime: fromTime,
+
+            toTime: toTime,
+
+            availableDays: {
+              $in: availableDays,
+            },
+          });
+
+        // Only one student allowed
         if (totalStudents >= 1) {
           return res.status(400).json({
             message:
-              "The selected day and time slot is already full. Please choose another available time slot.",
+              "This time slot is already booked. Please choose another day or time.",
           });
         }
       }
 
-      // ==========================================
+      // =====================================================
       // GROUP CLASS
-      // ==========================================
+      // =====================================================
 
       else {
-        /*
-          Find groups using:
-
-          Course
-          Level
-          Grade
-          Mode
-          From Time
-          To Time
-          Available Day
-        */
-
-        const existingGroup = await GroupClass.findOne({
-          course: selectedCourse._id,
-
-          level: level,
-
-          grade: batch,
-
-          mode: mode,
-
-          fromTime: fromTime,
-
-          toTime: toTime,
-
-          availableDays: {
-            $all: availableDays,
-          },
-
-          status: "Available",
-
-          $expr: {
-            $lt: [
-              {
-                $size: "$students",
-              },
-              "$maxStudents",
-            ],
-          },
-        }).sort({
-          createdAt: 1,
-        });
-
         // ==========================================
-        // EXISTING GROUP AVAILABLE
+        // FIND EXISTING GROUP FOR EXACT SLOT
         // ==========================================
 
-        if (existingGroup) {
-          assignedGroup = existingGroup;
-        }
-
-        // ==========================================
-        // NO AVAILABLE GROUP
-        // CREATE NEXT GROUP
-        // ==========================================
-
-        else {
-          const lastGroup = await GroupClass.findOne({
+        assignedGroup =
+          await GroupClass.findOne({
             course: selectedCourse._id,
 
             level: level,
@@ -166,9 +140,53 @@ export const register = async (req, res) => {
             availableDays: {
               $all: availableDays,
             },
-          }).sort({
-            createdAt: -1,
           });
+
+        // ==========================================
+        // EXISTING GROUP FOUND
+        // ==========================================
+
+        if (assignedGroup) {
+          // ========================================
+          // CHECK GROUP CAPACITY
+          // ========================================
+
+          if (
+            assignedGroup.students.length >=
+            assignedGroup.maxStudents
+          ) {
+            return res.status(400).json({
+              message:
+                "This group is full for the selected day and time. Please choose another available day or time.",
+            });
+          }
+        }
+
+        // ==========================================
+        // NO GROUP FOR THIS SLOT
+        // ==========================================
+
+        else {
+          // ========================================
+          // FIND LAST GROUP FOR SAME
+          // COURSE + LEVEL + GRADE
+          // ========================================
+
+          const lastGroup =
+            await GroupClass.findOne({
+              course:
+                selectedCourse._id,
+
+              level: level,
+
+              grade: batch,
+            }).sort({
+              createdAt: -1,
+            });
+
+          // ========================================
+          // GROUP NUMBER
+          // ========================================
 
           let groupNumber = 1;
 
@@ -184,43 +202,58 @@ export const register = async (req, res) => {
             }
           }
 
+          // ========================================
+          // CREATE GROUP NAME
+          // ========================================
+
           const groupName =
             `${selectedCourse.name} - ${level} - ${batch} - Group ${groupNumber}`;
 
-          assignedGroup = await GroupClass.create({
-            groupName,
+          // ========================================
+          // CREATE GROUP
+          // ========================================
 
-            course: selectedCourse._id,
+          assignedGroup =
+            await GroupClass.create({
+              groupName,
 
-            level,
+              course:
+                selectedCourse._id,
 
-            grade: batch,
+              level: level,
 
-            mode,
+              grade: batch,
 
-            fromTime,
+              mode: mode,
 
-            toTime,
+              fromTime: fromTime,
 
-            availableDays,
+              toTime: toTime,
 
-            students: [],
+              availableDays:
+                availableDays,
 
-            maxStudents:
-              selectedCourse.maxStudents || 3,
+              students: [],
 
-            status: "Available",
-          });
+              maxStudents:
+                selectedCourse.maxStudents ||
+                3,
+
+              status: "Available",
+            });
         }
       }
     }
 
     // =========================
-    // PASSWORD
+    // HASH PASSWORD
     // =========================
 
     const hashedPassword =
-      await bcrypt.hash(password, 10);
+      await bcrypt.hash(
+        password,
+        10
+      );
 
     // =========================
     // CREATE USER
@@ -228,37 +261,65 @@ export const register = async (req, res) => {
 
     const user = await User.create({
       name,
+
       email,
-      password: hashedPassword,
+
+      password:
+        hashedPassword,
+
       role,
+
       phone,
+
       course,
+
       mode,
+
       exp,
+
       qualification,
+
       level,
+
       batch,
+
       fromTime,
+
       toTime,
+
       availableDays,
+
       parentName,
+
       address,
+
       profileImage: image,
+
       classType,
+
       subject,
+
       experience,
+
       customExperience,
 
+      // =========================
       // GROUP DETAILS
+      // =========================
+
       groupId:
-        assignedGroup?._id || null,
+        assignedGroup
+          ? assignedGroup._id
+          : null,
 
       groupName:
-        assignedGroup?.groupName || "",
+        assignedGroup
+          ? assignedGroup.groupName
+          : "",
     });
 
     // =========================
-    // ADD STUDENT TO GROUP
+    // ADD USER TO GROUP
     // =========================
 
     if (assignedGroup) {
@@ -266,13 +327,19 @@ export const register = async (req, res) => {
         user._id
       );
 
-      // Check if group became full
+      // =========================
+      // CHECK FULL
+      // =========================
 
       if (
         assignedGroup.students.length >=
         assignedGroup.maxStudents
       ) {
-        assignedGroup.status = "Full";
+        assignedGroup.status =
+          "Full";
+      } else {
+        assignedGroup.status =
+          "Available";
       }
 
       await assignedGroup.save();
@@ -283,15 +350,27 @@ export const register = async (req, res) => {
     // =========================
 
     return res.status(201).json({
-      message: "Register Success",
+      message:
+        "Register Success",
 
       user,
 
       group: assignedGroup
         ? {
-            id: assignedGroup._id,
-            name: assignedGroup.groupName,
-            status: assignedGroup.status,
+            id:
+              assignedGroup._id,
+
+            name:
+              assignedGroup.groupName,
+
+            status:
+              assignedGroup.status,
+
+            students:
+              assignedGroup.students.length,
+
+            maxStudents:
+              assignedGroup.maxStudents,
           }
         : null,
     });
@@ -306,7 +385,6 @@ export const register = async (req, res) => {
     });
   }
 };
-
 // =========================
 // LOGIN
 // =========================
