@@ -73,34 +73,30 @@ export const markAttendance = async (req, res) => {
     // UPSERT ATTENDANCE
     // =========================
 
-    const attendance =
-      await Attendance.findOneAndUpdate(
-        {
-          classId,
-          studentId,
-          date: {
-            $gte: start,
-            $lte: end,
-          },
-        },
+    const attendance = await Attendance.findOneAndUpdate(
+  {
+    classId,
+    studentId,
+    date: { $gte: start, $lte: end },
+  },
+  {
+    classId,
+    studentId,
 
-        {
-          classId,
-          studentId,
+    status:
+      status || "Present",
 
-          status:
-            status || "Present",
+    date: new Date(),
 
-          courseName,
-
-          date: new Date(),
-        },
-
-        {
-          upsert: true,
-          new: true,
-        }
-      );
+    // ✅ SAVE COURSE NAME
+    courseName:
+      cls.courseName || "No Course",
+  },
+  {
+    upsert: true,
+    new: true,
+  }
+);
 
     res.json({
       success: true,
@@ -203,22 +199,39 @@ export const getAllAttendance = async (req, res) => {
 
     const result = data.map((a) => ({
       _id: a._id,
-      studentName: a.studentId?.name || "Unknown",
-      studentEmail: a.studentId?.email || "",
-      classTitle: a.classId?.title || "",
+
+      studentName:
+        a.studentId?.name || "Unknown",
+
+      studentEmail:
+        a.studentId?.email || "",
+
+      classTitle:
+        a.classId?.title || "Untitled Class",
+
+      // ✅ COURSE NAME FIX
       courseName:
-  a.courseName ||
-  a.classId?.courseName ||
-  "No Course", // FIX HERE
+        a.courseName ||
+        a.classId?.courseName ||
+        "No Course",
+
       status: a.status,
+
       date: a.date,
     }));
 
     res.json(result);
+
   } catch (err) {
-    console.log("GET ALL ATTENDANCE ERROR:", err);
+
+    console.log(
+      "GET ALL ATTENDANCE ERROR:",
+      err
+    );
+
     res.status(500).json({
-      message: err.message || "Server error",
+      message:
+        err.message || "Server error",
     });
   }
 };
