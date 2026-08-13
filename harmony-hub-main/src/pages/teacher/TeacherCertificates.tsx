@@ -5,146 +5,111 @@ import {
 } from "react";
 
 import axios from "axios";
+import html2canvas from "html2canvas-pro";
 
-// IMPORTANT
-// INSTALL:
-// npm install html2canvas-pro
-
-import html2canvas
-from "html2canvas-pro";
-
-import preview
-from "../../assets/certificate-bg.png";
+import preview from "../../assets/certificate-bg.png";
 import { Badge } from "@/components/ui/badge";
 
 const API =
   "https://marcylmsdeploy-2.onrender.com/api";
 
-export default function
-TeacherCertificateForm() {
+interface Student {
+  _id: string;
+  name: string;
+  email?: string;
+  course?: string;
+  category?: string;
+  level?: string;
+}
 
-  // =========================
-  // STATES
-  // =========================
+interface Certificate {
+  _id: string;
+  studentName: string;
+  course: string;
+  category?: string;
+  level: string;
+  duration?: string;
+  completionDate?: string;
+  status?: string;
+  previewImage?: string;
+}
+
+interface Course {
+  _id?: string;
+  name?: string;
+  category?: string;
+  mainLevel?: string;
+  grade?: string;
+}
+
+interface CertificateForm {
+  student: string;
+  studentName: string;
+  course: string;
+  category: string;
+  level: string;
+  description: string;
+  duration: string;
+  completionDate: string;
+}
+
+export default function TeacherCertificateForm() {
+  // =========================================================
+  // REFS
+  // =========================================================
 
   const previewRef =
-  useRef<HTMLDivElement>(null);
-  
-const [levels, setLevels] =
-  useState<string[]>([]);
-  useEffect(() => {
-  fetchLevels();
-}, []);
+    useRef<HTMLDivElement>(null);
 
-const fetchLevels = async () => {
-  try {
-    const res = await axios.get(
-      `${API}/courses`
-    );
+  // =========================================================
+  // STATES
+  // =========================================================
 
-const allLevels =
-  res.data.map(
-    (c) =>
-      `${c.mainLevel} - ${c.grade}`
-  );
+  const [levels, setLevels] =
+    useState<string[]>([]);
 
-setLevels(
-  [...new Set(allLevels)]
-); 
+  const [students, setStudents] =
+    useState<Student[]>([]);
 
+  const [certificates, setCertificates] =
+    useState<Certificate[]>([]);
 
-  } catch (err) {
-    console.log(err);
-  }
-};
+  const [loading, setLoading] =
+    useState(false);
 
-const [certificates, setCertificates] =
-  useState<any[]>([]);
+  const [form, setForm] =
+    useState<CertificateForm>({
+      student: "",
+      studentName: "",
+      course: "Guitar",
+      category: "Western Music",
+      level: "Basic",
+      description:
+        "With dedication, enthusiasm, and excellence in communication, confidence-building, stage presence, voice modulation, expression, and presentation skills.",
+      duration: "1 Year",
+      completionDate: new Date().toDateString(),
+    });
 
-useEffect(() => {
-  fetchCertificates();
-}, []);
-
-const teacherId =
-  localStorage.getItem("userId");
-
-console.log(
-  "Teacher ID:",
-  teacherId
-);
-const fetchCertificates = async () => {
+  // =========================================================
+  // TEACHER ID
+  // =========================================================
+  // Keeping localStorage approach avoids the missing useAuth()
+  // import/error from the original code.
+  // =========================================================
 
   const teacherId =
     localStorage.getItem("userId");
 
-  if (!teacherId) {
-    console.log(
-      "Teacher ID not found"
-    );
-    return;
-  }
-
-  try {
-
-    const res =
-      await axios.get(
-        `${API}/certificates/teacher/${teacherId}`
-      );
-
-    setCertificates(
-      res.data
-    );
-
-  } catch (err) {
-
-    console.log(err);
-
-  }
-};
-  const [
-    students,
-    setStudents,
-  ] = useState<any[]>([]);
-
-  const [
-    loading,
-    setLoading,
-  ] = useState(false);
-
-  const [
-    form,
-    setForm,
-  ] = useState({
-
-    student: "",
-
-    studentName: "",
-
-    course:
-      "Guitar",
-
-    category:
-      "Western Music",
-
-    level:
-      "Basic",
-
-    description:
-      "With dedication, enthusiasm, and excellence in communication, confidence-building, stage presence, voice modulation, expression, and presentation skills.",
-
-    duration:
-      "1 Year",
-
-    completionDate:
-      new Date()
-        .toDateString(),
-  });
-
-  // =========================
-  // FIX OKLCH ERROR
-  // =========================
+  // =========================================================
+  // FIX OKLCH / HTML2CANVAS BACKGROUND
+  // =========================================================
 
   useEffect(() => {
+    const previousBackground =
+      document.body.style.backgroundColor;
+
+    const previousColor =
+      document.body.style.color;
 
     document.body.style.backgroundColor =
       "#f3f4f6";
@@ -152,145 +117,363 @@ const fetchCertificates = async () => {
     document.body.style.color =
       "#000000";
 
+    return () => {
+      document.body.style.backgroundColor =
+        previousBackground;
+
+      document.body.style.color =
+        previousColor;
+    };
   }, []);
 
-  // =========================
-  // FETCH STUDENTS
-  // =========================
+  // =========================================================
+  // FETCH LEVELS
+  // =========================================================
 
-  useEffect(() => {
+  const fetchLevels = async () => {
+    try {
+      const res =
+        await axios.get<Course[]>(
+          `${API}/courses`
+        );
 
-    fetchStudents();
-
-  }, []);
-
-  const fetchStudents =
-    async () => {
-
-      try {
-
-        const res =
-          await axios.get(
-            `${API}/teacher/students`
+      const allLevels =
+        res.data
+          .filter(
+            (course) =>
+              course.mainLevel &&
+              course.grade
+          )
+          .map(
+            (course) =>
+              `${course.mainLevel} - ${course.grade}`
           );
 
-        setStudents(
-          res.data
+      const uniqueLevels =
+        Array.from(
+          new Set(allLevels)
         );
 
-      } catch (err) {
+      setLevels(uniqueLevels);
+    } catch (err) {
+      console.error(
+        "FETCH LEVELS ERROR:",
+        err
+      );
 
-        console.log(err);
+      setLevels([]);
+    }
+  };
 
+  // =========================================================
+  // FETCH STUDENTS
+  // =========================================================
+
+  const fetchStudents = async () => {
+    try {
+      const res =
+        await axios.get<Student[]>(
+          `${API}/teacher/students`
+        );
+
+      setStudents(
+        Array.isArray(res.data)
+          ? res.data
+          : []
+      );
+    } catch (err) {
+      console.error(
+        "FETCH STUDENTS ERROR:",
+        err
+      );
+
+      setStudents([]);
+    }
+  };
+
+  // =========================================================
+  // FETCH CERTIFICATES
+  // =========================================================
+
+  const fetchCertificates = async () => {
+    if (!teacherId) {
+      console.warn(
+        "Teacher ID not found"
+      );
+
+      setCertificates([]);
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      const res =
+        await axios.get<Certificate[]>(
+          `${API}/certificates/teacher/${teacherId}`
+        );
+
+      setCertificates(
+        Array.isArray(res.data)
+          ? res.data
+          : []
+      );
+    } catch (err) {
+      console.error(
+        "FETCH CERTIFICATES ERROR:",
+        err
+      );
+
+      setCertificates([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // =========================================================
+  // INITIAL DATA
+  // =========================================================
+
+  useEffect(() => {
+    fetchLevels();
+    fetchStudents();
+  }, []);
+
+  // =========================================================
+  // FETCH TEACHER CERTIFICATES
+  // =========================================================
+
+  useEffect(() => {
+    if (!teacherId) {
+      return;
+    }
+
+    fetchCertificates();
+  }, [teacherId]);
+
+  // =========================================================
+  // HANDLE FORM CHANGE
+  // =========================================================
+
+  const handleChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement |
+      HTMLTextAreaElement |
+      HTMLSelectElement
+    >
+  ) => {
+    const {
+      name,
+      value,
+    } = e.target;
+
+    setForm((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  // =========================================================
+  // HANDLE STUDENT CHANGE
+  // =========================================================
+
+  const handleStudent = (
+    e: React.ChangeEvent<
+      HTMLSelectElement
+    >
+  ) => {
+    const selectedId =
+      e.target.value;
+
+    const selected =
+      students.find(
+        (student) =>
+          student._id === selectedId
+      );
+
+    setForm((prev) => ({
+      ...prev,
+      student:
+        selected?._id || "",
+      studentName:
+        selected?.name || "",
+    }));
+  };
+
+  // =========================================================
+  // SEND CERTIFICATE REQUEST
+  // =========================================================
+
+  const sendRequest = async () => {
+    if (!previewRef.current) {
+      alert(
+        "Certificate preview is not ready."
+      );
+      return;
+    }
+
+    if (!teacherId) {
+      alert(
+        "Teacher ID not found. Please login again."
+      );
+      return;
+    }
+
+    if (!form.student) {
+      alert(
+        "Please select a student."
+      );
+      return;
+    }
+
+    if (!form.studentName) {
+      alert(
+        "Student name is missing."
+      );
+      return;
+    }
+
+    if (!form.course.trim()) {
+      alert(
+        "Please enter the course."
+      );
+      return;
+    }
+
+    if (!form.category.trim()) {
+      alert(
+        "Please enter the category."
+      );
+      return;
+    }
+
+    if (!form.level.trim()) {
+      alert(
+        "Please select a level."
+      );
+      return;
+    }
+
+    if (!form.duration.trim()) {
+      alert(
+        "Please enter the course duration."
+      );
+      return;
+    }
+
+    if (!form.completionDate.trim()) {
+      alert(
+        "Please enter completion date."
+      );
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      // -----------------------------------------------------
+      // Wait until browser fonts are completely loaded.
+      // This helps html2canvas capture text correctly.
+      // -----------------------------------------------------
+
+      if (
+        document.fonts &&
+        document.fonts.ready
+      ) {
+        await document.fonts.ready;
       }
-    };
 
-  // =========================
-  // HANDLE CHANGE
-  // =========================
+      // -----------------------------------------------------
+      // Generate certificate preview image
+      // -----------------------------------------------------
 
-  const handleChange =
-    (
-      e: any
-    ) => {
-
-      setForm({
-
-        ...form,
-
-        [e.target.name]:
-          e.target.value,
-      });
-    };
-
-  // =========================
-  // HANDLE STUDENT
-  // =========================
-
-  const handleStudent =
-    (
-      e: any
-    ) => {
-
-      const selected =
-        students.find(
-          (s) =>
-            s._id ===
-            e.target.value
+      const canvas =
+        await html2canvas(
+          previewRef.current,
+          {
+            scale: 3,
+            useCORS: true,
+            backgroundColor:
+              "#ffffff",
+            logging: false,
+          }
         );
 
-      setForm({
+      const previewImage =
+        canvas.toDataURL(
+          "image/jpeg",
+          0.9
+        );
 
-        ...form,
+      // -----------------------------------------------------
+      // Send certificate request
+      // -----------------------------------------------------
 
-        student:
-          selected?._id || "",
-
-        studentName:
-          selected?.name || "",
-      });
-    };
-
-
-    
-
-  // =========================
-  // SEND REQUEST
-  // =========================
-
-const sendRequest = async () => {
-  try {
-    setLoading(true);
-
-    const teacher =
-      localStorage.getItem("userId");
-
-    await document.fonts.ready;
-
-    const canvas =
-      await html2canvas(
-        previewRef.current,
+      await axios.post(
+        `${API}/certificates/create`,
         {
-          scale: 3,
-          useCORS: true,
-          backgroundColor: "#ffffff",
+          student:
+            form.student,
+
+          studentName:
+            form.studentName,
+
+          teacher:
+            teacherId,
+
+          course:
+            form.course,
+
+          category:
+            form.category,
+
+          level:
+            form.level,
+
+          duration:
+            form.duration,
+
+          completionDate:
+            form.completionDate,
+
+          previewImage:
+            previewImage,
         }
       );
 
-    const previewImage =
-      canvas.toDataURL(
-        "image/jpeg",
-        0.9
+      alert(
+        "Certificate Request Sent"
       );
 
-    await axios.post(
-      `${API}/certificates/create`,
-      {
-        ...form,
-        teacher,
-        previewImage, // <-- use here
-      }
-    );
+      // -----------------------------------------------------
+      // Refresh certificate list
+      // -----------------------------------------------------
 
-    alert("Certificate Request Sent");
+      await fetchCertificates();
 
-    fetchCertificates();
+    } catch (err: any) {
+      console.error(
+        "SEND CERTIFICATE REQUEST ERROR:",
+        err
+      );
 
-  } catch (err) {
+      const message =
+        err?.response?.data?.message ||
+        err?.response?.data?.error ||
+        "Request Failed";
 
-    console.log(err);
+      alert(message);
 
-    alert("Request Failed");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  } finally {
-
-    setLoading(false);
-
-  }
-};
+  // =========================================================
+  // RETURN UI
+  // =========================================================
 
   return (
-
     <div
       style={{
         backgroundColor:
@@ -303,7 +486,6 @@ const sendRequest = async () => {
         lg:p-10
       "
     >
-
       <div
         className="
           flex
@@ -312,10 +494,9 @@ const sendRequest = async () => {
           gap-8
         "
       >
-
-        {/* ========================= */}
-        {/* FORM */}
-        {/* ========================= */}
+        {/* =================================================
+            FORM
+        ================================================= */}
 
         <div
           style={{
@@ -332,7 +513,6 @@ const sendRequest = async () => {
             h-fit
           "
         >
-
           <h1
             className="
               text-2xl
@@ -345,10 +525,11 @@ const sendRequest = async () => {
 
           <div className="space-y-4">
 
-            {/* STUDENT */}
+            {/* =================================================
+                STUDENT
+            ================================================= */}
 
             <div>
-
               <label
                 className="
                   text-sm
@@ -361,9 +542,7 @@ const sendRequest = async () => {
               </label>
 
               <select
-                value={
-                  form.student
-                }
+                value={form.student}
                 onChange={
                   handleStudent
                 }
@@ -376,19 +555,16 @@ const sendRequest = async () => {
                 style={{
                   backgroundColor:
                     "#ffffff",
-
                   borderColor:
                     "#d1d5db",
                 }}
               >
-
                 <option value="">
                   Select Student
                 </option>
 
                 {students.map(
                   (student) => (
-
                     <option
                       key={
                         student._id
@@ -399,28 +575,31 @@ const sendRequest = async () => {
                     >
                       {student.name}
                     </option>
-
                   )
                 )}
-
               </select>
-
             </div>
 
-            {/* COURSE */}
+            {/* =================================================
+                COURSE
+            ================================================= */}
 
             <div>
-
-              <label className="block mb-2 text-sm font-medium">
+              <label
+                className="
+                  block
+                  mb-2
+                  text-sm
+                  font-medium
+                "
+              >
                 Course
               </label>
 
               <input
                 type="text"
                 name="course"
-                value={
-                  form.course
-                }
+                value={form.course}
                 onChange={
                   handleChange
                 }
@@ -430,15 +609,28 @@ const sendRequest = async () => {
                   rounded-lg
                   p-3
                 "
+                style={{
+                  backgroundColor:
+                    "#ffffff",
+                  borderColor:
+                    "#d1d5db",
+                }}
               />
-
             </div>
 
-            {/* CATEGORY */}
+            {/* =================================================
+                CATEGORY
+            ================================================= */}
 
             <div>
-
-              <label className="block mb-2 text-sm font-medium">
+              <label
+                className="
+                  block
+                  mb-2
+                  text-sm
+                  font-medium
+                "
+              >
                 Category
               </label>
 
@@ -457,43 +649,80 @@ const sendRequest = async () => {
                   rounded-lg
                   p-3
                 "
+                style={{
+                  backgroundColor:
+                    "#ffffff",
+                  borderColor:
+                    "#d1d5db",
+                }}
               />
-
             </div>
 
-            {/* LEVEL */}
+            {/* =================================================
+                LEVEL
+            ================================================= */}
 
             <div>
-
-              <label className="block mb-2 text-sm font-medium">
+              <label
+                className="
+                  block
+                  mb-2
+                  text-sm
+                  font-medium
+                "
+              >
                 Level
               </label>
 
-             <select
-  name="level"
-  value={form.level}
-  onChange={handleChange}
-  className="w-full border rounded-lg p-3"
->
-  <option value="">Select Level</option>
+              <select
+                name="level"
+                value={form.level}
+                onChange={
+                  handleChange
+                }
+                className="
+                  w-full
+                  border
+                  rounded-lg
+                  p-3
+                "
+                style={{
+                  backgroundColor:
+                    "#ffffff",
+                  borderColor:
+                    "#d1d5db",
+                }}
+              >
+                <option value="">
+                  Select Level
+                </option>
 
-  {levels.map((level) => (
-    <option
-      key={level}
-      value={level}
-    >
-      {level}
-    </option>
-  ))}
-</select>
-
+                {levels.map(
+                  (level) => (
+                    <option
+                      key={level}
+                      value={level}
+                    >
+                      {level}
+                    </option>
+                  )
+                )}
+              </select>
             </div>
 
-            {/* DESCRIPTION */}
+            {/* =================================================
+                DESCRIPTION
+            ================================================= */}
 
             <div>
-
-              <label className="block mb-2 text-sm font-medium">
+              <label
+                className="
+                  block
+                  mb-2
+                  text-sm
+                  font-medium
+                "
+              >
                 Description
               </label>
 
@@ -511,16 +740,30 @@ const sendRequest = async () => {
                   rounded-lg
                   p-3
                   h-40
+                  resize-none
                 "
+                style={{
+                  backgroundColor:
+                    "#ffffff",
+                  borderColor:
+                    "#d1d5db",
+                }}
               />
-
             </div>
 
-            {/* DURATION */}
+            {/* =================================================
+                DURATION
+            ================================================= */}
 
             <div>
-
-              <label className="block mb-2 text-sm font-medium">
+              <label
+                className="
+                  block
+                  mb-2
+                  text-sm
+                  font-medium
+                "
+              >
                 Duration
               </label>
 
@@ -539,15 +782,28 @@ const sendRequest = async () => {
                   rounded-lg
                   p-3
                 "
+                style={{
+                  backgroundColor:
+                    "#ffffff",
+                  borderColor:
+                    "#d1d5db",
+                }}
               />
-
             </div>
 
-            {/* DATE */}
+            {/* =================================================
+                COMPLETION DATE
+            ================================================= */}
 
             <div>
-
-              <label className="block mb-2 text-sm font-medium">
+              <label
+                className="
+                  block
+                  mb-2
+                  text-sm
+                  font-medium
+                "
+              >
                 Completion Date
               </label>
 
@@ -566,23 +822,30 @@ const sendRequest = async () => {
                   rounded-lg
                   p-3
                 "
+                style={{
+                  backgroundColor:
+                    "#ffffff",
+                  borderColor:
+                    "#d1d5db",
+                }}
               />
-
             </div>
 
-            {/* BUTTON */}
+            {/* =================================================
+                SEND BUTTON
+            ================================================= */}
 
             <button
+              type="button"
               onClick={
                 sendRequest
               }
-              disabled={
-                loading
-              }
+              disabled={loading}
               style={{
                 backgroundColor:
-                  "#000000",
-
+                  loading
+                    ? "#6b7280"
+                    : "#000000",
                 color:
                   "#ffffff",
               }}
@@ -592,22 +855,20 @@ const sendRequest = async () => {
                 py-3
                 font-semibold
                 mt-4
+                disabled:cursor-not-allowed
               "
             >
-
               {loading
                 ? "Sending..."
                 : "Send Request"}
-
             </button>
 
           </div>
-
         </div>
 
-        {/* ========================= */}
-        {/* PREVIEW */}
-        {/* ========================= */}
+        {/* =================================================
+            PREVIEW
+        ================================================= */}
 
         <div
           className="
@@ -623,12 +884,15 @@ const sendRequest = async () => {
               "#ffffff",
           }}
         >
-
-          {/* MOBILE RESPONSIVE */}
-
-          <div className="overflow-auto w-full">
-
-            {/* CERTIFICATE */}
+          <div
+            className="
+              overflow-auto
+              w-full
+            "
+          >
+            {/* =================================================
+                CERTIFICATE
+            ================================================= */}
 
             <div
               ref={previewRef}
@@ -638,21 +902,19 @@ const sendRequest = async () => {
                 h-[1000px]
                 overflow-hidden
                 rounded-lg
-                origin-top-left
-
               "
-             style={{
-  transform: "scale(1)",
-  transformOrigin: "top left",
-  backgroundColor: "#ffffff",
-}}
+              style={{
+                backgroundColor:
+                  "#ffffff",
+              }}
             >
-
-              {/* BG IMAGE */}
+              {/* =================================================
+                  BACKGROUND IMAGE
+              ================================================= */}
 
               <img
                 src={preview}
-                alt=""
+                alt="Certificate Background"
                 className="
                   absolute
                   inset-0
@@ -660,45 +922,60 @@ const sendRequest = async () => {
                   h-full
                   object-cover
                 "
+                crossOrigin="anonymous"
               />
 
-              {/* CONTENT */}
+              {/* =================================================
+                  CERTIFICATE CONTENT
+              ================================================= */}
 
-              <div className="relative z-10 w-full h-full">
+              <div
+                className="
+                  relative
+                  z-10
+                  w-full
+                  h-full
+                "
+              >
 
-                {/* CATEGORY */}
+                {/* =================================================
+                    CATEGORY
+                ================================================= */}
 
                 <h1
-  className="
-    absolute
-    top-[250px]
-    left-1/2
-    -translate-x-1/2
-    text-[72px]
-    font-bold
-    text-center
-    w-[900px]
-  "
->
-  {form.category}
-</h1>
+                  className="
+                    absolute
+                    top-[250px]
+                    left-1/2
+                    -translate-x-1/2
+                    text-[72px]
+                    font-bold
+                    text-center
+                    w-[900px]
+                  "
+                  style={{
+                    color:
+                      "#000000",
+                  }}
+                >
+                  {form.category}
+                </h1>
 
-                {/* COURSE */}
+                {/* =================================================
+                    COURSE
+                ================================================= */}
 
                 <h2
                   className="
                     absolute
                     top-[340px]
                     left-1/2
-                    -transform
                     -translate-x-1/2
                     text-center
                     w-[900px]
-                    
                     text-[52px]
                     font-bold
                     uppercase
-                  
                   "
                   style={{
                     color:
@@ -708,62 +985,81 @@ const sendRequest = async () => {
                   {form.course}
                 </h2>
 
-                {/* STUDENT */}
+                {/* =================================================
+                    STUDENT
+                ================================================= */}
 
                 <h3
-  className="
-    absolute
-    top-[450px]
-    left-1/2
-    -translate-x-1/2
-    text-[48px]
-    font-bold
-    text-center
-    w-[900px]
-  "
-  style={{
-    color: "#b68b2d",
-  }}
->
-  {form.studentName}
-</h3>
+                  className="
+                    absolute
+                    top-[450px]
+                    left-1/2
+                    -translate-x-1/2
+                    text-[48px]
+                    font-bold
+                    text-center
+                    w-[900px]
+                  "
+                  style={{
+                    color:
+                      "#b68b2d",
+                  }}
+                >
+                  {form.studentName}
+                </h3>
 
-                {/* DESCRIPTION */}
+                {/* =================================================
+                    DESCRIPTION
+                ================================================= */}
 
-               <div
-  className="
-    absolute
-    top-[540px]
-    left-1/2
-    -translate-x-1/2
-    w-[900px]
-    text-center
-  "
->
-  <p
-    className="
-      text-[24px]
-      leading-[38px]
-    "
-  >
-    In recognition of successful
-    completion of {form.level} in {form.course} in {form.category}
-  </p>
+                <div
+                  className="
+                    absolute
+                    top-[540px]
+                    left-1/2
+                    -translate-x-1/2
+                    w-[900px]
+                    text-center
+                  "
+                >
+                  <p
+                    className="
+                      text-[24px]
+                      leading-[38px]
+                    "
+                    style={{
+                      color:
+                        "#000000",
+                    }}
+                  >
+                    In recognition of
+                    successful
+                    completion of{" "}
+                    {form.level} in{" "}
+                    {form.course} in{" "}
+                    {form.category}
+                  </p>
 
-  <p
-    className="
-      mt-4
-      text-[22px]
-      leading-[34px]
-      break-words
-      whitespace-normal
-    "
-  >
-    {form.description}
-  </p>
-</div>
+                  <p
+                    className="
+                      mt-4
+                      text-[22px]
+                      leading-[34px]
+                      break-words
+                      whitespace-normal
+                    "
+                    style={{
+                      color:
+                        "#000000",
+                    }}
+                  >
+                    {form.description}
+                  </p>
+                </div>
 
-                {/* DURATION */}
+                {/* =================================================
+                    DURATION
+                ================================================= */}
 
                 <p
                   className="
@@ -777,14 +1073,13 @@ const sendRequest = async () => {
                       "#000000",
                   }}
                 >
-
-                  Course Duration:
-                  {" "}
+                  Course Duration:{" "}
                   {form.duration}
-
                 </p>
 
-                {/* DATE */}
+                {/* =================================================
+                    COMPLETION DATE
+                ================================================= */}
 
                 <p
                   className="
@@ -798,72 +1093,236 @@ const sendRequest = async () => {
                       "#000000",
                   }}
                 >
-
-                  Date of Completion:
-                  {" "}
+                  Date of Completion:{" "}
                   {form.completionDate}
-
                 </p>
 
               </div>
-
             </div>
-
           </div>
-
-        </div>
-        
-
-      </div>
-<div className="mt-10 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-  {certificates.map((c) => (
-    <div
-      key={c._id}
-      className="group bg-white border border-slate-200 rounded-2xl p-6 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
-    >
-      <div className="flex items-start justify-between mb-4">
-        <div>
-          <h3 className="text-lg font-bold text-slate-800 capitalize">
-            {c.studentName}
-          </h3>
-
-          <p className="text-sm text-slate-500 mt-1">
-            Certificate Details
-          </p>
-        </div>
-
-        <Badge
-          className={
-            c.status === "approved"
-              ? "bg-green-600 text-white hover:bg-green-600"
-              : "bg-orange-500 text-white hover:bg-orange-500"
-          }
-        >
-          {c.status === "approved"
-            ? "Completed"
-            : "Pending Approval"}
-        </Badge>
-      </div>
-
-      <div className="space-y-3">
-        <div className="flex justify-between border-b pb-2">
-          <span className="text-slate-500 text-sm">Course</span>
-          <span className="font-medium text-slate-800">
-            {c.course}
-          </span>
-        </div>
-
-        <div className="flex justify-between">
-          <span className="text-slate-500 text-sm">Level</span>
-          <span className="font-medium text-slate-800">
-            {c.level}
-          </span>
         </div>
       </div>
-    </div>
-  ))}
-</div>
 
+      {/* =========================================================
+          CERTIFICATE REQUEST HISTORY
+      ========================================================= */}
+
+      <div
+        className="
+          mt-10
+          grid
+          gap-5
+          md:grid-cols-2
+          lg:grid-cols-3
+        "
+      >
+        {certificates.map(
+          (certificate) => (
+            <div
+              key={
+                certificate._id
+              }
+              className="
+                group
+                bg-white
+                border
+                border-slate-200
+                rounded-2xl
+                p-6
+                shadow-sm
+                hover:shadow-xl
+                hover:-translate-y-1
+                transition-all
+                duration-300
+              "
+            >
+              {/* =================================================
+                  HEADER
+              ================================================= */}
+
+              <div
+                className="
+                  flex
+                  items-start
+                  justify-between
+                  mb-4
+                "
+              >
+                <div>
+                  <h3
+                    className="
+                      text-lg
+                      font-bold
+                      text-slate-800
+                      capitalize
+                    "
+                  >
+                    {
+                      certificate.studentName
+                    }
+                  </h3>
+
+                  <p
+                    className="
+                      text-sm
+                      text-slate-500
+                      mt-1
+                    "
+                  >
+                    Certificate Details
+                  </p>
+                </div>
+
+                <Badge
+                  className={
+                    certificate.status ===
+                    "approved"
+                      ? "bg-green-600 text-white hover:bg-green-600"
+                      : "bg-orange-500 text-white hover:bg-orange-500"
+                  }
+                >
+                  {certificate.status ===
+                  "approved"
+                    ? "Completed"
+                    : "Pending Approval"}
+                </Badge>
+              </div>
+
+              {/* =================================================
+                  DETAILS
+              ================================================= */}
+
+              <div
+                className="
+                  space-y-3
+                "
+              >
+                <div
+                  className="
+                    flex
+                    justify-between
+                    gap-4
+                    border-b
+                    pb-2
+                  "
+                >
+                  <span
+                    className="
+                      text-slate-500
+                      text-sm
+                    "
+                  >
+                    Course
+                  </span>
+
+                  <span
+                    className="
+                      font-medium
+                      text-slate-800
+                      text-right
+                    "
+                  >
+                    {
+                      certificate.course
+                    }
+                  </span>
+                </div>
+
+                <div
+                  className="
+                    flex
+                    justify-between
+                    gap-4
+                  "
+                >
+                  <span
+                    className="
+                      text-slate-500
+                      text-sm
+                    "
+                  >
+                    Level
+                  </span>
+
+                  <span
+                    className="
+                      font-medium
+                      text-slate-800
+                      text-right
+                    "
+                  >
+                    {
+                      certificate.level
+                    }
+                  </span>
+                </div>
+
+                {certificate.duration && (
+                  <div
+                    className="
+                      flex
+                      justify-between
+                      gap-4
+                    "
+                  >
+                    <span
+                      className="
+                        text-slate-500
+                        text-sm
+                      "
+                    >
+                      Duration
+                    </span>
+
+                    <span
+                      className="
+                        font-medium
+                        text-slate-800
+                        text-right
+                      "
+                    >
+                      {
+                        certificate.duration
+                      }
+                    </span>
+                  </div>
+                )}
+
+                {certificate.completionDate && (
+                  <div
+                    className="
+                      flex
+                      justify-between
+                      gap-4
+                    "
+                  >
+                    <span
+                      className="
+                        text-slate-500
+                        text-sm
+                      "
+                    >
+                      Completion Date
+                    </span>
+
+                    <span
+                      className="
+                        font-medium
+                        text-slate-800
+                        text-right
+                      "
+                    >
+                      {
+                        certificate.completionDate
+                      }
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+          )
+        )}
+      </div>
     </div>
   );
 }
