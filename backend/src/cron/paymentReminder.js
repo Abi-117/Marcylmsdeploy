@@ -2,82 +2,206 @@ import dotenv from "dotenv";
 dotenv.config();
 
 import cron from "node-cron";
+
 import Payment from "../models/Payment.js";
-import User from "../models/User.js";
 import MailLog from "../models/MailLog.js";
+
 import { sendMail } from "../utils/mailer.js";
 
 console.log("Payment Reminder Loaded ✅");
 
-cron.schedule("* * * * *", async () => {
+let running = false;
 
-  const today = new Date();
 
-  const payments =
-    await Payment.find({
-      status: "Paid",
-    }).populate("student");
+// =========================================
+// DAILY PAYMENT REMINDER
+// Runs every day at 9:00 AM
+// =========================================
 
-  for (const payment of payments) {
+cron.schedule("0 9 * * *", async () => {
 
-    if (!payment.nextDueDate) continue;
-
-    const diffDays = Math.ceil(
-      (payment.nextDueDate - today) /
-      (1000 * 60 * 60 * 24)
+  if (running) {
+    console.log(
+      "Payment reminder already running..."
     );
 
-    if (diffDays <= 7) {
+    return;
+  }
+
+  running = true;
+
+  try {
+
+    const today = new Date();
+
+    const sevenDaysLater =
+      new Date(
+        today.getTime() +
+        7 * 24 * 60 * 60 * 1000
+      );
+
+
+    // =====================================
+    // FIND PAYMENTS DUE WITHIN 7 DAYS
+    // =====================================
+
+    const payments =
+      await Payment.find({
+
+        status: "Paid",
+
+        nextDueDate: {
+          $gte: today,
+          $lte: sevenDaysLater,
+        },
+
+      }).populate("student");
+
+
+    console.log(
+      "Payment reminders found:",
+      payments.length
+    );
+
+
+    // =====================================
+    // SEND EMAIL
+    // =====================================
+
+    for (const payment of payments) {
+
+      if (!payment.student) continue;
+
+      if (!payment.student.email) continue;
+
+
+      // ===================================
+      // CHECK TODAY'S REMINDER ALREADY SENT
+      // ===================================
+
+      const startOfDay =
+        new Date(today);
+
+      startOfDay.setHours(
+        0,
+        0,
+        0,
+        0
+      );
+
+
+      const endOfDay =
+        new Date(today);
+
+      endOfDay.setHours(
+        23,
+        59,
+        59,
+        999
+      );
+
+
+      const alreadySent =
+        await MailLog.findOne({
+
+          student:
+            payment.student._id,
+
+          type:
+            "payment-reminder",
+
+          createdAt: {
+            $gte: startOfDay,
+            $lte: endOfDay,
+          },
+
+        });
+
+
+      if (alreadySent) {
+
+        console.log(
+          "Reminder already sent:",
+          payment.student.email
+        );
+
+        continue;
+
+      }
+
+
+      // ===================================
+      // SEND MAIL
+      // ===================================
 
       await sendMail({
-        to: payment.student.email,
+
+        to:
+          payment.student.email,
+
         subject:
           "Monthly Payment Reminder",
+
         html: `
-          <h2>Hello ${payment.student.name}</h2>
-          <p>Your next payment is due on
-          ${payment.nextDueDate.toDateString()}</p>
+          <h2>
+            Hello ${payment.student.name}
+          </h2>
+
+          <p>
+            Your next payment is due on
+            <strong>
+              ${payment.nextDueDate.toDateString()}
+            </strong>
+          </p>
+
+          <p>
+            Please complete your payment
+            before the due date.
+          </p>
         `,
+
       });
+
+
+      // ===================================
+      // SAVE MAIL LOG
+      // ===================================
 
       await MailLog.create({
+
         student:
           payment.student._id,
+
         type:
           "payment-reminder",
+
         subject:
           "Monthly Payment Reminder",
+
         email:
           payment.student.email,
+
       });
+
+
+      console.log(
+        "Payment reminder sent:",
+        payment.student.email
+      );
+
     }
+
+  } catch (error) {
+
+    console.log(
+      "PAYMENT REMINDER ERROR:",
+      error
+    );
+
+  } finally {
+
+    running = false;
+
   }
+
 });
-
-// import cron from "node-cron";
-// import { sendMail } from "../utils/mailer.js";
-
-console.log("Payment Reminder Loaded ✅");
-
-// cron.schedule("* * * * *", async () => {
-
-//   console.log("Cron Running", new Date());
-
-//   try {
-
-//     const info = await sendMail({
-//       to: process.env.EMAIL_USER,
-//       subject: "Cron Test",
-//       html: "<h1>Cron Mail Working ✅</h1>",
-//     });
-
-//     console.log("MAIL SENT:", info.messageId);
-
-//   } catch (err) {
-
-//     console.log("MAIL ERROR:");
-//     console.log(err);
-
-//   }
-
-// });
