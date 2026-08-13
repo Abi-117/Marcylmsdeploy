@@ -9,7 +9,6 @@ import {
   Users,
   CheckCircle2,
   XCircle,
-  BookOpen,
   BarChart3,
 } from "lucide-react";
 
@@ -34,7 +33,6 @@ const API =
   "https://marcylmsdeploy-2.onrender.com/api";
 
 export default function TeacherAttendance() {
-
   // =====================================
   // STATES
   // =====================================
@@ -51,106 +49,60 @@ export default function TeacherAttendance() {
   const [statusFilter, setStatusFilter] =
     useState("all");
 
-  const [courseFilter, setCourseFilter] =
-    useState("all");
-
   // =====================================
   // FETCH
   // =====================================
 
   useEffect(() => {
-
     fetchAttendance();
-
   }, []);
 
   const fetchAttendance = async () => {
-
     try {
-
       const res = await axios.get(
         `${API}/attendance/all`
       );
 
       setData(res.data || []);
-
     } catch (err) {
-
       console.log(err);
-
     } finally {
-
       setLoading(false);
-
     }
-
   };
-
-  // =====================================
-  // COURSES
-  // =====================================
-
-  const courses = useMemo(() => {
-
-    return [
-      ...new Set(
-        data
-          .map((d) => d.courseName)
-          .filter(Boolean)
-      ),
-    ];
-
-  }, [data]);
 
   // =====================================
   // FILTERED DATA
   // =====================================
 
   const filteredData = useMemo(() => {
-
     return data.filter((item) => {
+      const searchText =
+        search.toLowerCase();
 
       const matchesSearch =
-
         item.studentName
           ?.toLowerCase()
-          .includes(
-            search.toLowerCase()
-          ) ||
+          .includes(searchText) ||
 
         item.classTitle
           ?.toLowerCase()
-          .includes(
-            search.toLowerCase()
-          );
+          .includes(searchText);
 
       const matchesStatus =
-
         statusFilter === "all"
           ? true
-          : item.status ===
-            statusFilter;
-
-      const matchesCourse =
-
-        courseFilter === "all"
-          ? true
-          : item.courseName ===
-            courseFilter;
+          : item.status === statusFilter;
 
       return (
         matchesSearch &&
-        matchesStatus &&
-        matchesCourse
+        matchesStatus
       );
-
     });
-
   }, [
     data,
     search,
     statusFilter,
-    courseFilter,
   ]);
 
   // =====================================
@@ -184,13 +136,11 @@ export default function TeacherAttendance() {
   // =====================================
 
   if (loading) {
-
     return (
       <div className="p-6">
         Loading attendance...
       </div>
     );
-
   }
 
   // =====================================
@@ -198,7 +148,6 @@ export default function TeacherAttendance() {
   // =====================================
 
   return (
-
     <div className="p-6 space-y-6">
 
       {/* ===================================== */}
@@ -208,19 +157,13 @@ export default function TeacherAttendance() {
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
 
         <div>
-
           <h1 className="text-3xl font-bold">
-
             Attendance Dashboard
-
           </h1>
 
           <p className="text-muted-foreground mt-1">
-
             Monitor all student attendance records
-
           </p>
-
         </div>
 
       </div>
@@ -234,129 +177,93 @@ export default function TeacherAttendance() {
         {/* TOTAL */}
 
         <Card className="border-0 shadow-md">
-
           <CardContent className="p-5">
 
             <div className="flex items-center justify-between">
 
               <div>
-
                 <p className="text-sm text-muted-foreground">
-
                   Total Records
-
                 </p>
 
                 <h2 className="text-3xl font-bold mt-1">
-
                   {totalAttendance}
-
                 </h2>
-
               </div>
 
               <BarChart3 className="h-10 w-10 text-blue-500" />
-
             </div>
 
           </CardContent>
-
         </Card>
 
         {/* PRESENT */}
 
         <Card className="border-0 shadow-md">
-
           <CardContent className="p-5">
 
             <div className="flex items-center justify-between">
 
               <div>
-
                 <p className="text-sm text-muted-foreground">
-
                   Present
-
                 </p>
 
                 <h2 className="text-3xl font-bold text-green-600 mt-1">
-
                   {totalPresent}
-
                 </h2>
-
               </div>
 
               <CheckCircle2 className="h-10 w-10 text-green-500" />
-
             </div>
 
           </CardContent>
-
         </Card>
 
         {/* ABSENT */}
 
         <Card className="border-0 shadow-md">
-
           <CardContent className="p-5">
 
             <div className="flex items-center justify-between">
 
               <div>
-
                 <p className="text-sm text-muted-foreground">
-
                   Absent
-
                 </p>
 
                 <h2 className="text-3xl font-bold text-red-600 mt-1">
-
                   {totalAbsent}
-
                 </h2>
-
               </div>
 
               <XCircle className="h-10 w-10 text-red-500" />
-
             </div>
 
           </CardContent>
-
         </Card>
 
         {/* PERCENTAGE */}
 
         <Card className="border-0 shadow-md">
-
           <CardContent className="p-5">
 
             <div className="flex items-center justify-between">
 
               <div>
-
                 <p className="text-sm text-muted-foreground">
-
                   Attendance %
-
                 </p>
 
                 <h2 className="text-3xl font-bold text-purple-600 mt-1">
-
                   {attendancePercentage}%
-
                 </h2>
-
               </div>
 
               <Users className="h-10 w-10 text-purple-500" />
-
             </div>
 
           </CardContent>
-
         </Card>
 
       </div>
@@ -369,7 +276,7 @@ export default function TeacherAttendance() {
 
         <CardContent className="p-5">
 
-          <div className="grid gap-4 md:grid-cols-3">
+          <div className="grid gap-4 md:grid-cols-2">
 
             {/* SEARCH */}
 
@@ -382,9 +289,7 @@ export default function TeacherAttendance() {
                 className="pl-9"
                 value={search}
                 onChange={(e) =>
-                  setSearch(
-                    e.target.value
-                  )
+                  setSearch(e.target.value)
                 }
               />
 
@@ -394,9 +299,7 @@ export default function TeacherAttendance() {
 
             <Select
               value={statusFilter}
-              onValueChange={
-                setStatusFilter
-              }
+              onValueChange={setStatusFilter}
             >
 
               <SelectTrigger>
@@ -425,56 +328,6 @@ export default function TeacherAttendance() {
 
             </Select>
 
-            {/* COURSE */}
-
-            <Select
-              value={courseFilter}
-              onValueChange={
-                setCourseFilter
-              }
-            >
-
-              <SelectTrigger>
-
-                <BookOpen className="mr-2 h-4 w-4" />
-
-                <SelectValue placeholder="Course" />
-
-              </SelectTrigger>
-
-              <SelectContent>
-
-                <SelectItem value="all">
-                  All Courses
-                </SelectItem>
-
-                {courses
-                  .filter(
-                    (c) =>
-                      c &&
-                      c !== "" &&
-                      c !== "undefined"
-                  )
-                  .map(
-                    (
-                      c: any,
-                      index: number
-                    ) => (
-
-                      <SelectItem
-                        key={index}
-                        value={String(c)}
-                      >
-                        {c}
-                      </SelectItem>
-
-                    )
-                  )}
-
-              </SelectContent>
-
-            </Select>
-
           </div>
 
         </CardContent>
@@ -492,15 +345,11 @@ export default function TeacherAttendance() {
           <CardContent className="p-10 text-center">
 
             <h2 className="text-xl font-bold">
-
               No Attendance Found
-
             </h2>
 
             <p className="text-muted-foreground mt-2">
-
               Try changing filters
-
             </p>
 
           </CardContent>
@@ -537,23 +386,19 @@ export default function TeacherAttendance() {
                     <div className="flex items-center gap-2 flex-wrap">
 
                       <h2 className="text-lg font-bold">
-
                         {a.studentName}
-
                       </h2>
 
-                      <Badge variant="outline">
-
-                        {a.courseName}
-
-                      </Badge>
+                      {a.courseName && (
+                        <Badge variant="outline">
+                          {a.courseName}
+                        </Badge>
+                      )}
 
                     </div>
 
                     <p className="text-sm text-muted-foreground mt-1">
-
                       {a.studentEmail}
-
                     </p>
 
                     <div className="flex flex-wrap gap-4 mt-3 text-sm text-muted-foreground">
@@ -592,15 +437,10 @@ export default function TeacherAttendance() {
 
                     <div className="flex items-center gap-1">
 
-                      {a.status ===
-                      "Present" ? (
-
+                      {a.status === "Present" ? (
                         <CheckCircle2 className="h-4 w-4" />
-
                       ) : (
-
                         <XCircle className="h-4 w-4" />
-
                       )}
 
                       {a.status}
@@ -622,7 +462,5 @@ export default function TeacherAttendance() {
       </div>
 
     </div>
-
   );
-
 }

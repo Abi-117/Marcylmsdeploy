@@ -8,21 +8,29 @@ import Attendance from "../models/Attendance.js";
 
 export const markAttendance = async (req, res) => {
   try {
-    const { classId, studentId, status } = req.body;
+    const {
+      classId,
+      studentId,
+      status,
+    } = req.body;
 
     // =========================
     // VALIDATION
     // =========================
+
     if (!classId || !studentId) {
       return res.status(400).json({
-        message: "classId and studentId are required",
+        message:
+          "classId and studentId are required",
       });
     }
 
     // =========================
     // FIND CLASS
     // =========================
-    const cls = await Class.findById(classId);
+
+    const cls =
+      await Class.findById(classId);
 
     if (!cls) {
       return res.status(404).json({
@@ -31,43 +39,85 @@ export const markAttendance = async (req, res) => {
     }
 
     // =========================
-    // DATE RANGE (FIX FOR DUPLICATES)
+    // GET COURSE NAME
     // =========================
+
+    const courseName =
+      cls.courseName ||
+      cls.course ||
+      "No Course";
+
+    // =========================
+    // DATE RANGE
+    // =========================
+
     const start = new Date();
-    start.setHours(0, 0, 0, 0);
+
+    start.setHours(
+      0,
+      0,
+      0,
+      0
+    );
 
     const end = new Date();
-    end.setHours(23, 59, 59, 999);
+
+    end.setHours(
+      23,
+      59,
+      59,
+      999
+    );
 
     // =========================
     // UPSERT ATTENDANCE
     // =========================
-    const attendance = await Attendance.findOneAndUpdate(
-      {
-        classId,
-        studentId,
-        date: { $gte: start, $lte: end },
-      },
-      {
-        classId,
-        studentId,
-        status: status || "Present",
-        date: new Date(),
-      },
-      {
-        upsert: true,
-        new: true,
-      }
-    );
+
+    const attendance =
+      await Attendance.findOneAndUpdate(
+        {
+          classId,
+          studentId,
+          date: {
+            $gte: start,
+            $lte: end,
+          },
+        },
+
+        {
+          classId,
+          studentId,
+
+          status:
+            status || "Present",
+
+          courseName,
+
+          date: new Date(),
+        },
+
+        {
+          upsert: true,
+          new: true,
+        }
+      );
 
     res.json({
       success: true,
       data: attendance,
     });
+
   } catch (err) {
-    console.log("MARK ATTENDANCE ERROR:", err);
+
+    console.log(
+      "MARK ATTENDANCE ERROR:",
+      err
+    );
+
     res.status(500).json({
-      message: err.message || "Server error",
+      message:
+        err.message ||
+        "Server error",
     });
   }
 };
@@ -76,33 +126,66 @@ export const markAttendance = async (req, res) => {
 // GET STUDENT ATTENDANCE
 // ====================================
 
-export const getStudentAttendance = async (req, res) => {
+export const getStudentAttendance = async (
+  req,
+  res
+) => {
   try {
-    const { studentId } = req.params;
+
+    const { studentId } =
+      req.params;
 
     if (!studentId) {
       return res.status(400).json({
-        message: "studentId required",
+        message:
+          "studentId required",
       });
     }
 
-    const data = await Attendance.find({ studentId })
-      .populate("classId", "title courseName date")
-      .sort({ createdAt: -1 });
+    const data =
+      await Attendance.find({
+        studentId,
+      })
+        .populate(
+          "classId",
+          "title courseName date"
+        )
+        .sort({
+          createdAt: -1,
+        });
 
-    const result = data.map((a) => ({
-      _id: a._id,
-      classTitle: a.classId?.title || "Untitled Class",
-      courseName: a.classId?.courseName || "No Course",
-      date: a.date,
-      status: a.status,
-    }));
+    const result =
+      data.map((a) => ({
+        _id: a._id,
+
+        classTitle:
+          a.classId?.title ||
+          "Untitled Class",
+
+        // IMPORTANT
+        courseName:
+          a.courseName ||
+          a.classId?.courseName ||
+          "No Course",
+
+        date: a.date,
+
+        status: a.status,
+      }));
 
     res.json(result);
+
   } catch (err) {
-    console.log("GET STUDENT ATTENDANCE ERROR:", err);
+
+    console.log(
+      "GET STUDENT ATTENDANCE ERROR:",
+      err
+    );
+
     res.status(500).json({
-      message: err.message || "Server error",
+      message:
+        err.message ||
+        "Server error",
     });
   }
 };
@@ -123,7 +206,10 @@ export const getAllAttendance = async (req, res) => {
       studentName: a.studentId?.name || "Unknown",
       studentEmail: a.studentId?.email || "",
       classTitle: a.classId?.title || "",
-      courseName: a.classId?.title || "No Course", // FIX HERE
+      courseName:
+  a.courseName ||
+  a.classId?.courseName ||
+  "No Course", // FIX HERE
       status: a.status,
       date: a.date,
     }));
