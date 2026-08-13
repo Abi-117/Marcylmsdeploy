@@ -28,10 +28,15 @@ router.get("/teacher/dashboard/:teacherId", async (req, res) => {
     }).populate("payments");
 
     const classes = await Class.find({
-      teacher: teacher._id,
-    })
-      .populate("students")
-      .sort({ date: 1 });
+  teacherId,
+  status: {
+    $ne: "Completed",
+  },
+})
+  .populate("students", "name email selectedLevel level mode")
+  .sort({
+    date: 1,
+  });
 
     res.json({
       students,

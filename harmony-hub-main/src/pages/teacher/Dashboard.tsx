@@ -453,7 +453,7 @@ function TeacherOverview() {
 
                       <div className="mt-1 text-xs text-muted-foreground">
 
-                        {s.selectedLevel}
+                        {s.selectedLevel || s.level || "No Level"}
 
                       </div>
 
