@@ -28,15 +28,10 @@ router.get("/teacher/dashboard/:teacherId", async (req, res) => {
     }).populate("payments");
 
     const classes = await Class.find({
-  teacherId,
-  status: {
-    $ne: "Completed",
-  },
-})
-  .populate("students", "name email selectedLevel level mode")
-  .sort({
-    date: 1,
-  });
+      teacher: teacher._id,
+    })
+      .populate("students")
+      .sort({ date: 1 });
 
     res.json({
       students,
@@ -353,6 +348,171 @@ router.get(
 
   }
 );
+router.get("/dashboard/:teacherId", async (req, res) => {
+  try {
+    const teacherId = req.params.teacherId;
+
+    // ======================================
+    // FIND TEACHER
+    // ======================================
+
+    const teacher = await User.findById(teacherId);
+
+    if (!teacher || teacher.role !== "teacher") {
+      return res.status(404).json({
+        message: "Teacher not found",
+      });
+    }
+
+    // ======================================
+    // TEACHER SUBJECT
+    // ======================================
+
+    const subject = teacher.subject || "";
+
+    // ======================================
+    // FIND TEACHER COURSE
+    // ======================================
+
+    const matchingCourses = await Course.find({
+      name: subject,
+    }).select("_id name");
+
+    const courseIds = matchingCourses.map(
+      (course) => course._id
+    );
+
+    // ======================================
+    // FIND STUDENTS
+    // ======================================
+
+    const students = await User.find({
+      role: "student",
+      course: {
+        $in: courseIds,
+      },
+    })
+      .select("-password")
+      .populate("course", "name");
+
+    // ======================================
+    // FORMAT STUDENTS
+    // ======================================
+
+    const formattedStudents = students.map((s) => ({
+      ...s.toObject(),
+
+      courseName:
+        s.course?.name ||
+        "No Course",
+
+      // Support both field names
+      selectedLevel:
+        s.selectedLevel ||
+        s.level ||
+        "Not Assigned",
+    }));
+
+    // ======================================
+    // UPCOMING CLASSES
+    // ======================================
+
+    const classes = await Class.find({
+      teacherId: teacherId,
+
+      status: {
+        $ne: "Completed",
+      },
+    })
+      .populate(
+        "students",
+        "name email selectedLevel level course mode paymentStatus"
+      )
+      .sort({
+        date: 1,
+      });
+
+    // ======================================
+    // TODAY CLASSES
+    // ======================================
+
+    const today = new Date().toDateString();
+
+    const todayClasses = classes.filter(
+      (c) =>
+        c.date &&
+        new Date(c.date).toDateString() === today
+    );
+
+    // ======================================
+    // COMPLETED CLASSES
+    // ======================================
+
+    const completedClasses =
+      await Class.countDocuments({
+        teacherId: teacherId,
+        status: "Completed",
+      });
+
+    // ======================================
+    // TOTAL CLASSES
+    // ======================================
+
+    const totalClasses =
+      await Class.countDocuments({
+        teacherId: teacherId,
+      });
+
+    // ======================================
+    // CERTIFICATES
+    // ======================================
+
+    const certificates =
+      await CertificateRequest.countDocuments({
+        teacher: teacherId,
+      });
+
+    // ======================================
+    // PENDING REVIEWS
+    // ======================================
+
+    const pendingReviews = 0;
+
+    // ======================================
+    // RESPONSE
+    // ======================================
+
+    return res.json({
+      students: formattedStudents,
+
+      classes,
+
+      stats: {
+        todayClasses: todayClasses.length,
+
+        students: formattedStudents.length,
+
+        pendingReviews,
+
+        completedClasses,
+
+        certificates,
+
+        totalClasses,
+      },
+    });
+  } catch (err) {
+    console.log(
+      "Dashboard error:",
+      err
+    );
+
+    return res.status(500).json({
+      message: "Dashboard fetch failed",
+      error: err.message,
+    });
+  }
+});
 
 router.get("/:teacherId/students", async (req, res) => {
   try {
