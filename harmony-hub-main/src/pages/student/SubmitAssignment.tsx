@@ -9,6 +9,8 @@ import {
   FileUp,
   CheckCircle2,
   Loader2,
+  Video,
+  FileText,
 } from "lucide-react";
 
 const API =
@@ -23,100 +25,163 @@ export default function SubmitAssignment({
   assignment,
   studentId,
 }: Props) {
-
   const [file, setFile] =
     useState<File | null>(null);
 
   const [loading, setLoading] =
     useState(false);
 
-  // =========================
-  // SAFETY CHECK
-  // =========================
-
-  if (
-    !assignment ||
-    !assignment._id
-  ) {
-
+  if (!assignment || !assignment._id) {
     return (
       <div className="border rounded-xl p-4 text-sm text-muted-foreground">
         Assignment not found
       </div>
     );
-
   }
 
-  // =========================
+  // =====================================
   // CLOUDINARY UPLOAD
-  // =========================
+  // =====================================
 
-  const uploadFile = async (
-    file: File
-  ) => {
+  const uploadFile = async (selectedFile: File) => {
+    const formData = new FormData();
 
-    const formData =
-      new FormData();
-
-    formData.append(
-      "file",
-      file
-    );
+    formData.append("file", selectedFile);
 
     formData.append(
       "upload_preset",
       "marcy_unsigned"
     );
 
-    const cloudName =
-      "dza8um2ng";
+    const cloudName = "dza8um2ng";
 
-    const res =
-      await axios.post(
-        `https://api.cloudinary.com/v1_1/${cloudName}/auto/upload`,
-        formData
-      );
+    // Detect video
+    const isVideo =
+      selectedFile.type.startsWith("video/");
+
+    const uploadType = isVideo
+      ? "video"
+      : "image";
+
+    console.log(
+      "Uploading:",
+      selectedFile.name
+    );
+
+    console.log(
+      "Type:",
+      selectedFile.type
+    );
+
+    console.log(
+      "Size:",
+      (
+        selectedFile.size /
+        (1024 * 1024)
+      ).toFixed(2),
+      "MB"
+    );
+
+    const res = await axios.post(
+      `https://api.cloudinary.com/v1_1/${cloudName}/${uploadType}/upload`,
+      formData,
+      {
+        headers: {
+          "Content-Type":
+            "multipart/form-data",
+        },
+
+        onUploadProgress: (progressEvent) => {
+          if (!progressEvent.total) return;
+
+          const percent = Math.round(
+            (progressEvent.loaded * 100) /
+              progressEvent.total
+          );
+
+          console.log(
+            `Upload ${percent}%`
+          );
+        },
+      }
+    );
+
+    console.log(
+      "CLOUDINARY RESPONSE:",
+      res.data
+    );
 
     return res.data.secure_url;
-
   };
 
-  // =========================
-  // SUBMIT ASSIGNMENT
-  // =========================
+  // =====================================
+  // SUBMIT
+  // =====================================
 
   const submit = async () => {
-
     try {
-
       if (!file) {
-
-        return alert(
-          "Please upload file"
-        );
-
+        alert("Please upload a file");
+        return;
       }
 
       if (!studentId) {
-
-        return alert(
-          "Student ID missing"
-        );
-
+        alert("Student ID missing");
+        return;
       }
 
       setLoading(true);
 
-      // ======================
-      // UPLOAD FILE
-      // ======================
+      console.log(
+        "SELECTED FILE:",
+        file
+      );
+
+      // =================================
+      // CHECK FILE SIZE
+      // =================================
+
+      const fileSizeMB =
+        file.size /
+        (1024 * 1024);
+
+      console.log(
+        "FILE SIZE:",
+        fileSizeMB.toFixed(2),
+        "MB"
+      );
+
+      // Optional safety limit
+      if (fileSizeMB > 100) {
+        alert(
+          "Video is too large. Please upload a video below 100 MB."
+        );
+
+        setLoading(false);
+        return;
+      }
+
+      // =================================
+      // UPLOAD TO CLOUDINARY
+      // =================================
 
       const fileUrl =
         await uploadFile(file);
 
-      // ======================
-      // SAVE TO DB
-      // ======================
+      if (!fileUrl) {
+        throw new Error(
+          "Cloudinary upload failed"
+        );
+      }
+
+      console.log(
+        "CLOUDINARY URL:",
+        fileUrl
+      );
+
+      // =================================
+      // SAVE URL TO DATABASE
+      // =================================
 
       const res =
         await axios.post(
@@ -143,26 +208,63 @@ export default function SubmitAssignment({
       setFile(null);
 
     } catch (err: any) {
-
-      console.log(
+      console.error(
         "SUBMIT ERROR:",
-        err?.response?.data ||
-          err
+        err
+      );
+
+      console.error(
+        "SERVER ERROR:",
+        err?.response?.data
       );
 
       alert(
-        err?.response?.data
-          ?.message ||
-          "Submit failed"
+        err?.response?.data?.message ||
+          err?.message ||
+          "Upload failed"
       );
 
     } finally {
-
       setLoading(false);
-
     }
-
   };
+
+  // =====================================
+  // FILE SELECT
+  // =====================================
+
+  const handleFileChange = (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const selected =
+      e.target.files?.[0] || null;
+
+    if (!selected) return;
+
+    console.log(
+      "FILE SELECTED:",
+      selected.name
+    );
+
+    console.log(
+      "MIME TYPE:",
+      selected.type
+    );
+
+    console.log(
+      "SIZE:",
+      (
+        selected.size /
+        (1024 * 1024)
+      ).toFixed(2),
+      "MB"
+    );
+
+    setFile(selected);
+  };
+
+  const isVideo =
+    file?.type.startsWith("video/");
 
   return (
     <div className="space-y-4">
@@ -208,24 +310,49 @@ export default function SubmitAssignment({
 
         <Input
           type="file"
-          onChange={(e) =>
-            setFile(
-              e.target.files?.[0] ||
-                null
-            )
-          }
+          accept="
+            video/*,
+            application/pdf,
+            image/*,
+            .doc,
+            .docx,
+            .ppt,
+            .pptx
+          "
+          onChange={handleFileChange}
         />
 
         {file && (
+          <div className="rounded-xl border p-3">
 
-          <div className="flex items-center gap-2 text-sm text-green-600">
+            <div className="flex items-center gap-2 text-sm text-green-600">
 
-            <CheckCircle2 className="h-4 w-4" />
+              {isVideo ? (
+                <Video className="h-4 w-4" />
+              ) : (
+                <FileText className="h-4 w-4" />
+              )}
 
-            {file.name}
+              <CheckCircle2 className="h-4 w-4" />
+
+              <span className="truncate">
+                {file.name}
+              </span>
+
+            </div>
+
+            <div className="mt-1 text-xs text-muted-foreground">
+
+              {(file.size / (1024 * 1024)).toFixed(2)}
+              {" MB"}
+
+              {" • "}
+
+              {file.type || "Unknown type"}
+
+            </div>
 
           </div>
-
         )}
 
       </div>
@@ -234,27 +361,24 @@ export default function SubmitAssignment({
 
       <Button
         onClick={submit}
-        disabled={loading}
+        disabled={loading || !file}
         className="w-full"
       >
 
         {loading ? (
-
-          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-
+          <>
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            Uploading...
+          </>
         ) : (
-
-          <FileUp className="mr-2 h-4 w-4" />
-
+          <>
+            <FileUp className="mr-2 h-4 w-4" />
+            Submit Assignment
+          </>
         )}
-
-        {loading
-          ? "Uploading..."
-          : "Submit Assignment"}
 
       </Button>
 
     </div>
   );
-
 }
