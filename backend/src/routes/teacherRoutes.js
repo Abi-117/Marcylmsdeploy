@@ -349,7 +349,7 @@ router.get(
   }
 );
 
-router.get("/teacher/:teacherId/students", async (req, res) => {
+router.get("/:teacherId/students", async (req, res) => {
   try {
     const teacher = await User.findById(req.params.teacherId);
 
