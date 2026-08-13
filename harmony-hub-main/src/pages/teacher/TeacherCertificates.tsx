@@ -169,27 +169,32 @@ export default function TeacherCertificateForm() {
   // FETCH STUDENTS
   // =========================================================
 
-  const fetchStudents = async () => {
-    try {
-      const res =
-        await axios.get<Student[]>(
-          `${API}/teacher/students`
-        );
+const fetchStudents = async () => {
+  if (!teacherId) {
+    console.warn("Teacher ID not found");
+    setStudents([]);
+    return;
+  }
 
-      setStudents(
-        Array.isArray(res.data)
-          ? res.data
-          : []
-      );
-    } catch (err) {
-      console.error(
-        "FETCH STUDENTS ERROR:",
-        err
-      );
+  try {
+    const res = await axios.get<Student[]>(
+      `${API}/teacher/${teacherId}/students`
+    );
 
-      setStudents([]);
-    }
-  };
+    setStudents(
+      Array.isArray(res.data)
+        ? res.data
+        : []
+    );
+  } catch (err) {
+    console.error(
+      "FETCH STUDENTS ERROR:",
+      err
+    );
+
+    setStudents([]);
+  }
+};
 
   // =========================================================
   // FETCH CERTIFICATES
