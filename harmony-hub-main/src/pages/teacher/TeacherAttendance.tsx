@@ -50,7 +50,7 @@ export default function TeacherAttendance() {
     useState("all");
 
   // =====================================
-  // FETCH
+  // FETCH ATTENDANCE
   // =====================================
 
   useEffect(() => {
@@ -65,7 +65,10 @@ export default function TeacherAttendance() {
 
       setData(res.data || []);
     } catch (err) {
-      console.log(err);
+      console.log(
+        "Attendance fetch error:",
+        err
+      );
     } finally {
       setLoading(false);
     }
@@ -84,7 +87,6 @@ export default function TeacherAttendance() {
         item.studentName
           ?.toLowerCase()
           .includes(searchText) ||
-
         item.classTitle
           ?.toLowerCase()
           .includes(searchText);
@@ -359,7 +361,7 @@ export default function TeacherAttendance() {
       )}
 
       {/* ===================================== */}
-      {/* LIST */}
+      {/* ATTENDANCE LIST */}
       {/* ===================================== */}
 
       <div className="grid gap-4">
@@ -383,25 +385,17 @@ export default function TeacherAttendance() {
 
                   <div>
 
-                    <div className="flex items-center gap-2 flex-wrap">
-
-                      <h2 className="text-lg font-bold">
-                        {a.studentName}
-                      </h2>
-
-                      {a.courseName && (
-                        <Badge variant="outline">
-                          {a.courseName}
-                        </Badge>
-                      )}
-
-                    </div>
+                    <h2 className="text-lg font-bold">
+                      {a.studentName}
+                    </h2>
 
                     <p className="text-sm text-muted-foreground mt-1">
                       {a.studentEmail}
                     </p>
 
                     <div className="flex flex-wrap gap-4 mt-3 text-sm text-muted-foreground">
+
+                      {/* CLASS */}
 
                       <div className="flex items-center gap-1">
 
@@ -411,13 +405,17 @@ export default function TeacherAttendance() {
 
                       </div>
 
+                      {/* DATE */}
+
                       <div className="flex items-center gap-1">
 
                         <CalendarDays className="h-4 w-4" />
 
-                        {new Date(
-                          a.date
-                        ).toLocaleDateString()}
+                        {a.date
+                          ? new Date(
+                              a.date
+                            ).toLocaleDateString()
+                          : "No Date"}
 
                       </div>
 
@@ -425,7 +423,7 @@ export default function TeacherAttendance() {
 
                   </div>
 
-                  {/* RIGHT */}
+                  {/* RIGHT - STATUS */}
 
                   <Badge
                     className={`px-5 py-2 text-sm ${

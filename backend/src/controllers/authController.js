@@ -3,6 +3,7 @@ import User from "../models/User.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import nodemailer from "nodemailer";
+import GroupClass from "../models/GroupClass.js";
 
 import OTP from "../models/otpModel.js";
 import { sendOTPEmail } from "../utils/mailer.js";
@@ -37,7 +38,10 @@ export const register = async (req, res) => {
       customExperience,
     } = req.body;
 
-    // Email exists
+    // =========================
+    // EMAIL EXISTS
+    // =========================
+
     const existingUser = await User.findOne({ email });
 
     if (existingUser) {
@@ -46,70 +50,181 @@ export const register = async (req, res) => {
       });
     }
 
-    // Student seat check
     // =========================
-// COURSE CHECK
-// =========================
+    // GROUP INFORMATION
+    // =========================
 
-if (role === "student") {
+    let assignedGroup = null;
 
-  const selectedCourse = await Course.findById(course);
+    if (role === "student") {
+      const selectedCourse = await Course.findById(course);
 
-  if (!selectedCourse) {
-    return res.status(404).json({
-      message: "Course not found",
-    });
-  }
+      if (!selectedCourse) {
+        return res.status(404).json({
+          message: "Course not found",
+        });
+      }
 
-  // Individual = only one student
-  if (selectedCourse.classMode === "Individual") {
+      // ==========================================
+      // INDIVIDUAL CLASS
+      // ==========================================
 
-    const totalStudents = await User.countDocuments({
-      role: "student",
-      course,
-      fromTime,
-      toTime,
-      availableDays: { $in: availableDays },
-    });
+      if (selectedCourse.classMode === "Individual") {
+        const totalStudents = await User.countDocuments({
+          role: "student",
+          course,
+          fromTime,
+          toTime,
+          availableDays: {
+            $in: availableDays,
+          },
+        });
 
-    if (totalStudents >= 1) {
-      return res.status(400).json({
-        message:
-          "The selected day and time slot is already full. Please choose another available time slot.",
-      });
+        if (totalStudents >= 1) {
+          return res.status(400).json({
+            message:
+              "The selected day and time slot is already full. Please choose another available time slot.",
+          });
+        }
+      }
+
+      // ==========================================
+      // GROUP CLASS
+      // ==========================================
+
+      else {
+        /*
+          Find groups using:
+
+          Course
+          Level
+          Grade
+          Mode
+          From Time
+          To Time
+          Available Day
+        */
+
+        const existingGroup = await GroupClass.findOne({
+          course: selectedCourse._id,
+
+          level: level,
+
+          grade: batch,
+
+          mode: mode,
+
+          fromTime: fromTime,
+
+          toTime: toTime,
+
+          availableDays: {
+            $all: availableDays,
+          },
+
+          status: "Available",
+
+          $expr: {
+            $lt: [
+              {
+                $size: "$students",
+              },
+              "$maxStudents",
+            ],
+          },
+        }).sort({
+          createdAt: 1,
+        });
+
+        // ==========================================
+        // EXISTING GROUP AVAILABLE
+        // ==========================================
+
+        if (existingGroup) {
+          assignedGroup = existingGroup;
+        }
+
+        // ==========================================
+        // NO AVAILABLE GROUP
+        // CREATE NEXT GROUP
+        // ==========================================
+
+        else {
+          const lastGroup = await GroupClass.findOne({
+            course: selectedCourse._id,
+
+            level: level,
+
+            grade: batch,
+
+            mode: mode,
+
+            fromTime: fromTime,
+
+            toTime: toTime,
+
+            availableDays: {
+              $all: availableDays,
+            },
+          }).sort({
+            createdAt: -1,
+          });
+
+          let groupNumber = 1;
+
+          if (lastGroup) {
+            const match =
+              lastGroup.groupName.match(
+                /Group\s+(\d+)$/i
+              );
+
+            if (match) {
+              groupNumber =
+                Number(match[1]) + 1;
+            }
+          }
+
+          const groupName =
+            `${selectedCourse.name} - ${level} - ${batch} - Group ${groupNumber}`;
+
+          assignedGroup = await GroupClass.create({
+            groupName,
+
+            course: selectedCourse._id,
+
+            level,
+
+            grade: batch,
+
+            mode,
+
+            fromTime,
+
+            toTime,
+
+            availableDays,
+
+            students: [],
+
+            maxStudents:
+              selectedCourse.maxStudents || 3,
+
+            status: "Available",
+          });
+        }
+      }
     }
 
-  } else {
+    // =========================
+    // PASSWORD
+    // =========================
 
-    // Group
-    // Get every grade under the same course + level
+    const hashedPassword =
+      await bcrypt.hash(password, 10);
 
-    const groupCourseIds = await Course.find({
-      name: selectedCourse.name,
-      classMode: "Group",
-      mainLevel: selectedCourse.mainLevel,
-    }).distinct("_id");
-
-    const totalStudents = await User.countDocuments({
-      role: "student",
-      course: { $in: groupCourseIds },
-      fromTime,
-      toTime,
-      availableDays: { $in: availableDays },
-    });
-
-    if (totalStudents >= selectedCourse.maxStudents) {
-      return res.status(400).json({
-        message:
-          "This group batch is full. Please choose another day or time.",
-      });
-    }
-
-  }
-
-}
-
-    const hashedPassword = await bcrypt.hash(password, 10);
+    // =========================
+    // CREATE USER
+    // =========================
 
     const user = await User.create({
       name,
@@ -133,14 +248,58 @@ if (role === "student") {
       subject,
       experience,
       customExperience,
+
+      // GROUP DETAILS
+      groupId:
+        assignedGroup?._id || null,
+
+      groupName:
+        assignedGroup?.groupName || "",
     });
+
+    // =========================
+    // ADD STUDENT TO GROUP
+    // =========================
+
+    if (assignedGroup) {
+      assignedGroup.students.push(
+        user._id
+      );
+
+      // Check if group became full
+
+      if (
+        assignedGroup.students.length >=
+        assignedGroup.maxStudents
+      ) {
+        assignedGroup.status = "Full";
+      }
+
+      await assignedGroup.save();
+    }
+
+    // =========================
+    // RESPONSE
+    // =========================
 
     return res.status(201).json({
       message: "Register Success",
+
       user,
+
+      group: assignedGroup
+        ? {
+            id: assignedGroup._id,
+            name: assignedGroup.groupName,
+            status: assignedGroup.status,
+          }
+        : null,
     });
   } catch (error) {
-    console.error(error);
+    console.error(
+      "REGISTER ERROR:",
+      error
+    );
 
     return res.status(500).json({
       message: error.message,

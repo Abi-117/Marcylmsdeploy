@@ -53,14 +53,16 @@ function AdminStudents() {
     useState("");
 
   const [formData, setFormData] =
-    useState({
-      name: "",
-      email: "",
-      phone: "",
-      course: "",
-      level: "",
-      batch: "",
-    });
+  useState({
+    name: "",
+    email: "",
+    phone: "",
+    course: "",
+    level: "",
+    batch: "",
+    classType: "Individual",
+    groupName: "",
+  });
 
   // =========================
   // FETCH STUDENTS
@@ -168,9 +170,20 @@ function AdminStudents() {
           },
 
           body: JSON.stringify({
-            ...formData,
-            role: "student",
-          }),
+  ...formData,
+  role: "student",
+
+  // Keep current level in both fields
+  level: formData.level,
+  selectedLevel: formData.level,
+
+  // Group data
+  classType: formData.classType,
+  groupName:
+    formData.classType === "Group"
+      ? formData.groupName
+      : "",
+}),
         }
       );
 
@@ -191,13 +204,15 @@ function AdminStudents() {
       setOpen(false);
 
       setFormData({
-        name: "",
-        email: "",
-        phone: "",
-        course: "",
-        level: "",
-        batch: "",
-      });
+  name: "",
+  email: "",
+  phone: "",
+  course: "",
+  level: "",
+  batch: "",
+  classType: "Individual",
+  groupName: "",
+});
 
       fetchStudents();
 
@@ -542,6 +557,45 @@ function AdminStudents() {
                   ))}
 
               </select>
+              {/* CLASS TYPE */}
+
+<select
+  value={formData.classType}
+  onChange={(e) =>
+    setFormData({
+      ...formData,
+      classType: e.target.value,
+      groupName:
+        e.target.value === "Individual"
+          ? ""
+          : formData.groupName,
+    })
+  }
+  className="h-10 rounded-md border border-input bg-background px-3 text-sm"
+>
+  <option value="Individual">
+    Individual
+  </option>
+
+  <option value="Group">
+    Group
+  </option>
+</select>
+
+{/* GROUP NAME */}
+
+{formData.classType === "Group" && (
+  <Input
+    placeholder="Group Name"
+    value={formData.groupName}
+    onChange={(e) =>
+      setFormData({
+        ...formData,
+        groupName: e.target.value,
+      })
+    }
+  />
+)}
 
               <Button
                 onClick={addStudent}
@@ -971,7 +1025,7 @@ function AdminStudents() {
         <div>
           <p className="text-xs text-muted-foreground">Current Level</p>
           <p className="font-medium">
-            {selectedStudent.selectedLevel || "-"}
+            {selectedStudent.selectedLevel || selectedStudent.level || "-"}
           </p>
         </div>
 
@@ -981,26 +1035,31 @@ function AdminStudents() {
             {selectedStudent.unlockedLevels?.join(", ") || "-"}
           </p>
         </div>
+<div>
+  <p className="text-xs text-muted-foreground">
+    Completed Levels
+  </p>
 
-        <div>
-          <p className="text-xs text-muted-foreground">Completed Levels</p>
-          <div className="flex flex-wrap gap-2">
-  {selectedStudent.completedLevels?.length ? (
-    selectedStudent.completedLevels.map(
-      (level: string) => (
-        <span
-          key={level}
-          className="rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-700"
-        >
-          {level}
-        </span>
+  <div className="flex flex-wrap gap-2 mt-1">
+    {Array.isArray(selectedStudent.completedLevels) &&
+    selectedStudent.completedLevels.length > 0 ? (
+      selectedStudent.completedLevels.map(
+        (level: string, index: number) => (
+          <span
+            key={`${level}-${index}`}
+            className="rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-700"
+          >
+            {level}
+          </span>
+        )
       )
-    )
-  ) : (
-    <span>-</span>
-  )}
+    ) : (
+      <span className="text-sm">
+        -
+      </span>
+    )}
+  </div>
 </div>
-        </div>
 
         <div>
           <p className="text-xs text-muted-foreground">Total Payments</p>

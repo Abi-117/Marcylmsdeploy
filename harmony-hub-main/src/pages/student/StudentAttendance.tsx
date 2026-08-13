@@ -15,7 +15,6 @@ import {
   CheckCircle2,
   XCircle,
   CalendarDays,
-  BookOpen,
 } from "lucide-react";
 
 const API =
@@ -29,7 +28,8 @@ export default function StudentAttendance() {
 
   const { user } = useAuth();
 
-  const studentId = user?.id || user?._id; // FIX FOR BOTH TEACHER AND ADMIN LOGIN STRUCTURE
+  const studentId =
+    user?.id || user?._id;
 
   // ====================================
   // STATES
@@ -68,7 +68,7 @@ export default function StudentAttendance() {
         res.data
       );
 
-      setData(res.data);
+      setData(res.data || []);
 
     } catch (err) {
 
@@ -236,21 +236,9 @@ export default function StudentAttendance() {
                     {a.classTitle || "Untitled Class"}
                   </h2>
 
-                  {/* COURSE */}
-
-                  <div className="mt-2 flex items-center gap-2 text-sm text-muted-foreground">
-
-                    <BookOpen className="h-4 w-4" />
-
-                    <span>
-                      {a.courseName || "No Course"}
-                    </span>
-
-                  </div>
-
                   {/* DATE */}
 
-                  <div className="mt-1 flex items-center gap-2 text-sm text-muted-foreground">
+                  <div className="mt-2 flex items-center gap-2 text-sm text-muted-foreground">
 
                     <CalendarDays className="h-4 w-4" />
 

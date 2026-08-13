@@ -2,6 +2,11 @@ import mongoose from "mongoose";
 
 const groupClassSchema = new mongoose.Schema(
   {
+    groupName: {
+      type: String,
+      required: true,
+    },
+
     course: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Course",
@@ -14,17 +19,35 @@ const groupClassSchema = new mongoose.Schema(
       default: null,
     },
 
-    level: String,
+    level: {
+      type: String,
+      default: "",
+    },
 
-    grade: String,
+    grade: {
+      type: String,
+      default: "",
+    },
 
-    mode: String,
+    mode: {
+      type: String,
+      default: "Online",
+    },
 
-    fromTime: String,
+    fromTime: {
+      type: String,
+      default: "",
+    },
 
-    toTime: String,
+    toTime: {
+      type: String,
+      default: "",
+    },
 
-    availableDays: [String],
+    availableDays: {
+      type: [String],
+      default: [],
+    },
 
     students: [
       {
@@ -49,7 +72,4 @@ const groupClassSchema = new mongoose.Schema(
   }
 );
 
-export default mongoose.model(
-  "GroupClass",
-  groupClassSchema
-);
+export default mongoose.model("GroupClass", groupClassSchema);
