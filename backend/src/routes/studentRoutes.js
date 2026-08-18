@@ -14,6 +14,10 @@ const router = express.Router();
 // COMPLETE CURRENT LEVEL
 // ======================================
 
+// ======================================
+// COMPLETE CURRENT LEVEL
+// ======================================
+
 router.put(
   "/complete-level/:studentId",
   async (req, res) => {
@@ -52,34 +56,74 @@ router.put(
 
       // ======================================
       // CURRENT GRADE
+      // IMPORTANT:
+      // Current course grade is the real grade
       // ======================================
 
-      const currentGrade =
-        currentCourse.grade ||
-        student.selectedLevel ||
-        student.grade;
+      const currentGrade = currentCourse.grade;
 
       if (!currentGrade) {
         return res.status(400).json({
           success: false,
-          message: "Current grade is not assigned",
+          message: "Current course grade is missing",
         });
       }
 
-      console.log(
-        "CURRENT COURSE:",
-        currentCourse.name
-      );
+      console.log("CURRENT GRADE:", currentGrade);
 
-      console.log(
-        "CURRENT MAIN LEVEL:",
-        currentCourse.mainLevel
-      );
+      // ======================================
+      // CHECK WHETHER THIS GRADE WAS PAID
+      // ======================================
 
-      console.log(
-        "CURRENT GRADE:",
-        currentGrade
-      );
+      const paidLevel = Array.isArray(
+        student.levelHistory
+      )
+        ? student.levelHistory.find(
+            (history) => {
+              const historyCourseId =
+                history.course?._id ||
+                history.course;
+
+              return (
+                String(historyCourseId) ===
+                  String(currentCourse._id) &&
+                history.grade === currentGrade
+              );
+            }
+          )
+        : null;
+
+      // ======================================
+      // DO NOT COMPLETE UNPAID LEVEL
+      // ======================================
+
+      if (!paidLevel) {
+        return res.status(400).json({
+          success: false,
+          message:
+            `This level has not been paid for: ${currentGrade}`,
+        });
+      }
+
+      // ======================================
+      // ADD ONLY CURRENT PAID GRADE
+      // ======================================
+
+      if (
+        !Array.isArray(student.completedLevels)
+      ) {
+        student.completedLevels = [];
+      }
+
+      if (
+        !student.completedLevels.includes(
+          currentGrade
+        )
+      ) {
+        student.completedLevels.push(
+          currentGrade
+        );
+      }
 
       // ======================================
       // GRADE ORDER
@@ -104,30 +148,17 @@ router.put(
       if (currentIndex === -1) {
         return res.status(400).json({
           success: false,
-          message: `Invalid grade format: ${currentGrade}`,
+          message:
+            `Invalid grade format: ${currentGrade}`,
         });
       }
 
-      // ======================================
-      // ADD CURRENT GRADE TO COMPLETED
-      // ======================================
-
-      if (
-        !student.completedLevels.includes(
-          currentGrade
-        )
-      ) {
-        student.completedLevels.push(
-          currentGrade
-        );
-      }
-
-      // ======================================
-      // CHECK LAST LEVEL
-      // ======================================
-
       const nextGrade =
         gradeOrder[currentIndex + 1];
+
+      // ======================================
+      // FINAL LEVEL
+      // ======================================
 
       if (!nextGrade) {
         student.progress = 100;
@@ -140,7 +171,6 @@ router.put(
             "Final level completed successfully",
           completedGrade: currentGrade,
           nextGrade: null,
-          student,
         });
       }
 
@@ -155,45 +185,49 @@ router.put(
           grade: nextGrade,
         });
 
+      // ======================================
+      // NEXT COURSE NOT CREATED
+      // ======================================
+
       if (!nextCourse) {
-        return res.status(404).json({
-          success: false,
+        // IMPORTANT:
+        // Current level is completed,
+        // but don't pretend next level is available.
+
+        await student.save();
+
+        return res.json({
+          success: true,
+
           message:
-            `Next course not found for ${currentCourse.name} - ${currentCourse.mainLevel} - ${nextGrade}`,
+            `${currentGrade} completed. Next level ${nextGrade} is not available yet.`,
+
+          completedGrade:
+            currentGrade,
+
+          nextGrade,
+
+          nextCourse: null,
         });
       }
 
       // ======================================
-      // UPDATE CURRENT COURSE
+      // MOVE STUDENT TO NEXT COURSE
       // ======================================
 
       student.course =
         nextCourse._id;
 
-      // ======================================
-      // UPDATE CURRENT GRADE
-      // ======================================
-
+      // selectedLevel = CURRENT GRADE
       student.selectedLevel =
         nextCourse.grade;
 
-      // ======================================
-      // RESET PROGRESS
-      // ======================================
-
-      student.progress = 0;
-
-      // ======================================
-      // UPDATE LEVEL IF YOU USE IT
-      // ======================================
-      //
-      // IMPORTANT:
-      // `level` should represent mainLevel
-      // Example: Basic
-      //
-
+      // level = MAIN LEVEL
       student.level =
         nextCourse.mainLevel;
+
+      // Reset evaluation
+      student.progress = 0;
 
       // ======================================
       // SAVE
@@ -202,7 +236,7 @@ router.put(
       await student.save();
 
       // ======================================
-      // RETURN UPDATED STUDENT
+      // GET UPDATED STUDENT
       // ======================================
 
       const updatedStudent =
@@ -217,7 +251,7 @@ router.put(
         success: true,
 
         message:
-          "Level completed and next level unlocked",
+          "Level completed successfully",
 
         completedGrade:
           currentGrade,
@@ -226,7 +260,7 @@ router.put(
           nextCourse.grade,
 
         nextCourse: {
-          id: nextCourse._id,
+          _id: nextCourse._id,
           name: nextCourse.name,
           mainLevel:
             nextCourse.mainLevel,
@@ -248,8 +282,7 @@ router.put(
         success: false,
         message:
           "Failed to complete level",
-        error:
-          error.message,
+        error: error.message,
       });
     }
   }
