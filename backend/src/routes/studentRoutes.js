@@ -14,10 +14,6 @@ const router = express.Router();
 // COMPLETE CURRENT LEVEL
 // ======================================
 
-// ======================================
-// COMPLETE CURRENT LEVEL
-// ======================================
-
 router.put(
   "/complete-level/:studentId",
   async (req, res) => {
@@ -54,77 +50,36 @@ router.put(
         });
       }
 
-      const currentGrade = currentCourse.grade;
+      // ======================================
+      // CURRENT GRADE
+      // ======================================
 
-      const currentMainLevel =
-        currentCourse.mainLevel;
+      const currentGrade =
+        currentCourse.grade ||
+        student.selectedLevel ||
+        student.grade;
 
-      const currentCourseName =
-        currentCourse.name;
+      if (!currentGrade) {
+        return res.status(400).json({
+          success: false,
+          message: "Current grade is not assigned",
+        });
+      }
 
       console.log(
         "CURRENT COURSE:",
-        currentCourseName
+        currentCourse.name
       );
 
       console.log(
         "CURRENT MAIN LEVEL:",
-        currentMainLevel
+        currentCourse.mainLevel
       );
 
       console.log(
         "CURRENT GRADE:",
         currentGrade
       );
-
-      // ======================================
-      // CHECK CURRENT LEVEL WAS PAID
-      // ======================================
-
-      const currentPaidHistory =
-        Array.isArray(student.levelHistory)
-          ? student.levelHistory.find((history) => {
-              const historyCourseId =
-                history.course?._id ||
-                history.course;
-
-              return (
-                String(historyCourseId) ===
-                  String(currentCourse._id) &&
-                history.grade === currentGrade
-              );
-            })
-          : null;
-
-      if (!currentPaidHistory) {
-        return res.status(400).json({
-          success: false,
-          message:
-            `Current level ${currentGrade} has not been paid`,
-        });
-      }
-
-      // ======================================
-      // COMPLETION ARRAY
-      // ======================================
-
-      if (!Array.isArray(student.completedLevels)) {
-        student.completedLevels = [];
-      }
-
-      // ======================================
-      // ADD ONLY CURRENT LEVEL
-      // ======================================
-
-      if (
-        !student.completedLevels.includes(
-          currentGrade
-        )
-      ) {
-        student.completedLevels.push(
-          currentGrade
-        );
-      }
 
       // ======================================
       // GRADE ORDER
@@ -149,21 +104,30 @@ router.put(
       if (currentIndex === -1) {
         return res.status(400).json({
           success: false,
-          message:
-            `Invalid grade format: ${currentGrade}`,
+          message: `Invalid grade format: ${currentGrade}`,
         });
       }
 
       // ======================================
-      // FIND NEXT GRADE
+      // ADD CURRENT GRADE TO COMPLETED
+      // ======================================
+
+      if (
+        !student.completedLevels.includes(
+          currentGrade
+        )
+      ) {
+        student.completedLevels.push(
+          currentGrade
+        );
+      }
+
+      // ======================================
+      // CHECK LAST LEVEL
       // ======================================
 
       const nextGrade =
         gradeOrder[currentIndex + 1];
-
-      // ======================================
-      // FINAL GRADE
-      // ======================================
 
       if (!nextGrade) {
         student.progress = 100;
@@ -173,9 +137,10 @@ router.put(
         return res.json({
           success: true,
           message:
-            `${currentGrade} completed successfully`,
+            "Final level completed successfully",
           completedGrade: currentGrade,
           nextGrade: null,
+          student,
         });
       }
 
@@ -185,67 +150,50 @@ router.put(
 
       const nextCourse =
         await Course.findOne({
-          name: currentCourseName,
-          mainLevel: currentMainLevel,
+          name: currentCourse.name,
+          mainLevel: currentCourse.mainLevel,
           grade: nextGrade,
         });
 
-      // ======================================
-      // CHECK NEXT COURSE EXISTS
-      // ======================================
-
       if (!nextCourse) {
-        await student.save();
-
-        return res.json({
-          success: true,
+        return res.status(404).json({
+          success: false,
           message:
-            `${currentGrade} completed. Next course ${nextGrade} is not available.`,
-          completedGrade: currentGrade,
-          nextGrade,
-          nextCourse: null,
+            `Next course not found for ${currentCourse.name} - ${currentCourse.mainLevel} - ${nextGrade}`,
         });
       }
 
       // ======================================
-      // CHECK NEXT LEVEL WAS ALREADY PAID
+      // UPDATE CURRENT COURSE
       // ======================================
 
-      const nextPaidHistory =
-        Array.isArray(student.levelHistory)
-          ? student.levelHistory.find(
-              (history) => {
-                const historyCourseId =
-                  history.course?._id ||
-                  history.course;
-
-                return (
-                  String(historyCourseId) ===
-                    String(nextCourse._id) &&
-                  history.grade ===
-                    nextCourse.grade
-                );
-              }
-            )
-          : null;
+      student.course =
+        nextCourse._id;
 
       // ======================================
-      // IF NEXT LEVEL IS PAID
-      // MOVE CURRENT COURSE
+      // UPDATE CURRENT GRADE
       // ======================================
 
-      if (nextPaidHistory) {
-        student.course =
-          nextCourse._id;
+      student.selectedLevel =
+        nextCourse.grade;
 
-        student.selectedLevel =
-          nextCourse.grade;
+      // ======================================
+      // RESET PROGRESS
+      // ======================================
 
-        student.level =
-          nextCourse.mainLevel;
+      student.progress = 0;
 
-        student.progress = 0;
-      }
+      // ======================================
+      // UPDATE LEVEL IF YOU USE IT
+      // ======================================
+      //
+      // IMPORTANT:
+      // `level` should represent mainLevel
+      // Example: Basic
+      //
+
+      student.level =
+        nextCourse.mainLevel;
 
       // ======================================
       // SAVE
@@ -268,18 +216,23 @@ router.put(
       return res.json({
         success: true,
 
-        message: nextPaidHistory
-          ? "Level completed and next paid level activated"
-          : "Level completed successfully",
+        message:
+          "Level completed and next level unlocked",
 
         completedGrade:
           currentGrade,
 
         nextGrade:
-          nextGrade,
+          nextCourse.grade,
 
-        nextLevelPaid:
-          !!nextPaidHistory,
+        nextCourse: {
+          id: nextCourse._id,
+          name: nextCourse.name,
+          mainLevel:
+            nextCourse.mainLevel,
+          grade:
+            nextCourse.grade,
+        },
 
         student:
           updatedStudent,
@@ -295,7 +248,8 @@ router.put(
         success: false,
         message:
           "Failed to complete level",
-        error: error.message,
+        error:
+          error.message,
       });
     }
   }
@@ -305,95 +259,218 @@ router.put(
 // GET TEACHER STUDENTS
 // match by teacher.subject -> course name -> student.course id
 // ======================================
-router.get("/teacher/:teacherId", async (req, res) => {
-  try {
-    const teacher = await User.findById(req.params.teacherId);
+router.get(
+  "/teacher/:teacherId",
+  async (req, res) => {
+    try {
+      const teacher =
+        await User.findById(
+          req.params.teacherId
+        );
 
-    if (!teacher || teacher.role !== "teacher") {
-      return res.status(404).json({
-        message: "Teacher not found",
+      if (
+        !teacher ||
+        teacher.role !== "teacher"
+      ) {
+        return res.status(404).json({
+          message: "Teacher not found",
+        });
+      }
+
+      const matchingCourses =
+        await Course.find({
+          name: teacher.subject,
+        }).select("_id");
+
+      const courseIds =
+        matchingCourses.map((c) =>
+          String(c._id)
+        );
+
+      const status =
+        (
+          req.query.status || "all"
+        ).toLowerCase();
+
+      const query = {
+        role: "student",
+        course: {
+          $in: courseIds,
+        },
+      };
+
+      if (status === "paid") {
+        query.paymentStatus = "Paid";
+      }
+
+      if (status === "pending") {
+        query.paymentStatus = "Pending";
+      }
+
+      const students =
+        await User.find(query)
+          .populate("course")
+          .populate(
+            "levelHistory.course"
+          )
+          .select("-password");
+
+      // ======================================
+      // GRADE ORDER
+      // ======================================
+
+      const gradeOrder = [
+        "Beginner",
+        "Initial",
+        "Grade 1",
+        "Grade 2",
+        "Grade 3",
+        "Grade 4",
+        "Grade 5",
+        "Grade 6",
+        "Grade 7",
+        "Grade 8",
+      ];
+
+      // ======================================
+      // FORMAT STUDENTS
+      // ======================================
+
+      const enrichedStudents =
+        await Promise.all(
+          students.map(
+            async (s) => {
+
+              // ======================================
+              // PAYMENT HISTORY
+              // ======================================
+
+              const payments =
+                await Payment.find({
+                  student: s._id,
+                })
+                  .populate("course")
+                  .sort({
+                    createdAt: 1,
+                  });
+
+              // ======================================
+              // LEVEL HISTORY
+              // ======================================
+
+              const levelHistory =
+                Array.isArray(
+                  s.levelHistory
+                )
+                  ? s.levelHistory
+                  : [];
+
+              // ======================================
+              // COMPLETED LEVELS
+              // ======================================
+
+              const completedLevels =
+                Array.isArray(
+                  s.completedLevels
+                )
+                  ? s.completedLevels
+                  : [];
+
+              // ======================================
+              // FIND CURRENT PAID LEVEL
+              // ======================================
+
+              const currentHistory =
+                levelHistory
+                  .filter(
+                    (history) =>
+                      history.grade &&
+                      history.course
+                  )
+                  .sort(
+                    (a, b) =>
+                      gradeOrder.indexOf(
+                        a.grade
+                      ) -
+                      gradeOrder.indexOf(
+                        b.grade
+                      )
+                  )
+                  .find(
+                    (history) =>
+                      !completedLevels.includes(
+                        history.grade
+                      )
+                  );
+
+              // ======================================
+              // CURRENT COURSE
+              // ======================================
+
+              const currentCourse =
+                currentHistory?.course ||
+                s.course ||
+                null;
+
+              // ======================================
+              // CURRENT GRADE
+              // ======================================
+
+              const currentGrade =
+                currentHistory?.grade ||
+                currentCourse?.grade ||
+                "Not Assigned";
+
+              // ======================================
+              // CURRENT MAIN LEVEL
+              // ======================================
+
+              const currentMainLevel =
+                currentCourse?.mainLevel ||
+                s.level ||
+                "Not Assigned";
+
+              return {
+                ...s.toObject(),
+
+                payments,
+
+                currentHistory:
+                  currentHistory || null,
+
+                currentCourse,
+
+                currentGrade,
+
+                currentLevel:
+                  currentMainLevel,
+
+                completedLevels,
+
+                completedLevelCount:
+                  completedLevels.length,
+              };
+            }
+          )
+        );
+
+      res.json(
+        enrichedStudents
+      );
+    } catch (err) {
+      console.log(
+        "GET TEACHER STUDENTS ERROR:",
+        err
+      );
+
+      res.status(500).json({
+        message:
+          "Server Error",
+        error: err.message,
       });
     }
-
-    const matchingCourses = await Course.find({
-      name: teacher.subject,
-    }).select("_id");
-
-    const courseIds = matchingCourses.map((c) => String(c._id));
-
-    const status = (req.query.status || "all").toLowerCase();
-
-    const query = {
-      role: "student",
-      course: { $in: courseIds },
-    };
-
-    if (status === "paid") {
-      query.paymentStatus = "Paid";
-    } else if (status === "pending") {
-      query.paymentStatus = "Pending";
-    }
-
-    const students = await User.find(query)
-      .populate("course")
-      .select("-password");
-
-    // 🔥 ADD PAYMENT HISTORY (THIS IS THE FIX)
-const enrichedStudents = await Promise.all(
-  students.map(async (s) => {
-
-    const payments = await Payment.find({
-      student: s._id,
-    })
-      .populate("course")
-      .sort({ createdAt: 1 });
-
-    const completedLevels =
-      Array.isArray(s.completedLevels)
-        ? s.completedLevels
-        : [];
-
-    // ======================================
-    // CURRENT COURSE = STUDENT COURSE
-    // ======================================
-
-    const currentCourse = s.course;
-
-    const currentLevel =
-      currentCourse?.grade ||
-      s.selectedLevel ||
-      "Not Assigned";
-
-    return {
-      ...s.toObject(),
-
-      payments,
-
-      // CURRENT GRADE
-      currentLevel,
-
-      // CURRENT COURSE
-      currentCourse: currentCourse || null,
-
-      // COMPLETED GRADES
-      completedLevels,
-
-      // COUNT
-      completedLevelCount:
-        completedLevels.length,
-    };
-  })
-);
-
-res.json(enrichedStudents);
-
-  } catch (err) {
-    console.log(err);
-    res.status(500).json({
-      message: "Server Error",
-    });
   }
-});
+);
 
 
 // ======================================
