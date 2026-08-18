@@ -7,7 +7,7 @@ import Payment from "../models/Payment.js";
 const router = express.Router();
 
 // ======================================
-// COMPLETE CURRENT LEVEL
+// COMPLETE CURRENT GRADE
 // ======================================
 
 router.put("/complete-level/:studentId", async (req, res) => {
@@ -22,102 +22,220 @@ router.put("/complete-level/:studentId", async (req, res) => {
     }
 
     // ======================================
-    // CURRENT LEVEL
+    // GET PAYMENT HISTORY
     // ======================================
 
-    const currentLevel =
-      student.selectedLevel ||
-      student.level ||
-      "Beginner";
+    const payments = await Payment.find({
+      student: student._id,
+    })
+      .populate("course")
+      .sort({ createdAt: 1 });
+
+    if (!payments.length) {
+      return res.status(400).json({
+        success: false,
+        message: "No payment/course found",
+      });
+    }
+
+    // Latest payment = current course
+    const activePayment =
+      payments[payments.length - 1];
+
+    const currentCourse =
+      activePayment.course;
+
+    if (!currentCourse) {
+      return res.status(400).json({
+        success: false,
+        message: "Current course not found",
+      });
+    }
 
     // ======================================
-    // EXISTING COMPLETED LEVELS
+    // CURRENT GRADE
+    // ======================================
+
+    const currentGrade =
+      currentCourse.grade;
+
+    const currentMainLevel =
+      currentCourse.mainLevel;
+
+    const currentCourseName =
+      currentCourse.name;
+
+    console.log(
+      "CURRENT COURSE:",
+      currentCourseName
+    );
+
+    console.log(
+      "CURRENT MAIN LEVEL:",
+      currentMainLevel
+    );
+
+    console.log(
+      "CURRENT GRADE:",
+      currentGrade
+    );
+
+    // ======================================
+    // COMPLETED LEVELS
     // ======================================
 
     if (!Array.isArray(student.completedLevels)) {
       student.completedLevels = [];
     }
 
-    // ======================================
-    // PREVENT DUPLICATE
-    // ======================================
-
-    if (!student.completedLevels.includes(currentLevel)) {
-      student.completedLevels.push(currentLevel);
+    if (
+      !student.completedLevels.includes(
+        currentGrade
+      )
+    ) {
+      student.completedLevels.push(
+        currentGrade
+      );
     }
 
     // ======================================
-    // LEVEL ORDER
+    // GET GRADE NUMBER
+    // Example:
+    // Grade 1 -> 1
+    // Grade 2 -> 2
     // ======================================
 
-    const levels = [
-      "Beginner",
-      "Intermediate",
-      "Advanced",
-    ];
+    const match =
+      String(currentGrade).match(/\d+/);
 
-    const currentIndex = levels.indexOf(currentLevel);
-
-    // ======================================
-    // INVALID LEVEL
-    // ======================================
-
-    if (currentIndex === -1) {
+    if (!match) {
       return res.status(400).json({
         success: false,
-        message: `Invalid level: ${currentLevel}`,
+        message:
+          `Invalid grade format: ${currentGrade}`,
       });
     }
 
+    const currentNumber =
+      Number(match[0]);
+
+    const nextNumber =
+      currentNumber + 1;
+
     // ======================================
-    // ADVANCED = FINAL LEVEL
+    // NEXT GRADE
     // ======================================
 
-    if (currentIndex === levels.length - 1) {
+    const nextGrade =
+      String(currentGrade).replace(
+        /\d+/,
+        String(nextNumber)
+      );
+
+    console.log(
+      "NEXT GRADE:",
+      nextGrade
+    );
+
+    // ======================================
+    // FIND NEXT COURSE
+    // Same course name
+    // Same main level
+    // Next grade
+    // ======================================
+
+    const nextCourse =
+      await Course.findOne({
+        name: currentCourseName,
+        mainLevel: currentMainLevel,
+        grade: nextGrade,
+      });
+
+    // ======================================
+    // NO NEXT COURSE
+    // ======================================
+
+    if (!nextCourse) {
       student.progress = 100;
 
       await student.save();
 
       return res.json({
         success: true,
-        message: "Advanced level completed",
-        currentLevel: "Advanced",
-        completedLevels: student.completedLevels,
+
+        message:
+          `${currentGrade} completed successfully`,
+
+        completedLevel:
+          currentGrade,
+
+        currentLevel:
+          currentGrade,
+
+        completedLevels:
+          student.completedLevels,
+
         progress: 100,
+
         finalLevel: true,
       });
     }
 
     // ======================================
-    // NEXT LEVEL
+    // MOVE STUDENT TO NEXT COURSE
     // ======================================
 
-    const nextLevel = levels[currentIndex + 1];
+    student.course =
+      nextCourse._id;
 
-    student.selectedLevel = nextLevel;
-    student.level = nextLevel;
+    student.selectedLevel =
+      nextGrade;
 
-    // New level starts from 0%
+    student.level =
+      currentMainLevel;
+
+    // New grade starts at 0%
     student.progress = 0;
 
     await student.save();
 
     return res.json({
       success: true,
-      message: `${currentLevel} completed successfully`,
-      completedLevel: currentLevel,
-      currentLevel: nextLevel,
-      completedLevels: student.completedLevels,
+
+      message:
+        `${currentGrade} completed successfully`,
+
+      completedLevel:
+        currentGrade,
+
+      currentLevel:
+        nextGrade,
+
+      nextCourse: {
+        _id: nextCourse._id,
+        name: nextCourse.name,
+        mainLevel: nextCourse.mainLevel,
+        grade: nextCourse.grade,
+      },
+
+      completedLevels:
+        student.completedLevels,
+
       progress: 0,
+
       finalLevel: false,
     });
 
   } catch (err) {
-    console.log("COMPLETE LEVEL ERROR:", err);
+    console.log(
+      "COMPLETE GRADE ERROR:",
+      err
+    );
 
     return res.status(500).json({
       success: false,
-      message: "Failed to complete level",
+      message:
+        "Failed to complete grade",
       error: err.message,
     });
   }

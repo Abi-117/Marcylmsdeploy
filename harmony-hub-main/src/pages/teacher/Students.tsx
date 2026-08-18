@@ -163,11 +163,13 @@ const [completingId, setCompletingId] = useState<string | null>(null);
                   </div>
 
                   <LevelBadge
-                    level={
-                      activePayment?.course?.grade ||
-                      s.selectedLevel
-                    }
-                  />
+  level={
+    s.currentLevel ||
+    activePayment?.course?.grade ||
+    s.selectedLevel ||
+    "Not Assigned"
+  }
+/>
                 </div>
 
                 {/* DETAILS */}
