@@ -85,41 +85,62 @@ router.put("/complete-level/:studentId", async (req, res) => {
     // FIND NEXT GRADE
     // ======================================
 
-    let nextGrade = "";
+  let nextGrade = "";
 
-    // Initial -> Grade 1
-    if (
-      currentGrade.toLowerCase() === "initial"
-    ) {
-      nextGrade = "Grade 1";
-    }
+const normalizedGrade =
+  currentGrade.toLowerCase().trim();
 
-    // Grade X -> Grade X+1
-    else {
-      const match =
-        currentGrade.match(
-          /^Grade\s*(\d+)$/i
-        );
+// ======================================
+// BEGINNER -> INITIAL
+// ======================================
 
-      if (!match) {
-        return res.status(400).json({
-          success: false,
-          message:
-            `Invalid grade format: ${currentGrade}`,
-        });
-      }
+if (normalizedGrade === "beginner") {
+  nextGrade = "Initial";
+}
 
-      const currentNumber =
-        Number(match[1]);
+// ======================================
+// INITIAL -> GRADE 1
+// ======================================
 
-      nextGrade =
-        `Grade ${currentNumber + 1}`;
-    }
+else if (normalizedGrade === "initial") {
+  nextGrade = "Grade 1";
+}
 
-    console.log(
-      "Next Grade:",
-      nextGrade
+// ======================================
+// GRADE X -> GRADE X + 1
+// ======================================
+
+else {
+  const match =
+    currentGrade.match(
+      /^Grade\s*(\d+)$/i
     );
+
+  if (!match) {
+    return res.status(400).json({
+      success: false,
+      message:
+        `Invalid grade format: ${currentGrade}`,
+    });
+  }
+
+  const currentNumber =
+    Number(match[1]);
+
+  nextGrade =
+    `Grade ${currentNumber + 1}`;
+}
+
+console.log(
+  "CURRENT GRADE:",
+  currentGrade
+);
+
+console.log(
+  "NEXT GRADE:",
+  nextGrade
+);
+
 
     // ======================================
     // SAVE COMPLETED GRADE
