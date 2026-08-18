@@ -137,12 +137,21 @@ const [completingId, setCompletingId] = useState<string | null>(null);
         )}
 
         {students.map((s) => {
-          const payments = s.payments || [];
-          const activePayment =
-            payments.length > 0
-              ? payments[payments.length - 1]
-              : null;
+  const payments = s.payments || [];
 
+  const activePayment =
+    payments.length > 0
+      ? payments[payments.length - 1]
+      : null;
+
+  // CURRENT GRADE
+  // Course grade is the real current grade
+  const currentGrade =
+    s.course?.grade ||
+    s.currentLevel ||
+    s.selectedLevel ||
+    "Not Assigned";
+    
           return (
             <Card key={s._id}>
               <CardContent className="p-5">
@@ -162,14 +171,7 @@ const [completingId, setCompletingId] = useState<string | null>(null);
                     </div>
                   </div>
 
-                  <LevelBadge
-  level={
-    s.currentLevel ||
-    activePayment?.course?.grade ||
-    s.selectedLevel ||
-    "Not Assigned"
-  }
-/>
+                <LevelBadge level={currentGrade} />
                 </div>
 
                 {/* DETAILS */}
@@ -226,27 +228,25 @@ const [completingId, setCompletingId] = useState<string | null>(null);
 {/* CURRENT LEVEL */}
 {/* ========================= */}
 
+{/* CURRENT GRADE */}
+
 <div className="mt-5 rounded-lg border bg-muted/30 p-4">
   <div className="text-xs font-semibold text-muted-foreground">
-    Current Level
+    Current Grade
   </div>
 
   <div className="mt-2">
     <div className="text-lg font-bold">
-      {s.currentLevel ||
-        s.selectedLevel ||
-        s.level ||
-        "Beginner"}
+      {currentGrade}
     </div>
 
     <div className="text-sm text-muted-foreground">
-      {activePayment?.course?.name ||
-        s.course?.name ||
+      {s.course?.name ||
+        activePayment?.course?.name ||
         "Course not assigned"}
     </div>
   </div>
 </div>
-
 
 {/* ========================= */}
 {/* COMPLETED LEVELS */}
