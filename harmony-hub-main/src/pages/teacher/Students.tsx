@@ -87,56 +87,32 @@ export default function TeacherStudents() {
   // GET CURRENT GRADE
   // =====================================================
 
-  const getCurrentGrade = (student: any) => {
-    // 1. Course grade
-    if (student?.course?.grade) {
-      return student.course.grade;
+const getCurrentGrade = (student: any) => {
+  if (
+    Array.isArray(student?.levelHistory) &&
+    student.levelHistory.length > 0
+  ) {
+    const latestHistory =
+      student.levelHistory[
+        student.levelHistory.length - 1
+      ];
+
+    if (latestHistory?.grade) {
+      return latestHistory.grade;
     }
+  }
 
-    // 2. Latest levelHistory grade
-    if (
-      Array.isArray(student?.levelHistory) &&
-      student.levelHistory.length > 0
-    ) {
-      const latest =
-        student.levelHistory[
-          student.levelHistory.length - 1
-        ];
+  // Fallback only if levelHistory is unavailable
+  if (student?.course?.grade) {
+    return student.course.grade;
+  }
 
-      if (latest?.grade) {
-        return latest.grade;
-      }
-    }
+  if (student?.grade) {
+    return student.grade;
+  }
 
-    // 3. Latest payment course grade
-    if (
-      Array.isArray(student?.payments) &&
-      student.payments.length > 0
-    ) {
-      const latestPayment =
-        student.payments[
-          student.payments.length - 1
-        ];
-
-      if (
-        latestPayment?.course?.grade
-      ) {
-        return latestPayment.course.grade;
-      }
-    }
-
-    // 4. Direct grade field
-    if (student?.grade) {
-      return student.grade;
-    }
-
-    // 5. Batch is only fallback
-    if (student?.batch) {
-      return student.batch;
-    }
-
-    return "Not Assigned";
-  };
+  return "Not Assigned";
+};
 
   // =====================================================
   // GET CURRENT LEVEL
