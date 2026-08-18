@@ -78,6 +78,18 @@ export default function TeacherStudents() {
     return <div className="p-6">Loading students...</div>;
   }
 
+  const completeLevel = async (studentId: string) => {
+  try {
+    await axios.put(
+      `${API}/student/complete-level/${studentId}`
+    );
+
+    await fetchStudents();
+  } catch (err) {
+    console.log(err);
+  }
+};
+
   return (
     <div>
       <PageHeader
@@ -190,43 +202,68 @@ export default function TeacherStudents() {
                 {/* ========================= */}
                 {/* LEVEL HISTORY (REAL DATA) */}
                 {/* ========================= */}
-                <div className="mt-5 space-y-2">
-                  <div className="text-xs font-semibold text-muted-foreground">
-                    Level Progress
-                  </div>
+                {/* ========================= */}
+{/* CURRENT LEVEL */}
+{/* ========================= */}
 
-                  {payments.length === 0 && (
-                    <div className="text-xs text-muted-foreground">
-                      No payments yet
-                    </div>
-                  )}
+<div className="mt-5 rounded-lg border bg-muted/30 p-4">
+  <div className="text-xs font-semibold text-muted-foreground">
+    Current Level
+  </div>
 
-                  {payments.map((p: any, i: number) => {
-                    const isLast = i === payments.length - 1;
+  <div className="mt-2">
+    <div className="text-lg font-bold">
+      {s.currentLevel ||
+        s.selectedLevel ||
+        s.level ||
+        "Beginner"}
+    </div>
 
-                    return (
-                      <div
-                        key={p._id || i}
-                        className="flex justify-between text-sm border-b py-1"
-                      >
-                        <span>
-                          {p.course?.grade} • {p.course?.name}
-                        </span>
+    <div className="text-sm text-muted-foreground">
+      {activePayment?.course?.name ||
+        s.course?.name ||
+        "Course not assigned"}
+    </div>
+  </div>
+</div>
 
-                        <span
-                          className={
-                            isLast
-                              ? "text-gold font-bold"
-                              : "text-green-600"
-                          }
-                        >
-                          {isLast ? "🔥 Active" : "✔ Completed"}
-                        </span>
-                      </div>
-                    );
-                  })}
-                </div>
 
+{/* ========================= */}
+{/* COMPLETED LEVELS */}
+{/* ========================= */}
+
+<div className="mt-4">
+  <div className="text-xs font-semibold text-muted-foreground">
+    Completed Levels
+  </div>
+
+  <div className="mt-2 space-y-2">
+
+    {s.completedLevels?.length > 0 ? (
+      s.completedLevels.map(
+        (level: string, index: number) => (
+          <div
+            key={`${level}-${index}`}
+            className="flex items-center justify-between rounded-md border px-3 py-2"
+          >
+            <span className="text-sm font-medium">
+              {level}
+            </span>
+
+            <span className="text-xs font-semibold text-green-600">
+              ✔ Completed
+            </span>
+          </div>
+        )
+      )
+    ) : (
+      <div className="text-xs text-muted-foreground">
+        No levels completed yet
+      </div>
+    )}
+
+  </div>
+</div>
                 {/* PROGRESS BAR */}
                 <div className="mt-5">
                   <div className="flex justify-between text-xs">
@@ -241,17 +278,35 @@ export default function TeacherStudents() {
                 </div>
 
                 {/* BUTTON */}
-                <Button
-                  className="mt-5 w-full bg-gold text-black"
-                  onClick={() =>
-                    updateProgress(
-                      s._id,
-                      Math.min((s.progress || 0) + 10, 100)
-                    )
-                  }
-                >
-                  Evaluate +10%
-                </Button>
+               <div className="mt-5 space-y-2">
+
+  {/* EVALUATE */}
+  <Button
+    className="w-full bg-gold text-black"
+    onClick={() =>
+      updateProgress(
+        s._id,
+        Math.min(
+          (s.progress || 0) + 10,
+          100
+        )
+      )
+    }
+  >
+    Evaluate +10%
+  </Button>
+
+  {/* COMPLETE LEVEL */}
+  <Button
+    variant="outline"
+    className="w-full"
+    disabled={(s.progress || 0) < 100}
+    onClick={() => completeLevel(s._id)}
+  >
+    Complete Current Level
+  </Button>
+
+</div>
 
               </CardContent>
             </Card>

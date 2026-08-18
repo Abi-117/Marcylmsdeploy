@@ -45,31 +45,42 @@ router.get("/teacher/:teacherId", async (req, res) => {
       .select("-password");
 
     // 🔥 ADD PAYMENT HISTORY (THIS IS THE FIX)
-    const enrichedStudents = await Promise.all(
-      students.map(async (s) => {
+   const enrichedStudents = await Promise.all(
+  students.map(async (s) => {
+    const payments = await Payment.find({
+      student: s._id,
+    })
+      .populate("course")
+      .sort({ createdAt: 1 });
 
-        const payments = await Payment.find({
-          student: s._id,
-        })
-          .populate("course")
-          .sort({ createdAt: 1 });
+    const completedLevels = Array.isArray(s.completedLevels)
+      ? s.completedLevels
+      : [];
 
-        return {
-          ...s.toObject(),
+    const currentLevel =
+      s.selectedLevel ||
+      s.level ||
+      payments[payments.length - 1]?.course?.grade ||
+      "Beginner";
 
-          // FULL LEVEL HISTORY
-          payments,
+    return {
+      ...s.toObject(),
 
-          // CURRENT ACTIVE LEVEL
-          activeLevel: payments[payments.length - 1]?.course || null,
+      payments,
 
-          // COMPLETED COUNT
-          completedLevels: payments.length,
-        };
-      })
-    );
+      // CURRENT LEVEL
+      currentLevel,
 
-    res.json(enrichedStudents);
+      // ACTUAL COMPLETED LEVELS
+      completedLevels,
+
+      // COUNT
+      completedLevelCount: completedLevels.length,
+    };
+  })
+);
+
+res.json(enrichedStudents);
 
   } catch (err) {
     console.log(err);

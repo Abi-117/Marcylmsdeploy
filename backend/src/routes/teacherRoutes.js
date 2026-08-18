@@ -294,4 +294,108 @@ router.get("/students", async (req, res) => {
   }
 });
 
+
+// ======================================
+// COMPLETE CURRENT LEVEL
+// ======================================
+
+router.put("/complete-level/:studentId", async (req, res) => {
+  try {
+    const student = await User.findById(req.params.studentId);
+
+    if (!student || student.role !== "student") {
+      return res.status(404).json({
+        message: "Student not found",
+      });
+    }
+
+    const currentLevel =
+      student.selectedLevel ||
+      student.level ||
+      "Beginner";
+
+    // ======================================
+    // CHECK ALREADY COMPLETED
+    // ======================================
+
+    const alreadyCompleted =
+      Array.isArray(student.completedLevels) &&
+      student.completedLevels.includes(currentLevel);
+
+    if (!alreadyCompleted) {
+      student.completedLevels.push(currentLevel);
+    }
+
+    // ======================================
+    // NEXT LEVEL
+    // ======================================
+
+    const levelOrder = [
+      "Beginner",
+      "Intermediate",
+      "Advanced",
+    ];
+
+    const currentIndex =
+      levelOrder.indexOf(currentLevel);
+
+    if (
+      currentIndex === -1 ||
+      currentIndex === levelOrder.length - 1
+    ) {
+      // Advanced is already the final level
+      student.progress = 100;
+
+      await student.save();
+
+      return res.json({
+        success: true,
+        message: "Final level completed",
+        currentLevel,
+        completedLevels: student.completedLevels,
+        progress: student.progress,
+      });
+    }
+
+    const nextLevel =
+      levelOrder[currentIndex + 1];
+
+    // ======================================
+    // MOVE TO NEXT LEVEL
+    // ======================================
+
+    student.selectedLevel = nextLevel;
+    student.level = nextLevel;
+
+    // Reset progress for new level
+    student.progress = 0;
+
+    await student.save();
+
+    res.json({
+      success: true,
+
+      message: `${currentLevel} completed`,
+
+      completedLevel: currentLevel,
+
+      currentLevel: nextLevel,
+
+      completedLevels: student.completedLevels,
+
+      progress: student.progress,
+    });
+  } catch (err) {
+    console.log(
+      "COMPLETE LEVEL ERROR:",
+      err
+    );
+
+    res.status(500).json({
+      message: "Failed to complete level",
+      error: err.message,
+    });
+  }
+});
+
 export default router;
