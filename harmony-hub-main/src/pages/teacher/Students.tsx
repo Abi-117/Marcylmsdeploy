@@ -78,15 +78,32 @@ export default function TeacherStudents() {
     return <div className="p-6">Loading students...</div>;
   }
 
-  const completeLevel = async (studentId: string) => {
+const [completingId, setCompletingId] = useState<string | null>(null);
+
+const completeLevel = async (studentId: string) => {
   try {
-    await axios.put(
+    setCompletingId(studentId);
+
+    const res = await axios.put(
       `${API}/student/complete-level/${studentId}`
     );
 
+    console.log("LEVEL COMPLETED:", res.data);
+
     await fetchStudents();
-  } catch (err) {
-    console.log(err);
+
+  } catch (err: any) {
+    console.log(
+      "COMPLETE LEVEL ERROR:",
+      err.response?.data || err
+    );
+
+    alert(
+      err.response?.data?.message ||
+      "Failed to complete level"
+    );
+  } finally {
+    setCompletingId(null);
   }
 };
 
@@ -297,14 +314,19 @@ export default function TeacherStudents() {
   </Button>
 
   {/* COMPLETE LEVEL */}
-  <Button
-    variant="outline"
-    className="w-full"
-    disabled={(s.progress || 0) < 100}
-    onClick={() => completeLevel(s._id)}
-  >
-    Complete Current Level
-  </Button>
+<Button
+  variant="outline"
+  className="w-full"
+  disabled={
+    (s.progress || 0) < 100 ||
+    completingId === s._id
+  }
+  onClick={() => completeLevel(s._id)}
+>
+  {completingId === s._id
+    ? "Completing..."
+    : "Complete Current Level"}
+</Button>
 
 </div>
 

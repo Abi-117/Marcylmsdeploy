@@ -6,6 +6,123 @@ import Payment from "../models/Payment.js";
 
 const router = express.Router();
 
+// ======================================
+// COMPLETE CURRENT LEVEL
+// ======================================
+
+router.put("/complete-level/:studentId", async (req, res) => {
+  try {
+    const student = await User.findById(req.params.studentId);
+
+    if (!student || student.role !== "student") {
+      return res.status(404).json({
+        success: false,
+        message: "Student not found",
+      });
+    }
+
+    // ======================================
+    // CURRENT LEVEL
+    // ======================================
+
+    const currentLevel =
+      student.selectedLevel ||
+      student.level ||
+      "Beginner";
+
+    // ======================================
+    // EXISTING COMPLETED LEVELS
+    // ======================================
+
+    if (!Array.isArray(student.completedLevels)) {
+      student.completedLevels = [];
+    }
+
+    // ======================================
+    // PREVENT DUPLICATE
+    // ======================================
+
+    if (!student.completedLevels.includes(currentLevel)) {
+      student.completedLevels.push(currentLevel);
+    }
+
+    // ======================================
+    // LEVEL ORDER
+    // ======================================
+
+    const levels = [
+      "Beginner",
+      "Intermediate",
+      "Advanced",
+    ];
+
+    const currentIndex = levels.indexOf(currentLevel);
+
+    // ======================================
+    // INVALID LEVEL
+    // ======================================
+
+    if (currentIndex === -1) {
+      return res.status(400).json({
+        success: false,
+        message: `Invalid level: ${currentLevel}`,
+      });
+    }
+
+    // ======================================
+    // ADVANCED = FINAL LEVEL
+    // ======================================
+
+    if (currentIndex === levels.length - 1) {
+      student.progress = 100;
+
+      await student.save();
+
+      return res.json({
+        success: true,
+        message: "Advanced level completed",
+        currentLevel: "Advanced",
+        completedLevels: student.completedLevels,
+        progress: 100,
+        finalLevel: true,
+      });
+    }
+
+    // ======================================
+    // NEXT LEVEL
+    // ======================================
+
+    const nextLevel = levels[currentIndex + 1];
+
+    student.selectedLevel = nextLevel;
+    student.level = nextLevel;
+
+    // New level starts from 0%
+    student.progress = 0;
+
+    await student.save();
+
+    return res.json({
+      success: true,
+      message: `${currentLevel} completed successfully`,
+      completedLevel: currentLevel,
+      currentLevel: nextLevel,
+      completedLevels: student.completedLevels,
+      progress: 0,
+      finalLevel: false,
+    });
+
+  } catch (err) {
+    console.log("COMPLETE LEVEL ERROR:", err);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to complete level",
+      error: err.message,
+    });
+  }
+});
+
 
 // ======================================
 // GET TEACHER STUDENTS
