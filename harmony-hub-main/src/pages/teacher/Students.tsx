@@ -30,6 +30,7 @@ export default function TeacherStudents() {
 
   const [students, setStudents] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+const [completingId, setCompletingId] = useState<string | null>(null);
 
   const [statusFilter, setStatusFilter] = useState<
     "all" | "paid" | "pending"
@@ -73,14 +74,7 @@ export default function TeacherStudents() {
       console.log(err);
     }
   };
-
-  if (loading) {
-    return <div className="p-6">Loading students...</div>;
-  }
-
-const [completingId, setCompletingId] = useState<string | null>(null);
-
-const completeLevel = async (studentId: string) => {
+  const completeLevel = async (studentId: string) => {
   try {
     setCompletingId(studentId);
 
@@ -106,6 +100,13 @@ const completeLevel = async (studentId: string) => {
     setCompletingId(null);
   }
 };
+
+  if (loading) {
+    return <div className="p-6">Loading students...</div>;
+  }
+
+
+
 
   return (
     <div>
