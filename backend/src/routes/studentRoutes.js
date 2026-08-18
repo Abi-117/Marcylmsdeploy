@@ -10,289 +10,250 @@ const router = express.Router();
 // COMPLETE CURRENT GRADE
 // ======================================
 
-router.put("/complete-level/:studentId", async (req, res) => {
-  try {
-    // ======================================
-    // GET STUDENT
-    // ======================================
-
-    const student = await User.findById(
-      req.params.studentId
-    );
-
-    if (!student || student.role !== "student") {
-      return res.status(404).json({
-        success: false,
-        message: "Student not found",
-      });
-    }
-
-    // ======================================
-    // GET CURRENT COURSE FROM USER
-    // ======================================
-
-    if (!student.course) {
-      return res.status(400).json({
-        success: false,
-        message: "Current course not assigned",
-      });
-    }
-
-    const currentCourse = await Course.findById(
-      student.course
-    );
-
-    if (!currentCourse) {
-      return res.status(400).json({
-        success: false,
-        message: "Current course not found",
-      });
-    }
-
-    // ======================================
-    // CURRENT LEVEL + GRADE
-    // ======================================
-
-    const currentMainLevel =
-      String(currentCourse.mainLevel || "").trim();
-
-    const currentGrade =
-      String(currentCourse.grade || "").trim();
-
-    const currentCourseName =
-      String(currentCourse.name || "").trim();
-
-    console.log("========== COMPLETE LEVEL ==========");
-    console.log("Student:", student._id.toString());
-    console.log("Course ID:", currentCourse._id.toString());
-    console.log("Course:", currentCourseName);
-    console.log("Main Level:", currentMainLevel);
-    console.log("Current Grade:", currentGrade);
-    console.log("====================================");
-
-    // ======================================
-    // VALIDATE CURRENT GRADE
-    // ======================================
-
-    if (!currentGrade) {
-      return res.status(400).json({
-        success: false,
-        message: "Current course grade is empty",
-      });
-    }
-
-    // ======================================
-    // FIND NEXT GRADE
-    // ======================================
-
-  let nextGrade = "";
-
-const normalizedGrade =
-  currentGrade.toLowerCase().trim();
-
 // ======================================
-// BEGINNER -> INITIAL
+// COMPLETE CURRENT LEVEL
 // ======================================
 
-if (normalizedGrade === "beginner") {
-  nextGrade = "Initial";
-}
+router.put(
+  "/complete-level/:studentId",
+  async (req, res) => {
+    try {
+      const { studentId } = req.params;
 
-// ======================================
-// INITIAL -> GRADE 1
-// ======================================
+      const student = await User.findById(studentId)
+        .populate("course");
 
-else if (normalizedGrade === "initial") {
-  nextGrade = "Grade 1";
-}
+      if (!student) {
+        return res.status(404).json({
+          success: false,
+          message: "Student not found",
+        });
+      }
 
-// ======================================
-// GRADE X -> GRADE X + 1
-// ======================================
+      if (student.role !== "student") {
+        return res.status(400).json({
+          success: false,
+          message: "User is not a student",
+        });
+      }
 
-else {
-  const match =
-    currentGrade.match(
-      /^Grade\s*(\d+)$/i
-    );
+      // ======================================
+      // CURRENT COURSE
+      // ======================================
 
-  if (!match) {
-    return res.status(400).json({
-      success: false,
-      message:
-        `Invalid grade format: ${currentGrade}`,
-    });
-  }
+      const currentCourse = student.course;
 
-  const currentNumber =
-    Number(match[1]);
+      if (!currentCourse) {
+        return res.status(400).json({
+          success: false,
+          message: "Current course is not assigned",
+        });
+      }
 
-  nextGrade =
-    `Grade ${currentNumber + 1}`;
-}
+      // ======================================
+      // CURRENT GRADE
+      // ======================================
 
-console.log(
-  "CURRENT GRADE:",
-  currentGrade
-);
+      const currentGrade =
+        currentCourse.grade ||
+        student.selectedLevel ||
+        student.grade;
 
-console.log(
-  "NEXT GRADE:",
-  nextGrade
-);
+      if (!currentGrade) {
+        return res.status(400).json({
+          success: false,
+          message: "Current grade is not assigned",
+        });
+      }
 
+      console.log(
+        "CURRENT COURSE:",
+        currentCourse.name
+      );
 
-    // ======================================
-    // SAVE COMPLETED GRADE
-    // ======================================
+      console.log(
+        "CURRENT MAIN LEVEL:",
+        currentCourse.mainLevel
+      );
 
-    if (
-      !Array.isArray(
-        student.completedLevels
-      )
-    ) {
-      student.completedLevels = [];
-    }
-
-    if (
-      !student.completedLevels.includes(
-        currentGrade
-      )
-    ) {
-      student.completedLevels.push(
+      console.log(
+        "CURRENT GRADE:",
         currentGrade
       );
-    }
 
-    // ======================================
-    // FIND NEXT COURSE
-    // ======================================
+      // ======================================
+      // GRADE ORDER
+      // ======================================
 
-    const nextCourse =
-      await Course.findOne({
-        name: currentCourseName,
-        grade: nextGrade,
-      });
+      const gradeOrder = [
+        "Beginner",
+        "Initial",
+        "Grade 1",
+        "Grade 2",
+        "Grade 3",
+        "Grade 4",
+        "Grade 5",
+        "Grade 6",
+        "Grade 7",
+        "Grade 8",
+      ];
 
-    console.log(
-      "Next Course:",
-      nextCourse?._id || "NOT FOUND"
-    );
+      const currentIndex =
+        gradeOrder.indexOf(currentGrade);
 
-    // ======================================
-    // NO NEXT COURSE
-    // ======================================
+      if (currentIndex === -1) {
+        return res.status(400).json({
+          success: false,
+          message: `Invalid grade format: ${currentGrade}`,
+        });
+      }
 
-    if (!nextCourse) {
+      // ======================================
+      // ADD CURRENT GRADE TO COMPLETED
+      // ======================================
 
-      student.progress = 100;
+      if (
+        !student.completedLevels.includes(
+          currentGrade
+        )
+      ) {
+        student.completedLevels.push(
+          currentGrade
+        );
+      }
+
+      // ======================================
+      // CHECK LAST LEVEL
+      // ======================================
+
+      const nextGrade =
+        gradeOrder[currentIndex + 1];
+
+      if (!nextGrade) {
+        student.progress = 100;
+
+        await student.save();
+
+        return res.json({
+          success: true,
+          message:
+            "Final level completed successfully",
+          completedGrade: currentGrade,
+          nextGrade: null,
+          student,
+        });
+      }
+
+      // ======================================
+      // FIND NEXT COURSE
+      // ======================================
+
+      const nextCourse =
+        await Course.findOne({
+          name: currentCourse.name,
+          mainLevel: currentCourse.mainLevel,
+          grade: nextGrade,
+        });
+
+      if (!nextCourse) {
+        return res.status(404).json({
+          success: false,
+          message:
+            `Next course not found for ${currentCourse.name} - ${currentCourse.mainLevel} - ${nextGrade}`,
+        });
+      }
+
+      // ======================================
+      // UPDATE CURRENT COURSE
+      // ======================================
+
+      student.course =
+        nextCourse._id;
+
+      // ======================================
+      // UPDATE CURRENT GRADE
+      // ======================================
+
+      student.selectedLevel =
+        nextCourse.grade;
+
+      // ======================================
+      // RESET PROGRESS
+      // ======================================
+
+      student.progress = 0;
+
+      // ======================================
+      // UPDATE LEVEL IF YOU USE IT
+      // ======================================
+      //
+      // IMPORTANT:
+      // `level` should represent mainLevel
+      // Example: Basic
+      //
+
+      student.level =
+        nextCourse.mainLevel;
+
+      // ======================================
+      // SAVE
+      // ======================================
 
       await student.save();
+
+      // ======================================
+      // RETURN UPDATED STUDENT
+      // ======================================
+
+      const updatedStudent =
+        await User.findById(studentId)
+          .select("-password")
+          .populate(
+            "course",
+            "name mainLevel grade fee classMode maxStudents"
+          );
 
       return res.json({
         success: true,
 
         message:
-          `${currentGrade} completed successfully. No next grade found.`,
+          "Level completed and next level unlocked",
 
-        completedLevel:
+        completedGrade:
           currentGrade,
 
-        currentLevel:
-          currentMainLevel,
+        nextGrade:
+          nextCourse.grade,
 
-        currentGrade:
-          currentGrade,
+        nextCourse: {
+          id: nextCourse._id,
+          name: nextCourse.name,
+          mainLevel:
+            nextCourse.mainLevel,
+          grade:
+            nextCourse.grade,
+        },
 
-        completedLevels:
-          student.completedLevels,
+        student:
+          updatedStudent,
+      });
 
-        progress: 100,
+    } catch (error) {
+      console.error(
+        "COMPLETE LEVEL ERROR:",
+        error
+      );
 
-        finalLevel: true,
+      return res.status(500).json({
+        success: false,
+        message:
+          "Failed to complete level",
+        error:
+          error.message,
       });
     }
-
-    // ======================================
-    // MOVE TO NEXT COURSE
-    // ======================================
-
-    student.course =
-      nextCourse._id;
-
-    // Store current grade
-    student.grade =
-      nextCourse.grade;
-
-    // Store main level
-    student.level =
-      nextCourse.mainLevel;
-
-    // Keep selectedLevel compatible
-    student.selectedLevel =
-      nextCourse.grade;
-
-    // Batch = current grade
-    student.batch =
-      nextCourse.grade;
-
-    // Reset progress
-    student.progress = 0;
-
-    await student.save();
-
-    // ======================================
-    // RESPONSE
-    // ======================================
-
-    return res.json({
-      success: true,
-
-      message:
-        `${currentGrade} completed successfully`,
-
-      completedLevel:
-        currentGrade,
-
-      currentLevel:
-        nextCourse.mainLevel,
-
-      currentGrade:
-        nextCourse.grade,
-
-      completedLevels:
-        student.completedLevels,
-
-      progress: 0,
-
-      finalLevel: false,
-
-      nextCourse: {
-        _id: nextCourse._id,
-        name: nextCourse.name,
-        mainLevel:
-          nextCourse.mainLevel,
-        grade:
-          nextCourse.grade,
-      },
-    });
-
-  } catch (err) {
-
-    console.log(
-      "COMPLETE LEVEL ERROR:",
-      err
-    );
-
-    return res.status(500).json({
-      success: false,
-      message:
-        "Failed to complete grade",
-      error: err.message,
-    });
   }
-});
-
+);
 
 // ======================================
 // GET TEACHER STUDENTS
