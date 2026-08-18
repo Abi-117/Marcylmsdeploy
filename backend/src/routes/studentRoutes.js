@@ -34,51 +34,68 @@ router.put("/complete-level/:studentId", async (req, res) => {
     if (!payments.length) {
       return res.status(400).json({
         success: false,
-        message: "No payment/course found",
+        message: "No payment found for this student",
       });
     }
 
-    // Latest payment = current course
+    // ======================================
+    // FIND PAYMENT WITH VALID GRADE
+    // ======================================
+
+    const validPayments = payments.filter(
+      (payment) =>
+        payment.course &&
+        payment.course.grade
+    );
+
+    if (!validPayments.length) {
+      return res.status(400).json({
+        success: false,
+        message: "Current course grade not found",
+      });
+    }
+
+    // Latest course having grade
     const activePayment =
-      payments[payments.length - 1];
+      validPayments[validPayments.length - 1];
 
     const currentCourse =
       activePayment.course;
 
-    if (!currentCourse) {
-      return res.status(400).json({
-        success: false,
-        message: "Current course not found",
-      });
-    }
-
-    // ======================================
-    // CURRENT GRADE
-    // ======================================
-
     const currentGrade =
-      currentCourse.grade;
+      String(currentCourse.grade).trim();
 
     const currentMainLevel =
-      currentCourse.mainLevel;
+      String(
+        currentCourse.mainLevel || ""
+      ).trim();
 
     const currentCourseName =
-      currentCourse.name;
+      String(
+        currentCourse.name || ""
+      ).trim();
 
-    console.log(
-      "CURRENT COURSE:",
-      currentCourseName
-    );
+    console.log("========== COMPLETE LEVEL ==========");
+    console.log("Student:", student._id);
+    console.log("Course:", currentCourseName);
+    console.log("Main Level:", currentMainLevel);
+    console.log("Current Grade:", currentGrade);
+    console.log("====================================");
 
-    console.log(
-      "CURRENT MAIN LEVEL:",
-      currentMainLevel
-    );
+    // ======================================
+    // VALIDATE GRADE
+    // ======================================
 
-    console.log(
-      "CURRENT GRADE:",
-      currentGrade
-    );
+    const gradeMatch =
+      currentGrade.match(/\d+/);
+
+    if (!gradeMatch) {
+      return res.status(400).json({
+        success: false,
+        message:
+          `Invalid grade format: ${currentGrade}`,
+      });
+    }
 
     // ======================================
     // COMPLETED LEVELS
@@ -99,49 +116,28 @@ router.put("/complete-level/:studentId", async (req, res) => {
     }
 
     // ======================================
-    // GET GRADE NUMBER
-    // Example:
-    // Grade 1 -> 1
-    // Grade 2 -> 2
+    // NEXT GRADE
     // ======================================
 
-    const match =
-      String(currentGrade).match(/\d+/);
-
-    if (!match) {
-      return res.status(400).json({
-        success: false,
-        message:
-          `Invalid grade format: ${currentGrade}`,
-      });
-    }
-
     const currentNumber =
-      Number(match[0]);
+      Number(gradeMatch[0]);
 
     const nextNumber =
       currentNumber + 1;
 
-    // ======================================
-    // NEXT GRADE
-    // ======================================
-
     const nextGrade =
-      String(currentGrade).replace(
+      currentGrade.replace(
         /\d+/,
         String(nextNumber)
       );
 
     console.log(
-      "NEXT GRADE:",
+      "Next Grade:",
       nextGrade
     );
 
     // ======================================
     // FIND NEXT COURSE
-    // Same course name
-    // Same main level
-    // Next grade
     // ======================================
 
     const nextCourse =
@@ -152,7 +148,7 @@ router.put("/complete-level/:studentId", async (req, res) => {
       });
 
     // ======================================
-    // NO NEXT COURSE
+    // FINAL GRADE
     // ======================================
 
     if (!nextCourse) {
@@ -164,7 +160,7 @@ router.put("/complete-level/:studentId", async (req, res) => {
         success: true,
 
         message:
-          `${currentGrade} completed successfully`,
+          `${currentGrade} completed successfully. No next grade found.`,
 
         completedLevel:
           currentGrade,
@@ -182,19 +178,21 @@ router.put("/complete-level/:studentId", async (req, res) => {
     }
 
     // ======================================
-    // MOVE STUDENT TO NEXT COURSE
+    // MOVE TO NEXT COURSE
     // ======================================
 
     student.course =
       nextCourse._id;
 
+    // Store actual grade here
     student.selectedLevel =
       nextGrade;
 
+    // Keep main level here
     student.level =
       currentMainLevel;
 
-    // New grade starts at 0%
+    // Reset progress
     student.progress = 0;
 
     await student.save();
@@ -211,31 +209,30 @@ router.put("/complete-level/:studentId", async (req, res) => {
       currentLevel:
         nextGrade,
 
-      nextCourse: {
-        _id: nextCourse._id,
-        name: nextCourse.name,
-        mainLevel: nextCourse.mainLevel,
-        grade: nextCourse.grade,
-      },
-
       completedLevels:
         student.completedLevels,
 
       progress: 0,
 
       finalLevel: false,
+
+      nextCourse: {
+        _id: nextCourse._id,
+        name: nextCourse.name,
+        mainLevel: nextCourse.mainLevel,
+        grade: nextCourse.grade,
+      },
     });
 
   } catch (err) {
     console.log(
-      "COMPLETE GRADE ERROR:",
+      "COMPLETE LEVEL ERROR:",
       err
     );
 
     return res.status(500).json({
       success: false,
-      message:
-        "Failed to complete grade",
+      message: "Failed to complete grade",
       error: err.message,
     });
   }
@@ -280,37 +277,48 @@ router.get("/teacher/:teacherId", async (req, res) => {
       .select("-password");
 
     // 🔥 ADD PAYMENT HISTORY (THIS IS THE FIX)
-   const enrichedStudents = await Promise.all(
+const enrichedStudents = await Promise.all(
   students.map(async (s) => {
+
     const payments = await Payment.find({
       student: s._id,
     })
       .populate("course")
       .sort({ createdAt: 1 });
 
-    const completedLevels = Array.isArray(s.completedLevels)
-      ? s.completedLevels
-      : [];
+    const completedLevels =
+      Array.isArray(s.completedLevels)
+        ? s.completedLevels
+        : [];
+
+    // ======================================
+    // CURRENT COURSE = STUDENT COURSE
+    // ======================================
+
+    const currentCourse = s.course;
 
     const currentLevel =
+      currentCourse?.grade ||
       s.selectedLevel ||
-      s.level ||
-      payments[payments.length - 1]?.course?.grade ||
-      "Beginner";
+      "Not Assigned";
 
     return {
       ...s.toObject(),
 
       payments,
 
-      // CURRENT LEVEL
+      // CURRENT GRADE
       currentLevel,
 
-      // ACTUAL COMPLETED LEVELS
+      // CURRENT COURSE
+      currentCourse: currentCourse || null,
+
+      // COMPLETED GRADES
       completedLevels,
 
       // COUNT
-      completedLevelCount: completedLevels.length,
+      completedLevelCount:
+        completedLevels.length,
     };
   })
 );
