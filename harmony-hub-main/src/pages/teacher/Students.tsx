@@ -171,7 +171,19 @@ const [completingId, setCompletingId] = useState<string | null>(null);
                     </div>
                   </div>
 
-                <LevelBadge level={currentGrade} />
+                <LevelBadge
+  level={
+    s.level ||
+    activePayment?.course?.mainLevel ||
+    "Not Assigned"
+  }
+/>
+<div className="text-xs text-muted-foreground">
+  Grade:{" "}
+  {activePayment?.course?.grade ||
+    s.selectedLevel ||
+    "Not Assigned"}
+</div>
                 </div>
 
                 {/* DETAILS */}
@@ -236,9 +248,18 @@ const [completingId, setCompletingId] = useState<string | null>(null);
   </div>
 
   <div className="mt-2">
-    <div className="text-lg font-bold">
-      {currentGrade}
-    </div>
+   <div className="text-lg font-bold">
+  {s.level ||
+    activePayment?.course?.mainLevel ||
+    "Not Assigned"}
+</div>
+
+<div className="mt-1 text-sm font-medium">
+  Grade:{" "}
+  {activePayment?.course?.grade ||
+    s.selectedLevel ||
+    "Not Assigned"}
+</div>
 
     <div className="text-sm text-muted-foreground">
       {s.course?.name ||
