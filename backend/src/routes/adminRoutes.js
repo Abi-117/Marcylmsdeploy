@@ -18,30 +18,26 @@ import { sendMail } from "../utils/mailer.js";
 const router = express.Router();
 
 
+
 router.get("/dashboard", async (req, res) => {
   try {
-
     // =========================
     // COUNTS
     // =========================
 
-    const totalStudents =
-      await User.countDocuments({
-        role: "student",
-      });
+    const totalStudents = await User.countDocuments({
+      role: "student",
+    });
 
-    const totalTeachers =
-      await User.countDocuments({
-        role: "teacher",
-      });
+    const totalTeachers = await User.countDocuments({
+      role: "teacher",
+    });
 
-    const liveClasses =
-      await ClassModel.countDocuments({
-        status: "Upcoming",
-      });
+    const liveClasses = await ClassModel.countDocuments({
+      status: "Upcoming",
+    });
 
-    const totalCourses =
-      await Course.countDocuments();
+    const totalCourses = await Course.countDocuments();
 
     // =========================
     // CERTIFICATES
@@ -56,203 +52,188 @@ router.get("/dashboard", async (req, res) => {
     // PAYMENTS
     // =========================
 
-    const paidPayments =
-      await Payment.find({
-        status: "Paid",
-      });
+    const paidPayments = await Payment.find({
+      status: "Paid",
+    });
 
-    const totalRevenue =
-      paidPayments.reduce(
-        (sum, p) =>
-          sum + (p.amount || 0),
-        0
-      );
+    // Separate INR and USD revenue
+    // Old records without currency are treated as INR
 
-    const pendingPayments =
-      await Payment.countDocuments({
-        status: "Pending",
-      });
+    const totalRevenueINR = paidPayments
+      .filter((p) => !p.currency || p.currency === "INR")
+      .reduce((sum, p) => sum + Number(p.amount || 0), 0);
+
+    const totalRevenueUSD = paidPayments
+      .filter((p) => p.currency === "USD")
+      .reduce((sum, p) => sum + Number(p.amount || 0), 0);
+
+    const pendingPayments = await Payment.countDocuments({
+      status: "Pending",
+    });
 
     // =========================
     // MONTH REVENUE
     // =========================
 
-    const startOfMonth =
-      new Date(
-        new Date().getFullYear(),
-        new Date().getMonth(),
-        1
-      );
+    const startOfMonth = new Date(
+      new Date().getFullYear(),
+      new Date().getMonth(),
+      1
+    );
 
-    const monthlyPayments =
-      await Payment.find({
-        createdAt: {
-          $gte: startOfMonth,
-        },
-        status: "Paid",
-      });
+    const monthlyPayments = await Payment.find({
+      createdAt: {
+        $gte: startOfMonth,
+      },
+      status: "Paid",
+    });
 
-    const monthRevenue =
-      monthlyPayments.reduce(
-        (sum, p) =>
-          sum + (p.amount || 0),
-        0
-      );
+    const monthRevenueINR = monthlyPayments
+      .filter((p) => !p.currency || p.currency === "INR")
+      .reduce((sum, p) => sum + Number(p.amount || 0), 0);
+
+    const monthRevenueUSD = monthlyPayments
+      .filter((p) => p.currency === "USD")
+      .reduce((sum, p) => sum + Number(p.amount || 0), 0);
 
     // =========================
     // RECENT PAYMENTS
     // =========================
 
-    const recentPayments =
-      await Payment.find()
-        .populate(
-          "student",
-          "name email"
-        )
-        .populate(
-          "course",
-          "name grade mainLevel"
-        )
-        .sort({
-          createdAt: -1,
-        })
-        .limit(5);
+    const recentPayments = await Payment.find()
+      .populate("student", "name email")
+      .populate("course", "name grade mainLevel")
+      .sort({
+        createdAt: -1,
+      })
+      .limit(5)
+      .lean();
 
     // =========================
     // REVENUE CHART
+    // Separate currency-wise
     // =========================
 
-    const revenueData =
-      await Payment.aggregate([
-        {
-          $match: {
-            status: "Paid",
-          },
+    const revenueData = await Payment.aggregate([
+      {
+        $match: {
+          status: "Paid",
         },
-        {
-          $group: {
-            _id: {
+      },
+      {
+        $group: {
+          _id: {
+            month: {
               $dateToString: {
                 format: "%Y-%m",
                 date: "$createdAt",
               },
             },
-            revenue: {
-              $sum: "$amount",
+            currency: {
+              $ifNull: ["$currency", "INR"],
             },
           },
-        },
-        {
-          $sort: {
-            _id: 1,
+          revenue: {
+            $sum: "$amount",
           },
         },
-        {
-          $project: {
-            _id: 0,
-            month: "$_id",
-            revenue: 1,
-          },
+      },
+      {
+        $sort: {
+          "_id.month": 1,
         },
-      ]);
+      },
+      {
+        $project: {
+          _id: 0,
+          month: "$_id.month",
+          currency: "$_id.currency",
+          revenue: 1,
+        },
+      },
+    ]);
 
     // =========================
     // ATTENDANCE CHART
     // =========================
 
-    const attendanceRecords =
-      await Attendance.find();
+    const attendanceRecords = await Attendance.find();
 
     const grouped = {};
 
-    attendanceRecords.forEach(
-      (a) => {
+    attendanceRecords.forEach((a) => {
+      if (!a.date) return;
 
-        if (!a.date) return;
+      const week =
+        "W" +
+        Math.ceil(new Date(a.date).getDate() / 7);
 
-        const week =
-          "W" +
-          Math.ceil(
-            new Date(
-              a.date
-            ).getDate() / 7
-          );
-
-        if (!grouped[week]) {
-
-          grouped[week] = {
-            present: 0,
-            absent: 0,
-          };
-
-        }
-
-        if (
-          a.status === "present"
-        ) {
-
-          grouped[week]
-            .present++;
-
-        } else {
-
-          grouped[week]
-            .absent++;
-
-        }
-
+      if (!grouped[week]) {
+        grouped[week] = {
+          present: 0,
+          absent: 0,
+        };
       }
-    );
 
-    const attendanceData =
-      Object.keys(grouped).map(
-        (week) => ({
-          week,
-          ...grouped[week],
-        })
-      );
+      if (a.status === "present") {
+        grouped[week].present++;
+      } else {
+        grouped[week].absent++;
+      }
+    });
+
+    const attendanceData = Object.keys(grouped).map(
+      (week) => ({
+        week,
+        ...grouped[week],
+      })
+    );
 
     // =========================
     // TOP STUDENTS
     // =========================
 
-    const topStudents =
-      await User.find({
-        role: "student",
-      })
-        .select(
-          "name course"
-        )
-        .limit(5);
+    const topStudents = await User.find({
+      role: "student",
+    })
+      .select("name course")
+      .limit(5);
 
     // =========================
     // UPCOMING CLASSES
     // =========================
 
-    const classes =
-      await ClassModel.find({
-        status: {
-          $ne: "Completed",
-        },
-      }).sort({
-        date: 1,
-      });
+    const classes = await ClassModel.find({
+      status: {
+        $ne: "Completed",
+      },
+    }).sort({
+      date: 1,
+    });
 
     // =========================
     // RESPONSE
     // =========================
 
     res.json({
+      // New currency-wise revenue
+      totalRevenueINR,
+      totalRevenueUSD,
 
-      totalRevenue,
+      monthRevenueINR,
+      monthRevenueUSD,
+
+      // Legacy fields: INR only, to avoid
+      // combining INR and USD values
+      totalRevenue: totalRevenueINR,
+      monthRevenue: monthRevenueINR,
+
       totalStudents,
       totalTeachers,
       liveClasses,
-
       totalCourses,
       pendingCertificates,
       pendingPayments,
-      monthRevenue,
 
       recentPayments,
 
@@ -260,25 +241,17 @@ router.get("/dashboard", async (req, res) => {
       attendanceData,
       topStudents,
       classes,
-
     });
-
   } catch (err) {
-
-    console.log(
-      "Dashboard Error:",
-      err
-    );
+    console.log("Dashboard Error:", err);
 
     res.status(500).json({
-      message:
-        "Dashboard error",
-      error:
-        err.message,
+      message: "Dashboard error",
+      error: err.message,
     });
-
   }
 });
+
 
 // GET STUDENTS
 // GET STUDENTS

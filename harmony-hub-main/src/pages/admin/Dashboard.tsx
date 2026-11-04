@@ -6,50 +6,80 @@ import {
   GraduationCap,
   Video,
   Award,
-  Clock,
   BookOpen,
   TrendingUp,
   Loader2,
-  ArrowUpRight,
 } from "lucide-react";
 
 const API = "https://marcylmsdeploy-2.onrender.com/api";
 
+const formatCurrency = (amount: number, currency = "INR") =>
+  new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: currency === "USD" ? "USD" : "INR",
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(Number(amount) || 0);
+
+type DashboardData = {
+  totalRevenueINR: number;
+  totalRevenueUSD: number;
+  monthRevenueINR: number;
+  monthRevenueUSD: number;
+  totalStudents: number;
+  totalTeachers: number;
+  liveClasses: number;
+  pendingCertificates: number;
+  pendingPayments: number;
+  totalCourses: number;
+};
+
 export default function AdminOverview() {
   const [recentPayments, setRecentPayments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [dashboard, setDashboard] = useState({
-    totalRevenue: 0,
+
+  const [dashboard, setDashboard] = useState<DashboardData>({
+    totalRevenueINR: 0,
+    totalRevenueUSD: 0,
+    monthRevenueINR: 0,
+    monthRevenueUSD: 0,
     totalStudents: 0,
     totalTeachers: 0,
     liveClasses: 0,
     pendingCertificates: 0,
     pendingPayments: 0,
     totalCourses: 0,
-    monthRevenue: 0,
   });
 
   useEffect(() => {
-    (async () => {
+    const fetchDashboard = async () => {
       try {
         const res = await axios.get(`${API}/admin/dashboard`);
-        setRecentPayments((res.data.recentPayments || []).slice(0, 5));
+
+        setRecentPayments(
+          (res.data.recentPayments || []).slice(0, 5)
+        );
+
         setDashboard({
-          totalRevenue: res.data.totalRevenue || 0,
-          totalStudents: res.data.totalStudents || 0,
-          totalTeachers: res.data.totalTeachers || 0,
-          liveClasses: res.data.liveClasses || 0,
-          pendingCertificates: res.data.pendingCertificates || 0,
-          pendingPayments: res.data.pendingPayments || 0,
-          totalCourses: res.data.totalCourses || 0,
-          monthRevenue: res.data.monthRevenue || 0,
+          totalRevenueINR: Number(res.data.totalRevenueINR || 0),
+          totalRevenueUSD: Number(res.data.totalRevenueUSD || 0),
+          monthRevenueINR: Number(res.data.monthRevenueINR || 0),
+          monthRevenueUSD: Number(res.data.monthRevenueUSD || 0),
+          totalStudents: Number(res.data.totalStudents || 0),
+          totalTeachers: Number(res.data.totalTeachers || 0),
+          liveClasses: Number(res.data.liveClasses || 0),
+          pendingCertificates: Number(res.data.pendingCertificates || 0),
+          pendingPayments: Number(res.data.pendingPayments || 0),
+          totalCourses: Number(res.data.totalCourses || 0),
         });
-      } catch (e) {
-        console.log(e);
+      } catch (error) {
+        console.error("Dashboard fetch error:", error);
       } finally {
         setLoading(false);
       }
-    })();
+    };
+
+    fetchDashboard();
   }, []);
 
   if (loading) {
@@ -57,7 +87,9 @@ export default function AdminOverview() {
       <div className="min-h-screen flex items-center justify-center bg-slate-50">
         <div className="flex items-center gap-3 text-slate-600">
           <Loader2 className="animate-spin" size={20} />
-          <span className="text-sm font-medium">Loading dashboard…</span>
+          <span className="text-sm font-medium">
+            Loading dashboard...
+          </span>
         </div>
       </div>
     );
@@ -76,9 +108,12 @@ export default function AdminOverview() {
               Overview of academy performance and activity
             </p>
           </div>
+
           <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-50 border border-emerald-200">
             <span className="h-2 w-2 rounded-full bg-emerald-500" />
-            <span className="text-xs font-medium text-emerald-700">Live</span>
+            <span className="text-xs font-medium text-emerald-700">
+              Live
+            </span>
           </div>
         </div>
       </div>
@@ -87,23 +122,33 @@ export default function AdminOverview() {
         {/* Primary KPIs */}
         <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <KpiCard
-            label="Total Revenue"
-            value={`₹${dashboard.totalRevenue.toLocaleString()}`}
+            label="Total Revenue (INR)"
+            value={formatCurrency(dashboard.totalRevenueINR, "INR")}
             icon={<Wallet size={18} />}
             accent="text-emerald-600"
           />
+
+          <KpiCard
+            label="Total Revenue (USD)"
+            value={formatCurrency(dashboard.totalRevenueUSD, "USD")}
+            icon={<Wallet size={18} />}
+            accent="text-blue-600"
+          />
+
           <KpiCard
             label="Students"
             value={dashboard.totalStudents}
             icon={<Users size={18} />}
             accent="text-indigo-600"
           />
+
           <KpiCard
             label="Teachers"
             value={dashboard.totalTeachers}
             icon={<GraduationCap size={18} />}
             accent="text-violet-600"
           />
+
           <KpiCard
             label="Live Classes"
             value={dashboard.liveClasses}
@@ -120,29 +165,32 @@ export default function AdminOverview() {
             icon={<Award size={16} />}
             tone="amber"
           />
-          {/* <MiniCard
-            label="Pending Payments"
-            value={dashboard.pendingPayments}
-            icon={<Clock size={16} />}
-            tone="orange"
-          /> */}
+
           <MiniCard
             label="Active Courses"
             value={dashboard.totalCourses}
             icon={<BookOpen size={16} />}
             tone="sky"
           />
+
           <MiniCard
-            label="Monthly Revenue"
-            value={`₹${dashboard.monthRevenue.toLocaleString()}`}
+            label="Monthly Revenue (INR)"
+            value={formatCurrency(dashboard.monthRevenueINR, "INR")}
             icon={<TrendingUp size={16} />}
             tone="emerald"
+          />
+
+          <MiniCard
+            label="Monthly Revenue (USD)"
+            value={formatCurrency(dashboard.monthRevenueUSD, "USD")}
+            icon={<TrendingUp size={16} />}
+            tone="sky"
           />
         </section>
 
         {/* Recent payments */}
         <section className="bg-white border border-slate-200 rounded-xl overflow-hidden">
-          <header className="px-6 py-4 border-b border-slate-200 flex items-center justify-between">
+          <header className="px-6 py-4 border-b border-slate-200">
             <div>
               <h2 className="text-sm font-semibold text-slate-900">
                 Recent Payments
@@ -151,12 +199,13 @@ export default function AdminOverview() {
                 Latest transactions across the academy
               </p>
             </div>
-            
           </header>
 
           {recentPayments.length === 0 ? (
             <div className="px-6 py-16 text-center">
-              <p className="text-sm text-slate-500">No payments found</p>
+              <p className="text-sm text-slate-500">
+                No payments found
+              </p>
             </div>
           ) : (
             <div className="overflow-x-auto">
@@ -169,27 +218,38 @@ export default function AdminOverview() {
                     <th className="px-6 py-3 text-right">Amount</th>
                   </tr>
                 </thead>
+
                 <tbody className="divide-y divide-slate-100">
-                  {recentPayments.map((p: any, i: number) => (
-                    <tr key={i} className="hover:bg-slate-50 transition-colors">
+                  {recentPayments.map((p: any) => (
+                    <tr
+                      key={p._id}
+                      className="hover:bg-slate-50 transition-colors"
+                    >
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
                           <div className="h-8 w-8 rounded-full bg-slate-900 text-white text-xs font-semibold flex items-center justify-center">
                             {p.student?.name?.[0]?.toUpperCase() || "?"}
                           </div>
+
                           <span className="font-medium text-slate-900">
                             {p.student?.name || "—"}
                           </span>
                         </div>
                       </td>
+
                       <td className="px-6 py-4 text-slate-600">
                         {p.course?.grade || "—"}
                       </td>
+
                       <td className="px-6 py-4">
                         <StatusBadge status={p.status} />
                       </td>
+
                       <td className="px-6 py-4 text-right font-semibold text-slate-900 tabular-nums">
-                        ₹{Number(p.amount || 0).toLocaleString()}
+                        {formatCurrency(
+                          p.amount,
+                          p.currency || "INR"
+                        )}
                       </td>
                     </tr>
                   ))}
@@ -222,8 +282,9 @@ function KpiCard({
         <span className="text-xs font-medium text-slate-500 uppercase tracking-wider">
           {label}
         </span>
-        <span className={`${accent}`}>{icon}</span>
+        <span className={accent}>{icon}</span>
       </div>
+
       <div className="text-2xl font-semibold text-slate-900 tabular-nums">
         {value}
       </div>
@@ -248,6 +309,7 @@ function MiniCard({
     sky: "bg-sky-50 text-sky-700 border-sky-200",
     emerald: "bg-emerald-50 text-emerald-700 border-emerald-200",
   };
+
   return (
     <div className="bg-white border border-slate-200 rounded-xl p-5 flex items-center gap-4">
       <div
@@ -255,8 +317,11 @@ function MiniCard({
       >
         {icon}
       </div>
+
       <div className="min-w-0">
-        <div className="text-xs font-medium text-slate-500">{label}</div>
+        <div className="text-xs font-medium text-slate-500">
+          {label}
+        </div>
         <div className="text-lg font-semibold text-slate-900 tabular-nums truncate">
           {value}
         </div>
@@ -267,6 +332,7 @@ function MiniCard({
 
 function StatusBadge({ status }: { status?: string }) {
   const s = (status || "").toLowerCase();
+
   const styles =
     s === "approved" || s === "paid" || s === "success"
       ? "bg-emerald-50 text-emerald-700 border-emerald-200"
@@ -275,6 +341,7 @@ function StatusBadge({ status }: { status?: string }) {
       : s === "rejected" || s === "failed"
       ? "bg-rose-50 text-rose-700 border-rose-200"
       : "bg-slate-50 text-slate-700 border-slate-200";
+
   return (
     <span
       className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border capitalize ${styles}`}
