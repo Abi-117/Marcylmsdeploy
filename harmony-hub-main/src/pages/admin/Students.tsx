@@ -26,6 +26,37 @@ import {
   AvatarFallback,
 } from "@/components/ui/avatar";
 
+
+// Currency formatter: Razorpay payments are INR and PayPal payments are USD.
+const formatCurrency = (amount: number | string | null | undefined, currency = "INR") => {
+  const value = Number(amount || 0);
+  const safeCurrency = currency === "USD" ? "USD" : "INR";
+
+  return new Intl.NumberFormat("en-IN", {
+    style: "currency",
+    currency: safeCurrency,
+    maximumFractionDigits: 2,
+  }).format(value);
+};
+
+const formatStudentFeesPaid = (student: any) => {
+  // Prefer currency-wise totals from the API to avoid adding INR and USD together.
+  if (
+    student?.feesPaidINR !== undefined ||
+    student?.feesPaidUSD !== undefined
+  ) {
+    return [
+      formatCurrency(student.feesPaidINR, "INR"),
+      formatCurrency(student.feesPaidUSD, "USD"),
+    ].join(" / ");
+  }
+
+  return formatCurrency(
+    student?.feesPaid,
+    student?.feesPaidCurrency || "INR"
+  );
+};
+
 function AdminStudents() {
 
   const [students, setStudents] =
@@ -983,14 +1014,19 @@ function AdminStudents() {
         <div>
           <p className="text-xs text-muted-foreground">Fees Paid</p>
           <p className="font-medium">
-            ₹{selectedStudent.feesPaid?.toLocaleString() || 0}
+            {formatStudentFeesPaid(selectedStudent)}
           </p>
         </div>
 
         <div>
           <p className="text-xs text-muted-foreground">Remaining Fees</p>
           <p className="font-medium">
-            ₹{selectedStudent.remainingFees || 0}
+            {formatCurrency(
+              selectedStudent.remainingFeesINR ??
+                selectedStudent.remainingFees ??
+                0,
+              selectedStudent.remainingFeesCurrency || "INR"
+            )}
           </p>
         </div>
 
@@ -1071,7 +1107,10 @@ function AdminStudents() {
         <div>
           <p className="text-xs text-muted-foreground">Last Payment</p>
          <p className="font-medium">
-  ₹{selectedStudent.lastPayment?.amount || 0}
+  {formatCurrency(
+              selectedStudent.lastPayment?.amount || 0,
+              selectedStudent.lastPayment?.currency || "INR"
+            )}
 </p>
         </div>
 
