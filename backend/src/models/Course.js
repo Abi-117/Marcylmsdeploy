@@ -1,3 +1,4 @@
+
 import mongoose from "mongoose";
 
 const courseSchema = new mongoose.Schema(
@@ -22,9 +23,17 @@ const courseSchema = new mongoose.Schema(
       required: true,
     },
 
+    // India course price
     fee: {
       type: Number,
       required: true,
+    },
+
+    // Future use: separate international USD price
+    feeUSD: {
+      type: Number,
+      default: null,
+      min: 0,
     },
 
     icon: String,
@@ -33,7 +42,7 @@ const courseSchema = new mongoose.Schema(
 
     classMode: {
       type: String,
-      enum: ["Individual", "Group"], // Removed "Both"
+      enum: ["Individual", "Group"],
       default: "Individual",
       required: true,
     },
@@ -43,11 +52,6 @@ const courseSchema = new mongoose.Schema(
       default: 1,
       min: 1,
     },
-
-    // students: {
-    //   type: Number,
-    //   default: 0,
-    // },
 
     courseName: String,
 

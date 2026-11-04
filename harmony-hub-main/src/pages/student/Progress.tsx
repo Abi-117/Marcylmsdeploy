@@ -114,6 +114,66 @@ useEffect(() => {
   };
 
   // =====================================
+// PAYPAL PAYMENT RETURN & CAPTURE
+// =====================================
+
+useEffect(() => {
+  const params = new URLSearchParams(window.location.search);
+
+  // If user cancels PayPal payment
+  if (params.get("paypal_cancel") === "1") {
+    window.history.replaceState(
+      {},
+      document.title,
+      window.location.pathname
+    );
+
+    alert("PayPal payment was cancelled.");
+    return;
+  }
+
+  // PayPal returns the order ID as "token"
+  const orderId = params.get("token");
+
+  if (!orderId) return;
+
+  // Remove query parameters to prevent repeated capture
+  window.history.replaceState(
+    {},
+    document.title,
+    window.location.pathname
+  );
+
+  const capturePayment = async () => {
+    try {
+      const { data } = await axios.post(
+        `${API}/payments/paypal/capture-order`,
+        {
+          orderId,
+          country: country || "International",
+        }
+      );
+
+      if (data.success) {
+        alert("PayPal Payment Successful!");
+        await fetchData();
+      } else {
+        alert("Payment verification failed.");
+      }
+    } catch (err: any) {
+      console.log(err);
+
+      alert(
+        err?.response?.data?.message ||
+        "PayPal payment verification failed."
+      );
+    }
+  };
+
+  capturePayment();
+}, [country]);
+
+  // =====================================
   // LOAD RAZORPAY
   // =====================================
 
@@ -332,29 +392,37 @@ useEffect(() => {
 
 
     const handlePaypalPayment = async () => {
-
   try {
+    if (!selectedCourse || !user?._id) {
+      alert("Course or user details missing");
+      return;
+    }
 
-    const { data } =
-      await axios.post(
-  `${API}/payments/paypal/create-order`,
-  {
-    amount: selectedCourse.fee,
-    classType: user?.classType,
-  }
-);
+    const { data } = await axios.post(
+      `${API}/payments/paypal/create-order`,
+      {
+        userId: user._id,
+        courseId: selectedCourse._id,
+        classType: user?.classType,
+        country: country,
+      }
+    );
 
-    window.location.href =
-      data.approvalUrl;
+    if (!data?.approvalUrl) {
+      throw new Error("PayPal approval URL not received");
+    }
 
-  } catch (err) {
+    window.location.href = data.approvalUrl;
 
+  } catch (err: any) {
     console.log(err);
 
-    alert("PayPal payment failed");
-
+    alert(
+      err?.response?.data?.message ||
+      err?.message ||
+      "PayPal payment failed"
+    );
   }
-
 };
 
   return (
@@ -651,7 +719,7 @@ useEffect(() => {
 
 </div>
 
-              {country === "India" ? (
+              {/* {country === "India" ? (
 
   <Button
     onClick={handleRazorpayPayment}
@@ -669,7 +737,13 @@ useEffect(() => {
   Pay with PayPal
 </Button>
 
-)}
+)} */}
+<Button
+  onClick={handlePaypalPayment}
+  className="mt-6 w-full bg-blue-600 text-white"
+>
+  Test PayPal Payment
+</Button>
 
 
               <Button

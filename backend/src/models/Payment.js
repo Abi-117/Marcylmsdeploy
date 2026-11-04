@@ -1,3 +1,4 @@
+
 import mongoose from "mongoose";
 
 const paymentSchema = new mongoose.Schema(
@@ -24,6 +25,14 @@ const paymentSchema = new mongoose.Schema(
       required: true,
     },
 
+    // Payment currency
+    currency: {
+      type: String,
+      enum: ["INR", "USD"],
+      default: "INR",
+      required: true,
+    },
+
     paymentId: {
       type: String,
       default: "",
@@ -43,34 +52,36 @@ const paymentSchema = new mongoose.Schema(
     paidAt: {
       type: Date,
     },
+
     nextDueDate: {
-  type: Date,
-},
+      type: Date,
+    },
 
-lastReminderSent: {
-  type: Date,
-},
+    lastReminderSent: {
+      type: Date,
+    },
 
-reminderCount: {
-  type: Number,
-  default: 0,
-},
-paymentGateway: {
-  type: String,
-  enum: ["razorpay", "paypal"],
-  default: "razorpay",
-},
+    reminderCount: {
+      type: Number,
+      default: 0,
+    },
 
-paymentCountry: {
-  type: String,
-  default: "India",
-},
-classType: {
-  type: String,
-  enum: ["Individual", "Group"],
-  required: true,
-},
+    paymentGateway: {
+      type: String,
+      enum: ["razorpay", "paypal"],
+      default: "razorpay",
+    },
 
+    paymentCountry: {
+      type: String,
+      default: "India",
+    },
+
+    classType: {
+      type: String,
+      enum: ["Individual", "Group"],
+      required: true,
+    },
   },
   {
     timestamps: true,

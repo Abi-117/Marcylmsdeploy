@@ -199,6 +199,7 @@ const payment = await Payment.create({
   paidAt: new Date(),
 
   paymentGateway: "razorpay",
+  currency: "INR",
   classType: req.body.classType || "Individual",
 });
 
@@ -657,7 +658,7 @@ router.get(
         )
 
         .text(
-          `₹${payment.amount}`,
+          `${payment.currency === "USD" ? "$" : "₹"}${Number(payment.amount).toFixed(2)}`,
           340,
           340
         )
@@ -705,120 +706,325 @@ router.get(
   }
 );
 
-router.post(
-  "/paypal/create-order",
-  async (req, res) => {
 
-    try {
+router.post("/paypal/create-order", async (req, res) => {
+  try {
+    const { userId, courseId, classType, country } = req.body;
 
-      const { amount } =
-        req.body;
-
-      const request =
-        new checkoutNodeJssdk.orders.OrdersCreateRequest();
-
-      request.prefer(
-        "return=representation"
-      );
-
-      request.requestBody({
-        intent: "CAPTURE",
-
-        purchase_units: [
-          {
-            amount: {
-              currency_code: "USD",
-
-              value:
-                Number(amount).toFixed(
-                  2
-                ),
-            },
-          },
-        ],
+    if (!userId || !courseId) {
+      return res.status(400).json({
+        success: false,
+        message: "User ID and Course ID are required",
       });
-
-      const order =
-        await paypalClient.execute(
-          request
-        );
-
-      res.json(order.result);
-
-    } catch (err) {
-
-      console.log(err);
-
-      res.status(500).json({
-        message:
-          "PayPal order failed",
-      });
-
     }
 
+    const user = await User.findById(userId);
+    const course = await Course.findById(courseId);
+
+    if (!user || !course) {
+      return res.status(404).json({
+        success: false,
+        message: "User or Course not found",
+      });
+    }
+
+    // Use the configured INR to USD exchange rate
+    const rate = Number(process.env.INR_TO_USD_RATE);
+
+    if (!Number.isFinite(rate) || rate <= 0) {
+      return res.status(500).json({
+        success: false,
+        message: "Invalid INR_TO_USD_RATE configuration",
+      });
+    }
+
+    if (!Number.isFinite(Number(course.fee)) || Number(course.fee) <= 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid course fee",
+      });
+    }
+
+    const usdAmount = (
+      Math.round(Number(course.fee) * rate * 100) / 100
+    ).toFixed(2);
+
+    const selectedClassType =
+      classType || user.classType || course.classMode || "Individual";
+
+    if (!["Individual", "Group"].includes(selectedClassType)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid class type",
+      });
+    }
+
+    // Store trusted payment details in PayPal order metadata
+    const customId = [
+      String(user._id),
+      String(course._id),
+      selectedClassType,
+    ].join("|");
+
+    const request =
+      new checkoutNodeJssdk.orders.OrdersCreateRequest();
+
+    request.prefer("return=representation");
+
+    request.requestBody({
+      intent: "CAPTURE",
+
+      purchase_units: [
+        {
+          custom_id: customId,
+          description: course.name,
+
+          amount: {
+            currency_code: "USD",
+            value: usdAmount,
+          },
+        },
+      ],
+
+      application_context: {
+        return_url: process.env.PAYPAL_RETURN_URL,
+        cancel_url: process.env.PAYPAL_CANCEL_URL,
+        user_action: "PAY_NOW",
+      },
+    });
+
+    const order = await paypalClient.execute(request);
+
+    const approvalUrl = order.result.links?.find(
+      (link) => link.rel === "approve"
+    )?.href;
+
+    if (!approvalUrl) {
+      return res.status(500).json({
+        success: false,
+        message: "PayPal approval URL not received",
+      });
+    }
+
+    return res.json({
+      success: true,
+      orderId: order.result.id,
+      approvalUrl,
+      currency: "USD",
+      amount: usdAmount,
+    });
+
+  } catch (err) {
+    console.error("PAYPAL CREATE ORDER ERROR:", err);
+
+    return res.status(500).json({
+      success: false,
+      message: "PayPal order creation failed",
+    });
   }
-);
-
-router.post(
-  "/paypal/capture-order",
-  async (req, res) => {
-
-    try {
-
-      const {
-        orderId,
-        userId,
-        courseId,
-        amount,
-        country,
-      } = req.body;
-
-      const request =
-        new checkoutNodeJssdk.orders.OrdersCaptureRequest(
-          orderId
-        );
-
-      request.requestBody({});
-
-      const capture =
-        await paypalClient.execute(
-          request
-        );
-
-      const course =
-        await Course.findById(
-          courseId
-        );
-
-        const payment = await Payment.create({
-  student: userId,
-  course: courseId,
-  amount,
-  status: "Paid",
-  paymentId: capture.result.id,
-  orderId,
-  paymentGateway: "paypal",
-  paymentCountry: country,
-  classType: classType || "Individual",
-  paidAt: new Date(),
 });
 
-      res.json({
-        success: true,
-        payment,
-      });
 
-    } catch (err) {
+router.post("/paypal/capture-order", async (req, res) => {
+  try {
+    const { orderId, country } = req.body;
 
-      console.log(err);
-
-      res.status(500).json({
+    if (!orderId) {
+      return res.status(400).json({
         success: false,
+        message: "PayPal order ID is required",
       });
-
     }
 
+    // Idempotency: do not capture or save the same order twice
+    const existingOrderPayment = await Payment.findOne({ orderId });
+
+    if (existingOrderPayment) {
+      return res.json({
+        success: true,
+        alreadyCaptured: true,
+        payment: existingOrderPayment,
+      });
+    }
+
+    // Get the approved PayPal order before capturing
+    const getRequest =
+      new checkoutNodeJssdk.orders.OrdersGetRequest(orderId);
+
+    const orderResponse = await paypalClient.execute(getRequest);
+    const paypalOrder = orderResponse.result;
+
+    if (paypalOrder.status !== "APPROVED") {
+      return res.status(400).json({
+        success: false,
+        message: "PayPal order has not been approved",
+      });
+    }
+
+    const purchaseUnit = paypalOrder.purchase_units?.[0];
+    const customId = purchaseUnit?.custom_id;
+
+    if (!customId) {
+      return res.status(400).json({
+        success: false,
+        message: "Payment metadata is missing",
+      });
+    }
+
+    const [userId, courseId, classType] = customId.split("|");
+
+    if (
+      !userId ||
+      !courseId ||
+      !["Individual", "Group"].includes(classType)
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid payment metadata",
+      });
+    }
+
+    const user = await User.findById(userId);
+    const course = await Course.findById(courseId);
+
+    if (!user || !course) {
+      return res.status(404).json({
+        success: false,
+        message: "User or Course not found",
+      });
+    }
+
+    // Check the expected amount again on the server
+    const rate = Number(process.env.INR_TO_USD_RATE);
+
+    if (!Number.isFinite(rate) || rate <= 0) {
+      return res.status(500).json({
+        success: false,
+        message: "Invalid INR_TO_USD_RATE configuration",
+      });
+    }
+
+    const expectedAmount = (
+      Math.round(Number(course.fee) * rate * 100) / 100
+    ).toFixed(2);
+
+    const orderedAmount = purchaseUnit.amount;
+
+    if (
+      orderedAmount?.currency_code !== "USD" ||
+      Number(orderedAmount?.value) !== Number(expectedAmount)
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "PayPal order amount validation failed",
+      });
+    }
+
+    // Capture payment
+    const captureRequest =
+      new checkoutNodeJssdk.orders.OrdersCaptureRequest(orderId);
+
+    captureRequest.requestBody({});
+
+    const captureResponse =
+      await paypalClient.execute(captureRequest);
+
+    const captureResult = captureResponse.result;
+
+    const capturedPayment =
+      captureResult.purchase_units?.[0]?.payments?.captures?.[0];
+
+    if (
+      captureResult.status !== "COMPLETED" ||
+      capturedPayment?.status !== "COMPLETED"
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "PayPal payment was not completed",
+      });
+    }
+
+    const capturedAmount = capturedPayment.amount;
+
+    if (
+      capturedAmount?.currency_code !== "USD" ||
+      Number(capturedAmount?.value) !== Number(expectedAmount)
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Captured payment amount does not match",
+      });
+    }
+
+    // Prevent duplicate paid course records
+    const existingPayment = await Payment.findOne({
+      student: userId,
+      course: courseId,
+      status: "Paid",
+    });
+
+    if (existingPayment) {
+      return res.json({
+        success: true,
+        alreadyPaid: true,
+        payment: existingPayment,
+      });
+    }
+
+    const payment = await Payment.create({
+      student: userId,
+      course: courseId,
+      level: course.mainLevel,
+      amount: Number(capturedAmount.value),
+      currency: "USD",
+      status: "Paid",
+      paymentId: capturedPayment.id,
+      orderId,
+      paymentGateway: "paypal",
+      paymentCountry: country || "International",
+      classType,
+      paidAt: new Date(),
+    });
+
+    // Update student access, same as Razorpay flow
+    user.paymentStatus = "Paid";
+    user.course = course._id;
+
+    if (!user.levelHistory) {
+      user.levelHistory = [];
+    }
+
+    user.levelHistory.push({
+      course: course._id,
+      grade: course.grade,
+      paidAt: new Date(),
+    });
+
+    if (!user.unlockedLevels) {
+      user.unlockedLevels = [];
+    }
+
+    if (!user.unlockedLevels.includes(course.grade)) {
+      user.unlockedLevels.push(course.grade);
+    }
+
+    await user.save();
+
+    return res.json({
+      success: true,
+      message: "PayPal payment captured successfully",
+      payment,
+    });
+
+  } catch (err) {
+    console.error("PAYPAL CAPTURE ERROR:", err);
+
+    return res.status(500).json({
+      success: false,
+      message: "PayPal payment capture failed",
+    });
   }
-);
+});
+
 
 export default router;
