@@ -254,79 +254,77 @@ router.get("/dashboard", async (req, res) => {
 
 
 // GET STUDENTS
+
 // GET STUDENTS
 router.get("/students", async (req, res) => {
   try {
-
-    const students =
-      await User.find({
-        role: "student",
-      })
+    const students = await User.find({
+      role: "student",
+    })
       .populate("course")
       .sort({ createdAt: -1 })
       .lean();
 
-    const formattedStudents =
-      await Promise.all(
-
-        students.map(async (student) => {
-
-          const payments =
-            await Payment.find({
-              student: student._id,
-              status: "Paid",
-            }).sort({
-              createdAt: 1,
-            });
-
-          const feesPaid =
-            payments.reduce(
-              (sum, p) =>
-                sum + (p.amount || 0),
-              0
-            );
-
-          const lastPayment =
-            payments.length > 0
-              ? payments[
-                  payments.length - 1
-                ]
-              : null;
-
-          return {
-
-            ...student,
-
-            totalPayments:
-              payments.length,
-
-            lastPayment:
-              lastPayment || null,
-
-            feesPaid,
-
-            remainingFees: 0,
-
-          };
-
+    const formattedStudents = await Promise.all(
+      students.map(async (student) => {
+        const payments = await Payment.find({
+          student: student._id,
+          status: "Paid",
         })
+          .sort({ createdAt: 1 })
+          .lean();
 
-      );
+        // Separate INR and USD payments
+        // Old records without currency are treated as INR
+        const feesPaidINR = payments
+          .filter((p) => !p.currency || p.currency === "INR")
+          .reduce(
+            (sum, p) => sum + Number(p.amount || 0),
+            0
+          );
 
-    res.json(
-      formattedStudents
+        const feesPaidUSD = payments
+          .filter((p) => p.currency === "USD")
+          .reduce(
+            (sum, p) => sum + Number(p.amount || 0),
+            0
+          );
+
+        const lastPayment =
+          payments.length > 0
+            ? payments[payments.length - 1]
+            : null;
+
+        return {
+          ...student,
+
+          totalPayments: payments.length,
+
+          lastPayment: lastPayment || null,
+
+          feesPaidINR,
+          feesPaidUSD,
+
+          // Legacy field for existing frontend compatibility
+          feesPaid: feesPaidINR,
+
+          remainingFees: 0,
+          remainingFeesINR: 0,
+          remainingFeesCurrency: "INR",
+        };
+      })
     );
 
+    res.json(formattedStudents);
   } catch (err) {
-
-    console.log(err);
+    console.log("Get Students Error:", err);
 
     res.status(500).json({
       message: err.message,
     });
-
   }
 });
+
 
 // ADD OFFLINE STUDENT
 router.post("/students", async (req, res) => {
